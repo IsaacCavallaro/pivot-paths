@@ -19,6 +19,7 @@ import SparkCuriosity from '@/components/career-transitions/skills-assessment/di
 import TryItOn from '@/components/career-transitions/skills-assessment/discover-your-direction/TryItOn';
 import BreakOutOfYourBubble from '@/components/career-transitions/skills-assessment/discover-your-direction/BreakOutOfYourBubble';
 import YourFirstExperiment from '@/components/career-transitions/skills-assessment/discover-your-direction/YourFirstExperiment';
+import DealBreakerGame from '@/components/career-transitions/skills-assessment/discover-your-direction/DealBreakerGame';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export default function PathDetailScreen() {
   const [showTryItOn, setShowTryItOn] = useState(false);
   const [showBreakOutOfYourBubble, setShowBreakOutOfYourBubble] = useState(false);
   const [showYourFirstExperiment, setShowYourFirstExperiment] = useState(false);
+  const [showDealBreakerGame, setShowDealBreakerGame] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -55,6 +57,7 @@ export default function PathDetailScreen() {
   const [showVoiceMessage, setShowVoiceMessage] = useState(false);
   const [voiceMessageResult, setVoiceMessageResult] = useState<boolean>(false);
   const [YourFirstExperimentResult, setYourFirstExperimentResult] = useState<any>(null);
+  const [DealBreakerGameResult, setDealBreakerGameResult] = useState<any>(null);
 
   const path = getPathById(categoryId!, pathId!);
 
@@ -75,6 +78,7 @@ export default function PathDetailScreen() {
       setShowBreakOutOfYourBubble(false);
       setShowFlipScript(false);
       setShowVoiceMessage(false);
+      setShowDealBreakerGame(false);
       setShowYourFirstExperiment(false);
     }, [categoryId, pathId])
   );
@@ -220,6 +224,8 @@ export default function PathDetailScreen() {
         setShowSparkCuriosity(true);
       } else if (dayData.hasTryItOn) {
         setShowTryItOn(true);
+      } else if (dayData.hasDealBreakerGame) {
+        setShowDealBreakerGame(true);
       } else if (dayData.hasBreakOutOfYourBubble) {
         setShowBreakOutOfYourBubble(true);
       } else if (dayData.hasFlipScript) {
@@ -341,6 +347,14 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleDealBreakerGameComplete = () => {
+    setDealBreakerGameResult(true);
+    setShowDealBreakerGame(false);
+    // Mark day as completed
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   const handleYourFirstExperimentComplete = (result: any) => {
     setYourFirstExperimentResult(result);
     setShowYourFirstExperiment(false);
@@ -362,6 +376,10 @@ export default function PathDetailScreen() {
 
   if (showLeadershipExperience) {
     return <LeadershipExperience onComplete={handleLeadershipComplete} />;
+  }
+
+  if (showDealBreakerGame) {
+    return <DealBreakerGame onComplete={handleDealBreakerGameComplete} />;
   }
 
   if (showMythBuster) {
