@@ -20,6 +20,7 @@ import TryItOn from '@/components/career-transitions/skills-assessment/discover-
 import BreakOutOfYourBubble from '@/components/career-transitions/skills-assessment/discover-your-direction/BreakOutOfYourBubble';
 import YourFirstExperiment from '@/components/career-transitions/skills-assessment/discover-your-direction/YourFirstExperiment';
 import DealBreakerGame from '@/components/career-transitions/skills-assessment/discover-your-direction/DealBreakerGame';
+import StartWithYourStrengths from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/StartWithYourStrengths';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -40,6 +41,8 @@ export default function PathDetailScreen() {
   const [showBreakOutOfYourBubble, setShowBreakOutOfYourBubble] = useState(false);
   const [showYourFirstExperiment, setShowYourFirstExperiment] = useState(false);
   const [showDealBreakerGame, setShowDealBreakerGame] = useState(false);
+  const [showStartWithYourStrenghts, setShowStartWithYourStrengths] = useState(false);
+
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -58,6 +61,7 @@ export default function PathDetailScreen() {
   const [voiceMessageResult, setVoiceMessageResult] = useState<boolean>(false);
   const [YourFirstExperimentResult, setYourFirstExperimentResult] = useState<any>(null);
   const [DealBreakerGameResult, setDealBreakerGameResult] = useState<any>(null);
+  const [StartWithYourStrengthsResult, setStartWithYourStrengthsResult] = useState<any>(null);
 
   const path = getPathById(categoryId!, pathId!);
 
@@ -80,6 +84,7 @@ export default function PathDetailScreen() {
       setShowVoiceMessage(false);
       setShowDealBreakerGame(false);
       setShowYourFirstExperiment(false);
+      setShowStartWithYourStrengths(false);
     }, [categoryId, pathId])
   );
 
@@ -235,6 +240,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasYourFirstExperiment) {
         setCurrentDay(dayNumber);
         setShowYourFirstExperiment(true);
+      } else if (dayData.hasStartWithYourStrengths) {
+        setCurrentDay(dayNumber);
+        setShowStartWithYourStrengths(true);
       }
     }
   };
@@ -362,6 +370,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleStartWithYourStrengthsComplete = (result: any) => {
+    setStartWithYourStrengthsResult(result);
+    setShowStartWithYourStrengths(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -428,6 +443,10 @@ export default function PathDetailScreen() {
 
   if (showYourFirstExperiment) {
     return <YourFirstExperiment onComplete={handleYourFirstExperimentComplete} />;
+  }
+
+  if (showStartWithYourStrenghts) {
+    return <StartWithYourStrengths onComplete={handleStartWithYourStrengthsComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
