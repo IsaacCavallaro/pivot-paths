@@ -22,6 +22,7 @@ import YourFirstExperiment from '@/components/career-transitions/skills-assessme
 import DealBreakerGame from '@/components/career-transitions/skills-assessment/discover-your-direction/DealBreakerGame';
 import StartWithYourStrengths from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/StartWithYourStrengths';
 import FindYourLearningStyle from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/FindYourLearningStyle';
+import WorkBackwards from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/WorkBackwards';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -45,6 +46,7 @@ export default function PathDetailScreen() {
   const [showStartWithYourStrenghts, setShowStartWithYourStrengths] = useState(false);
   const [showVoiceMessage, setShowVoiceMessage] = useState(false);
   const [showFindYourLearningStyle, setShowFindYourLearningStyle] = useState(false);
+  const [showWorkBackwards, setShowWorkBackwards] = useState(false);
 
 
   const [quizResult, setQuizResult] = useState<any>(null);
@@ -65,6 +67,7 @@ export default function PathDetailScreen() {
   const [DealBreakerGameResult, setDealBreakerGameResult] = useState<any>(null);
   const [StartWithYourStrengthsResult, setStartWithYourStrengthsResult] = useState<any>(null);
   const [FindYourLearningStyleResult, setFindYourLearningStyleResult] = useState<any>(null);
+  const [WorkBackwardsResult, setWorkBackwardsResult] = useState<any>(null);
 
   const path = getPathById(categoryId!, pathId!);
 
@@ -89,6 +92,7 @@ export default function PathDetailScreen() {
       setShowYourFirstExperiment(false);
       setShowStartWithYourStrengths(false);
       setShowFindYourLearningStyle(false);
+      setShowWorkBackwards(false);
     }, [categoryId, pathId])
   );
 
@@ -247,10 +251,12 @@ export default function PathDetailScreen() {
       } else if (dayData.hasStartWithYourStrengths) {
         setCurrentDay(dayNumber);
         setShowStartWithYourStrengths(true);
-      }
-      else if (dayData.hasFindYourLearningStyle) {
+      } else if (dayData.hasFindYourLearningStyle) {
         setCurrentDay(dayNumber);
         setShowFindYourLearningStyle(true);
+      } else if (dayData.hasWorkBackwards) {
+        setCurrentDay(dayNumber);
+        setShowWorkBackwards(true);
       }
     }
   };
@@ -392,6 +398,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleWorkBackwardsComplete = (result: any) => {
+    setWorkBackwardsResult(result);
+    setShowWorkBackwards(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -466,6 +479,10 @@ export default function PathDetailScreen() {
 
   if (showFindYourLearningStyle) {
     return <FindYourLearningStyle onComplete={handleFindYourLearningStyleComplete} />;
+  }
+
+  if (showWorkBackwards) {
+    return <WorkBackwards onComplete={handleWorkBackwardsComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
