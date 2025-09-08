@@ -28,6 +28,13 @@ export interface PathDay {
   hasOvercomeAnalysis?: boolean;
   hasEmbraceTheBeginner?: boolean;
   hasJustStart?: boolean;
+  hasConfidenceGap?: boolean;
+  hasCureImposterSyndrome?: boolean;
+  hasTalkTheTalk?: boolean;
+  hasDanceSkillMatch?: boolean;
+  hasLinkedinUpgrade?: boolean;
+  hasWhoWouldYouHire?: boolean;
+  hasMakeYourPlan?: boolean;
 }
 
 export interface Path {
@@ -256,6 +263,58 @@ export const categories: Category[] = [
             title: 'Just Start',
             content: '',
             hasJustStart: true,
+          },
+        ],
+      },
+      {
+        id: 'prep-your-pivot',
+        title: 'Prep Your Pivot',
+        subtitle: '',
+        description: 'Making a big career change is as much about mindset as it is about skills. This quick check will help you see where your confidence tends to dip, so you know what to focus on as you prep your pivot.',
+        duration: '7 days',
+        totalDays: 7,
+        days: [
+          {
+            day: 1,
+            title: 'Confidence Gap',
+            content: 'Making a big career change is as much about mindset as it is about skills. This quick check will help you see where your confidence tends to dip, so you know what to focus on as you prep your pivot.',
+            hasConfidenceGap: true,
+          },
+          {
+            day: 2,
+            title: 'Cure Imposter Syndrome',
+            content: 'Play button with a pre-recorded voice message for users to listen to',
+            hasCureImposterSyndrome: true,
+          },
+          {
+            day: 3,
+            title: 'Talk The Talk',
+            content: 'When it comes to interviewing and networking, it can come down to learning how to “talk the talk” in a way the outside world understands. Capitalize on your dance experience by talking about it in muggle terms.',
+            hasTalkTheTalk: true,
+          },
+          {
+            day: 4,
+            title: 'Dance Skill Match',
+            content: 'Match the dance skill with the career skill',
+            hasDanceSkillMatch: true,
+          },
+          {
+            day: 5,
+            title: 'LinkedIn Upgrade',
+            content: 'Most dancers aren’t active on LinkedIn. But the truth is, this is the main platform where recruiters and employers are definitely hanging out. ',
+            hasLinkedinUpgrade: true,
+          },
+          {
+            day: 6,
+            title: 'Who Would You Hire?',
+            content: 'Take yourself out of the equation and pretend YOU are the hiring manager putting another dancer in the hot seat for an interview. Put yourself in their shoes and decide who you would hire.',
+            hasWhoWouldYouHire: true,
+          },
+          {
+            day: 7,
+            title: 'Make Your Plant',
+            content: 'Choose the answer that best describes your situation to help you create your career game plan. But there’s no right or wrong! It’s just your starting point and we’ll build from there.',
+            hasMakeYourPlan: true,
           },
         ],
       },
