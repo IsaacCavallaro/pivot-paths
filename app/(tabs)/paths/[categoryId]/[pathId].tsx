@@ -30,6 +30,7 @@ import JustStart from '@/components/career-transitions/skills-assessment/upskill
 import ConfidenceGap from '@/components/career-transitions/skills-assessment/prep-your-pivot/ConfidenceGap';
 import CureImposterSyndrome from '@/components/career-transitions/skills-assessment/prep-your-pivot/CureImposterSyndrome';
 import TalkTheTalk from '@/components/career-transitions/skills-assessment/prep-your-pivot/TalkTheTalk';
+import DanceSkillMatch from '@/components/career-transitions/skills-assessment/prep-your-pivot/DanceSkillMatch';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -61,6 +62,7 @@ export default function PathDetailScreen() {
   const [showConfidenceGap, setShowConfidenceGap] = useState(false);
   const [showCureImposterSyndrome, setShowCureImposterSyndrome] = useState(false);
   const [showTalkTheTalk, setShowTalkTheTalk] = useState(false);
+  const [showDanceSkillMatch, setShowDanceSkillMatch] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -88,6 +90,7 @@ export default function PathDetailScreen() {
   const [ConfidenceGapResult, setConfidenceGapResult] = useState<any>(null);
   const [CureImposterSyndromeResult, setCureImposterSyndromeResult] = useState<any>(null);
   const [TalkTheTalkResult, setTalkTheTalkResult] = useState<any>(null);
+  const [DanceSkillMatchResult, setDanceSkillMatchResult] = useState<any>(null);
 
 
 
@@ -123,6 +126,7 @@ export default function PathDetailScreen() {
       setShowConfidenceGap(false);
       setShowCureImposterSyndrome(false);
       setShowTalkTheTalk(false);
+      setShowDanceSkillMatch(false);
     }, [categoryId, pathId])
   );
 
@@ -305,10 +309,12 @@ export default function PathDetailScreen() {
       } else if (dayData.hasCureImposterSyndrome) {
         setCurrentDay(dayNumber);
         setShowCureImposterSyndrome(true);
-      }
-      else if (dayData.hasTalkTheTalk) {
+      } else if (dayData.hasTalkTheTalk) {
         setCurrentDay(dayNumber);
         setShowTalkTheTalk(true);
+      } else if (dayData.hasDanceSkillMatch) {
+        setCurrentDay(dayNumber);
+        setShowDanceSkillMatch(true);
       }
     }
   };
@@ -506,6 +512,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleDanceSkillMatchComplete = (result: any) => {
+    setDanceSkillMatchResult(result);
+    setShowDanceSkillMatch(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -612,6 +625,10 @@ export default function PathDetailScreen() {
 
   if (showTalkTheTalk) {
     return <TalkTheTalk onComplete={handleTalkTheTalkComplete} />;
+  }
+
+  if (showDanceSkillMatch) {
+    return <DanceSkillMatch onComplete={handleDanceSkillMatchComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
