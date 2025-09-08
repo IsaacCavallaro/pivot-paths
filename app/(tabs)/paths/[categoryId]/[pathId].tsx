@@ -24,6 +24,7 @@ import StartWithYourStrengths from '@/components/career-transitions/skills-asses
 import FindYourLearningStyle from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/FindYourLearningStyle';
 import WorkBackwards from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/WorkBackwards';
 import YourHiddenNetwork from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/YourHiddenNetwork';
+import OvercomeAnalysisParalysis from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/OvercomeAnalysisParalysis';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function PathDetailScreen() {
   const [showFindYourLearningStyle, setShowFindYourLearningStyle] = useState(false);
   const [showWorkBackwards, setShowWorkBackwards] = useState(false);
   const [showYourHiddenNetwork, setShowYourHiddenNetwork] = useState(false);
-
+  const [showOvercomeAnalysisParalysis, setShowOvercomeAnalysisParalysis] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -71,6 +72,7 @@ export default function PathDetailScreen() {
   const [FindYourLearningStyleResult, setFindYourLearningStyleResult] = useState<any>(null);
   const [WorkBackwardsResult, setWorkBackwardsResult] = useState<any>(null);
   const [YourHiddenNetworkResult, setYourHiddenNetworkResult] = useState<any>(null);
+  const [OvercomeAnalysisParalysisResult, setOvercomeAnalysisParalysisResult] = useState<any>(null);
 
   const path = getPathById(categoryId!, pathId!);
 
@@ -97,6 +99,7 @@ export default function PathDetailScreen() {
       setShowFindYourLearningStyle(false);
       setShowWorkBackwards(false);
       setShowYourHiddenNetwork(false);
+      setShowOvercomeAnalysisParalysis(false);
     }, [categoryId, pathId])
   );
 
@@ -264,6 +267,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasYourHiddenNetwork) {
         setCurrentDay(dayNumber);
         setShowYourHiddenNetwork(true);
+      } else if (dayData.hasOvercomeAnalysis) {
+        setCurrentDay(dayNumber);
+        setShowOvercomeAnalysisParalysis(true);
       }
     }
   };
@@ -419,6 +425,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleOvercomeAnalysisParalysisComplete = (result: any) => {
+    setOvercomeAnalysisParalysisResult(result);
+    setShowOvercomeAnalysisParalysis(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -501,6 +514,10 @@ export default function PathDetailScreen() {
 
   if (showYourHiddenNetwork) {
     return <YourHiddenNetwork onComplete={handleYourHiddenNetworkComplete} />;
+  }
+
+  if (showOvercomeAnalysisParalysis) {
+    return <OvercomeAnalysisParalysis onComplete={handleOvercomeAnalysisParalysisComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
