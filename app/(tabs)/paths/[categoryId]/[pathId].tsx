@@ -26,6 +26,7 @@ import WorkBackwards from '@/components/career-transitions/skills-assessment/ups
 import YourHiddenNetwork from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/YourHiddenNetwork';
 import OvercomeAnalysisParalysis from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/OvercomeAnalysisParalysis';
 import EmbraceTheBeginner from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/EmbraceTheBeginner';
+import JustStart from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/JustStart';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -53,6 +54,7 @@ export default function PathDetailScreen() {
   const [showYourHiddenNetwork, setShowYourHiddenNetwork] = useState(false);
   const [showOvercomeAnalysisParalysis, setShowOvercomeAnalysisParalysis] = useState(false);
   const [showEmbraceTheBeginner, setShowEmbraceTheBeginner] = useState(false);
+  const [showJustStart, setShowJustStart] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -76,6 +78,8 @@ export default function PathDetailScreen() {
   const [YourHiddenNetworkResult, setYourHiddenNetworkResult] = useState<any>(null);
   const [OvercomeAnalysisParalysisResult, setOvercomeAnalysisParalysisResult] = useState<any>(null);
   const [EmbraceTheBeginnerResult, setEmbraceTheBeginnerResult] = useState<any>(null);
+  const [JustStartResult, setJustStartResult] = useState<any>(null);
+
 
   const path = getPathById(categoryId!, pathId!);
 
@@ -104,6 +108,7 @@ export default function PathDetailScreen() {
       setShowYourHiddenNetwork(false);
       setShowOvercomeAnalysisParalysis(false);
       setShowEmbraceTheBeginner(false);
+      setShowJustStart(false);
     }, [categoryId, pathId])
   );
 
@@ -278,6 +283,10 @@ export default function PathDetailScreen() {
         setCurrentDay(dayNumber);
         setShowEmbraceTheBeginner(true);
       }
+      else if (dayData.hasJustStart) {
+        setCurrentDay(dayNumber);
+        setShowJustStart(true);
+      }
     }
   };
 
@@ -446,6 +455,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleJustStartComplete = (result: any) => {
+    setJustStartResult(result);
+    setShowJustStart(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -536,6 +552,10 @@ export default function PathDetailScreen() {
 
   if (showEmbraceTheBeginner) {
     return <EmbraceTheBeginner onComplete={handleEmbraceTheBeginnerComplete} />;
+  }
+
+  if (showJustStart) {
+    return <JustStart onComplete={handleJustStartComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
