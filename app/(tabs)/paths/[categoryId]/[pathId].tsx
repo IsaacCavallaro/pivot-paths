@@ -20,6 +20,13 @@ import TryItOn from '@/components/career-transitions/skills-assessment/discover-
 import BreakOutOfYourBubble from '@/components/career-transitions/skills-assessment/discover-your-direction/BreakOutOfYourBubble';
 import YourFirstExperiment from '@/components/career-transitions/skills-assessment/discover-your-direction/YourFirstExperiment';
 import DealBreakerGame from '@/components/career-transitions/skills-assessment/discover-your-direction/DealBreakerGame';
+import StartWithYourStrengths from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/StartWithYourStrengths';
+import FindYourLearningStyle from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/FindYourLearningStyle';
+import WorkBackwards from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/WorkBackwards';
+import YourHiddenNetwork from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/YourHiddenNetwork';
+import OvercomeAnalysisParalysis from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/OvercomeAnalysisParalysis';
+import EmbraceTheBeginner from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/EmbraceTheBeginner';
+import JustStart from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/JustStart';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -40,6 +47,14 @@ export default function PathDetailScreen() {
   const [showBreakOutOfYourBubble, setShowBreakOutOfYourBubble] = useState(false);
   const [showYourFirstExperiment, setShowYourFirstExperiment] = useState(false);
   const [showDealBreakerGame, setShowDealBreakerGame] = useState(false);
+  const [showStartWithYourStrenghts, setShowStartWithYourStrengths] = useState(false);
+  const [showVoiceMessage, setShowVoiceMessage] = useState(false);
+  const [showFindYourLearningStyle, setShowFindYourLearningStyle] = useState(false);
+  const [showWorkBackwards, setShowWorkBackwards] = useState(false);
+  const [showYourHiddenNetwork, setShowYourHiddenNetwork] = useState(false);
+  const [showOvercomeAnalysisParalysis, setShowOvercomeAnalysisParalysis] = useState(false);
+  const [showEmbraceTheBeginner, setShowEmbraceTheBeginner] = useState(false);
+  const [showJustStart, setShowJustStart] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -54,10 +69,17 @@ export default function PathDetailScreen() {
   const [BreakOutOfYourBubbleResult, setBreakOutOfYourBubbleResult] = useState<any>(null);
   const [showFlipScript, setShowFlipScript] = useState(false);
   const [flipScriptResult, setFlipScriptResult] = useState<boolean>(false);
-  const [showVoiceMessage, setShowVoiceMessage] = useState(false);
   const [voiceMessageResult, setVoiceMessageResult] = useState<boolean>(false);
   const [YourFirstExperimentResult, setYourFirstExperimentResult] = useState<any>(null);
   const [DealBreakerGameResult, setDealBreakerGameResult] = useState<any>(null);
+  const [StartWithYourStrengthsResult, setStartWithYourStrengthsResult] = useState<any>(null);
+  const [FindYourLearningStyleResult, setFindYourLearningStyleResult] = useState<any>(null);
+  const [WorkBackwardsResult, setWorkBackwardsResult] = useState<any>(null);
+  const [YourHiddenNetworkResult, setYourHiddenNetworkResult] = useState<any>(null);
+  const [OvercomeAnalysisParalysisResult, setOvercomeAnalysisParalysisResult] = useState<any>(null);
+  const [EmbraceTheBeginnerResult, setEmbraceTheBeginnerResult] = useState<any>(null);
+  const [JustStartResult, setJustStartResult] = useState<any>(null);
+
 
   const path = getPathById(categoryId!, pathId!);
 
@@ -80,6 +102,13 @@ export default function PathDetailScreen() {
       setShowVoiceMessage(false);
       setShowDealBreakerGame(false);
       setShowYourFirstExperiment(false);
+      setShowStartWithYourStrengths(false);
+      setShowFindYourLearningStyle(false);
+      setShowWorkBackwards(false);
+      setShowYourHiddenNetwork(false);
+      setShowOvercomeAnalysisParalysis(false);
+      setShowEmbraceTheBeginner(false);
+      setShowJustStart(false);
     }, [categoryId, pathId])
   );
 
@@ -235,6 +264,28 @@ export default function PathDetailScreen() {
       } else if (dayData.hasYourFirstExperiment) {
         setCurrentDay(dayNumber);
         setShowYourFirstExperiment(true);
+      } else if (dayData.hasStartWithYourStrengths) {
+        setCurrentDay(dayNumber);
+        setShowStartWithYourStrengths(true);
+      } else if (dayData.hasFindYourLearningStyle) {
+        setCurrentDay(dayNumber);
+        setShowFindYourLearningStyle(true);
+      } else if (dayData.hasWorkBackwards) {
+        setCurrentDay(dayNumber);
+        setShowWorkBackwards(true);
+      } else if (dayData.hasYourHiddenNetwork) {
+        setCurrentDay(dayNumber);
+        setShowYourHiddenNetwork(true);
+      } else if (dayData.hasOvercomeAnalysis) {
+        setCurrentDay(dayNumber);
+        setShowOvercomeAnalysisParalysis(true);
+      } else if (dayData.hasEmbraceTheBeginner) {
+        setCurrentDay(dayNumber);
+        setShowEmbraceTheBeginner(true);
+      }
+      else if (dayData.hasJustStart) {
+        setCurrentDay(dayNumber);
+        setShowJustStart(true);
       }
     }
   };
@@ -362,6 +413,55 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleStartWithYourStrengthsComplete = (result: any) => {
+    setStartWithYourStrengthsResult(result);
+    setShowStartWithYourStrengths(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleFindYourLearningStyleComplete = (result: any) => {
+    setFindYourLearningStyleResult(result);
+    setShowFindYourLearningStyle(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleWorkBackwardsComplete = (result: any) => {
+    setWorkBackwardsResult(result);
+    setShowWorkBackwards(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleYourHiddenNetworkComplete = (result: any) => {
+    setYourHiddenNetworkResult(result);
+    setShowYourHiddenNetwork(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleOvercomeAnalysisParalysisComplete = (result: any) => {
+    setOvercomeAnalysisParalysisResult(result);
+    setShowOvercomeAnalysisParalysis(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleEmbraceTheBeginnerComplete = (result: any) => {
+    setEmbraceTheBeginnerResult(result);
+    setShowEmbraceTheBeginner(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleJustStartComplete = (result: any) => {
+    setJustStartResult(result);
+    setShowJustStart(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -428,6 +528,34 @@ export default function PathDetailScreen() {
 
   if (showYourFirstExperiment) {
     return <YourFirstExperiment onComplete={handleYourFirstExperimentComplete} />;
+  }
+
+  if (showStartWithYourStrenghts) {
+    return <StartWithYourStrengths onComplete={handleStartWithYourStrengthsComplete} />;
+  }
+
+  if (showFindYourLearningStyle) {
+    return <FindYourLearningStyle onComplete={handleFindYourLearningStyleComplete} />;
+  }
+
+  if (showWorkBackwards) {
+    return <WorkBackwards onComplete={handleWorkBackwardsComplete} />;
+  }
+
+  if (showYourHiddenNetwork) {
+    return <YourHiddenNetwork onComplete={handleYourHiddenNetworkComplete} />;
+  }
+
+  if (showOvercomeAnalysisParalysis) {
+    return <OvercomeAnalysisParalysis onComplete={handleOvercomeAnalysisParalysisComplete} />;
+  }
+
+  if (showEmbraceTheBeginner) {
+    return <EmbraceTheBeginner onComplete={handleEmbraceTheBeginnerComplete} />;
+  }
+
+  if (showJustStart) {
+    return <JustStart onComplete={handleJustStartComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);

@@ -21,6 +21,13 @@ export interface PathDay {
   hasBreakOutOfYourBubble?: boolean;
   hasDealBreakerGame?: boolean;
   hasYourFirstExperiment?: boolean;
+  hasStartWithYourStrengths?: boolean;
+  hasFindYourLearningStyle?: boolean;
+  hasWorkBackwards?: boolean;
+  hasYourHiddenNetwork?: boolean;
+  hasOvercomeAnalysis?: boolean;
+  hasEmbraceTheBeginner?: boolean;
+  hasJustStart?: boolean;
 }
 
 export interface Path {
@@ -197,6 +204,58 @@ export const categories: Category[] = [
             title: 'Your First Experiment',
             content: 'It’s time to put ideas into action.Today, you’re going to try one small experiment to explore a career you’re curious about.The goal isn’t perfection… it’s discovery.',
             hasYourFirstExperiment: true,
+          },
+        ],
+      },
+      {
+        id: 'upskilling-pathfinder',
+        title: 'Upskilling Pathfinder',
+        subtitle: '',
+        description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Each step in the path helps you explore career options you may have never considered and start taking action towards landing a job in the industry that’s works for you.',
+        duration: '7 days',
+        totalDays: 7,
+        days: [
+          {
+            day: 1,
+            title: 'Start With Your Strengths',
+            content: 'Match your natural strengths as a dancer with relevant job titles.',
+            hasStartWithYourStrengths: true,
+          },
+          {
+            day: 2,
+            title: 'Find Your Learing Style?',
+            content: 'Let’s face it. Starting your career change will likely require you to learn a thing or two (at least!). So it’s useful to know how you learn best so that when it comes to upskilling, you can choose the most effective path.',
+            hasFindYourLearningStyle: true,
+          },
+          {
+            day: 3,
+            title: 'Work Backwards',
+            content: 'Not sure what skills to learn first? The best place to look is in real job descriptions. They show you what employers actually value.',
+            hasWorkBackwards: true,
+          },
+          {
+            day: 4,
+            title: 'Your Hidden Network',
+            content: 'This is a game of instincts to uncover your hidden network. Choose the answer that makes the most sense for you. There’s no right or wrong!',
+            hasYourHiddenNetwork: true,
+          },
+          {
+            day: 5,
+            title: 'Overcome Analysis Paralysis',
+            content: 'Match the thought that keeps you stuck with the action that breaks the pattern.',
+            hasOvercomeAnalysis: true,
+          },
+          {
+            day: 6,
+            title: 'Embrace the Beginner',
+            content: '',
+            hasEmbraceTheBeginner: true,
+          },
+          {
+            day: 7,
+            title: 'Just Start',
+            content: '',
+            hasJustStart: true,
           },
         ],
       },
