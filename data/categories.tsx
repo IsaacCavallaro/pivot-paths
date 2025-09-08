@@ -312,7 +312,7 @@ export const categories: Category[] = [
           },
           {
             day: 7,
-            title: 'Make Your Plant',
+            title: 'Make Your Plan',
             content: 'Choose the answer that best describes your situation to help you create your career game plan. But there’s no right or wrong! It’s just your starting point and we’ll build from there.',
             hasMakeYourPlan: true,
           },

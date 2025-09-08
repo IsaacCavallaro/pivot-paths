@@ -32,6 +32,8 @@ import CureImposterSyndrome from '@/components/career-transitions/skills-assessm
 import TalkTheTalk from '@/components/career-transitions/skills-assessment/prep-your-pivot/TalkTheTalk';
 import DanceSkillMatch from '@/components/career-transitions/skills-assessment/prep-your-pivot/DanceSkillMatch';
 import LinkedinUpgrade from '@/components/career-transitions/skills-assessment/prep-your-pivot/LinkedinUpgrade';
+import WhoWouldYouHire from '@/components/career-transitions/skills-assessment/prep-your-pivot/WhoWouldYouHire';
+import MakeYourPlan from '@/components/career-transitions/skills-assessment/prep-your-pivot/MakeYourPlan';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -65,6 +67,8 @@ export default function PathDetailScreen() {
   const [showTalkTheTalk, setShowTalkTheTalk] = useState(false);
   const [showDanceSkillMatch, setShowDanceSkillMatch] = useState(false);
   const [showLinkedinUpgrade, setShowLinkedinUpgrade] = useState(false);
+  const [showWhoWouldYouHire, setShowWhoWouldYouHire] = useState(false);
+  const [showMakeYourPlan, setShowMakeYourPlan] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -94,6 +98,8 @@ export default function PathDetailScreen() {
   const [TalkTheTalkResult, setTalkTheTalkResult] = useState<any>(null);
   const [DanceSkillMatchResult, setDanceSkillMatchResult] = useState<any>(null);
   const [LinkedinUpgradeResult, setLinkedinUpgradeResult] = useState<any>(null);
+  const [WhoWouldYouHireResult, setWhoWouldYouHireResult] = useState<any>(null);
+  const [MakeYourPlanResult, setMakeYourPlanResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -129,6 +135,8 @@ export default function PathDetailScreen() {
       setShowTalkTheTalk(false);
       setShowDanceSkillMatch(false);
       setShowLinkedinUpgrade(false);
+      setShowWhoWouldYouHire(false);
+      setShowMakeYourPlan(false);
     }, [categoryId, pathId])
   );
 
@@ -320,6 +328,12 @@ export default function PathDetailScreen() {
       } else if (dayData.hasLinkedinUpgrade) {
         setCurrentDay(dayNumber);
         setShowLinkedinUpgrade(true);
+      } else if (dayData.hasWhoWouldYouHire) {
+        setCurrentDay(dayNumber);
+        setShowWhoWouldYouHire(true);
+      } else if (dayData.hasMakeYourPlan) {
+        setCurrentDay(dayNumber);
+        setShowMakeYourPlan(true);
       }
     }
   };
@@ -531,6 +545,20 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleWhoWouldYouHireComplete = (result: any) => {
+    setWhoWouldYouHireResult(result);
+    setShowWhoWouldYouHire(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleMakeYourPlanComplete = (result: any) => {
+    setMakeYourPlanResult(result);
+    setShowMakeYourPlan(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -645,6 +673,14 @@ export default function PathDetailScreen() {
 
   if (showLinkedinUpgrade) {
     return <LinkedinUpgrade onComplete={handleLinkedinUpgradeComplete} />;
+  }
+
+  if (showWhoWouldYouHire) {
+    return <WhoWouldYouHire onComplete={handleWhoWouldYouHireComplete} />;
+  }
+
+  if (showMakeYourPlan) {
+    return <MakeYourPlan onComplete={handleMakeYourPlanComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
