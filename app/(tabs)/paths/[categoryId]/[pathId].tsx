@@ -28,6 +28,7 @@ import OvercomeAnalysisParalysis from '@/components/career-transitions/skills-as
 import EmbraceTheBeginner from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/EmbraceTheBeginner';
 import JustStart from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/JustStart';
 import ConfidenceGap from '@/components/career-transitions/skills-assessment/prep-your-pivot/ConfidenceGap';
+import CureImposterSyndrome from '@/components/career-transitions/skills-assessment/prep-your-pivot/CureImposterSyndrome';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -57,6 +58,7 @@ export default function PathDetailScreen() {
   const [showEmbraceTheBeginner, setShowEmbraceTheBeginner] = useState(false);
   const [showJustStart, setShowJustStart] = useState(false);
   const [showConfidenceGap, setShowConfidenceGap] = useState(false);
+  const [showCureImposterSyndrome, setShowCureImposterSyndrome] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -82,6 +84,8 @@ export default function PathDetailScreen() {
   const [EmbraceTheBeginnerResult, setEmbraceTheBeginnerResult] = useState<any>(null);
   const [JustStartResult, setJustStartResult] = useState<any>(null);
   const [ConfidenceGapResult, setConfidenceGapResult] = useState<any>(null);
+  const [CureImposterSyndromeResult, setCureImposterSyndromeResult] = useState<any>(null);
+
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -113,6 +117,7 @@ export default function PathDetailScreen() {
       setShowEmbraceTheBeginner(false);
       setShowJustStart(false);
       setShowConfidenceGap(false);
+      setShowCureImposterSyndrome(false);
     }, [categoryId, pathId])
   );
 
@@ -292,6 +297,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasConfidenceGap) {
         setCurrentDay(dayNumber);
         setShowConfidenceGap(true);
+      } else if (dayData.hasCureImposterSyndrome) {
+        setCurrentDay(dayNumber);
+        setShowCureImposterSyndrome(true);
       }
     }
   };
@@ -475,6 +483,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleCureImposterSyndromeComplete = (result: any) => {
+    setCureImposterSyndromeResult(result);
+    setShowCureImposterSyndrome(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -573,6 +588,10 @@ export default function PathDetailScreen() {
 
   if (showConfidenceGap) {
     return <ConfidenceGap onComplete={handleConfidenceGapComplete} />;
+  }
+
+  if (showCureImposterSyndrome) {
+    return <CureImposterSyndrome onComplete={handleCureImposterSyndromeComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
