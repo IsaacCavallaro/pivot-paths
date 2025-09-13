@@ -38,6 +38,7 @@ import BeyondYourIdentity from '@/components/mindset-wellness/mindset-shifts/Bey
 import LettingGoOfValidation from '@/components/mindset-wellness/mindset-shifts/LettingGoOfValidation';
 import Grief from '@/components/mindset-wellness/mindset-shifts/Grief';
 import DecisionMaking from '@/components/mindset-wellness/mindset-shifts/DecisionMaking';
+import SunkCostFallacy from '@/components/mindset-wellness/mindset-shifts/SunkCostFallacy';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -77,6 +78,7 @@ export default function PathDetailScreen() {
   const [showLettingGoOfValidation, setShowLettingGoOfValidation] = useState(false);
   const [showGrief, setShowGrief] = useState(false);
   const [showDecisionMaking, setShowDecisionMaking] = useState(false);
+  const [showSunkCostFallacy, setShowSunkCostFallacy] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -112,6 +114,7 @@ export default function PathDetailScreen() {
   const [LettingGoOfValidationResult, setLettingGoOfValidationResult] = useState<any>(null);
   const [GriefResult, setGriefResult] = useState<any>(null);
   const [DecisionMakingResult, setDecisionMakingResult] = useState<any>(null);
+  const [SunkCostFallacyResult, setSunkCostFallacyResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -153,6 +156,7 @@ export default function PathDetailScreen() {
       setShowLettingGoOfValidation(false);
       setShowGrief(false);
       setShowDecisionMaking(false);
+      setShowSunkCostFallacy(false);
     }, [categoryId, pathId])
   );
 
@@ -362,6 +366,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasDecisionMaking) {
         setCurrentDay(dayNumber);
         setShowDecisionMaking(true);
+      } else if (dayData.hasSunkCostFallacy) {
+        setCurrentDay(dayNumber);
+        setShowSunkCostFallacy(true);
       }
     }
   };
@@ -615,6 +622,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleSunkCostFallacyComplete = (result: any) => {
+    setSunkCostFallacyResult(result);
+    setShowSunkCostFallacy(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -754,6 +768,11 @@ export default function PathDetailScreen() {
   if (showDecisionMaking) {
     return <DecisionMaking onComplete={handleDecisionMakingComplete} />;
   }
+
+  if (showSunkCostFallacy) {
+    return <SunkCostFallacy onComplete={handleSunkCostFallacyComplete} />;
+  }
+
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
 
