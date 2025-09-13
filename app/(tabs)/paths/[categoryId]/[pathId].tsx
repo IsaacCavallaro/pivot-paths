@@ -34,6 +34,7 @@ import DanceSkillMatch from '@/components/career-transitions/skills-assessment/p
 import LinkedinUpgrade from '@/components/career-transitions/skills-assessment/prep-your-pivot/LinkedinUpgrade';
 import WhoWouldYouHire from '@/components/career-transitions/skills-assessment/prep-your-pivot/WhoWouldYouHire';
 import MakeYourPlan from '@/components/career-transitions/skills-assessment/prep-your-pivot/MakeYourPlan';
+import BeyondYourIdentity from '@/components/mindset-wellness/mindset-shifts/BeyondYourIdentity';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -69,6 +70,7 @@ export default function PathDetailScreen() {
   const [showLinkedinUpgrade, setShowLinkedinUpgrade] = useState(false);
   const [showWhoWouldYouHire, setShowWhoWouldYouHire] = useState(false);
   const [showMakeYourPlan, setShowMakeYourPlan] = useState(false);
+  const [showBeyondYourIdentity, setShowBeyondYourIdentity] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -100,6 +102,7 @@ export default function PathDetailScreen() {
   const [LinkedinUpgradeResult, setLinkedinUpgradeResult] = useState<any>(null);
   const [WhoWouldYouHireResult, setWhoWouldYouHireResult] = useState<any>(null);
   const [MakeYourPlanResult, setMakeYourPlanResult] = useState<any>(null);
+  const [BeyondYourIdentityResult, setBeyondYourIdentityResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -137,6 +140,7 @@ export default function PathDetailScreen() {
       setShowLinkedinUpgrade(false);
       setShowWhoWouldYouHire(false);
       setShowMakeYourPlan(false);
+      setShowBeyondYourIdentity(false);
     }, [categoryId, pathId])
   );
 
@@ -334,6 +338,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasMakeYourPlan) {
         setCurrentDay(dayNumber);
         setShowMakeYourPlan(true);
+      } else if (dayData.hasBeyondYourIdentity) {
+        setCurrentDay(dayNumber);
+        setShowBeyondYourIdentity(true);
       }
     }
   };
@@ -559,6 +566,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleBeyondYourIdentityComplete = (result: any) => {
+    setBeyondYourIdentityResult(result);
+    setShowBeyondYourIdentity(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -681,6 +695,10 @@ export default function PathDetailScreen() {
 
   if (showMakeYourPlan) {
     return <MakeYourPlan onComplete={handleMakeYourPlanComplete} />;
+  }
+
+  if (showBeyondYourIdentity) {
+    return <BeyondYourIdentity onComplete={handleBeyondYourIdentityComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
