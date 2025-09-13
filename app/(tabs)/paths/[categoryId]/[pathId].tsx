@@ -40,6 +40,7 @@ import Grief from '@/components/mindset-wellness/mindset-shifts/Grief';
 import DecisionMaking from '@/components/mindset-wellness/mindset-shifts/DecisionMaking';
 import SunkCostFallacy from '@/components/mindset-wellness/mindset-shifts/SunkCostFallacy';
 import MissingDance from '@/components/mindset-wellness/mindset-shifts/MissingDance';
+import IgniteYourCuriosity from '@/components/mindset-wellness/mindset-shifts/IgniteYourCuriosity';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -81,6 +82,7 @@ export default function PathDetailScreen() {
   const [showDecisionMaking, setShowDecisionMaking] = useState(false);
   const [showSunkCostFallacy, setShowSunkCostFallacy] = useState(false);
   const [showMissingDance, setShowMissingDance] = useState(false);
+  const [showIgniteYourCuriosity, setShowIgniteYourCuriosity] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -118,6 +120,7 @@ export default function PathDetailScreen() {
   const [DecisionMakingResult, setDecisionMakingResult] = useState<any>(null);
   const [SunkCostFallacyResult, setSunkCostFallacyResult] = useState<any>(null);
   const [MissingDanceResult, setMissingDanceResult] = useState<any>(null);
+  const [IgniteYourCuriosityResult, setIgniteYourCuriosityResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -161,6 +164,7 @@ export default function PathDetailScreen() {
       setShowDecisionMaking(false);
       setShowSunkCostFallacy(false);
       setShowMissingDance(false);
+      setShowIgniteYourCuriosity(false);
     }, [categoryId, pathId])
   );
 
@@ -376,6 +380,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasMissingDance) {
         setCurrentDay(dayNumber);
         setShowMissingDance(true);
+      } else if (dayData.hasIgniteYourCuriosity) {
+        setCurrentDay(dayNumber);
+        setShowIgniteYourCuriosity(true);
       }
     }
   };
@@ -643,6 +650,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleIgniteYourCuriosityComplete = (result: any) => {
+    setIgniteYourCuriosityResult(result);
+    setShowIgniteYourCuriosity(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -791,6 +805,9 @@ export default function PathDetailScreen() {
     return <MissingDance onComplete={handleMissingDanceComplete} />;
   }
 
+  if (showIgniteYourCuriosity) {
+    return <IgniteYourCuriosity onComplete={handleIgniteYourCuriosityComplete} />;
+  }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
 
