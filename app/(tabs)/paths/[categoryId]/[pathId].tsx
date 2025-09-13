@@ -37,6 +37,7 @@ import MakeYourPlan from '@/components/career-transitions/skills-assessment/prep
 import BeyondYourIdentity from '@/components/mindset-wellness/mindset-shifts/BeyondYourIdentity';
 import LettingGoOfValidation from '@/components/mindset-wellness/mindset-shifts/LettingGoOfValidation';
 import Grief from '@/components/mindset-wellness/mindset-shifts/Grief';
+import DecisionMaking from '@/components/mindset-wellness/mindset-shifts/DecisionMaking';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -75,6 +76,7 @@ export default function PathDetailScreen() {
   const [showBeyondYourIdentity, setShowBeyondYourIdentity] = useState(false);
   const [showLettingGoOfValidation, setShowLettingGoOfValidation] = useState(false);
   const [showGrief, setShowGrief] = useState(false);
+  const [showDecisionMaking, setShowDecisionMaking] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -109,6 +111,7 @@ export default function PathDetailScreen() {
   const [BeyondYourIdentityResult, setBeyondYourIdentityResult] = useState<any>(null);
   const [LettingGoOfValidationResult, setLettingGoOfValidationResult] = useState<any>(null);
   const [GriefResult, setGriefResult] = useState<any>(null);
+  const [DecisionMakingResult, setDecisionMakingResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -149,6 +152,7 @@ export default function PathDetailScreen() {
       setShowBeyondYourIdentity(false);
       setShowLettingGoOfValidation(false);
       setShowGrief(false);
+      setShowDecisionMaking(false);
     }, [categoryId, pathId])
   );
 
@@ -355,6 +359,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasGrief) {
         setCurrentDay(dayNumber);
         setShowGrief(true);
+      } else if (dayData.hasDecisionMaking) {
+        setCurrentDay(dayNumber);
+        setShowDecisionMaking(true);
       }
     }
   };
@@ -601,6 +608,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleDecisionMakingComplete = (result: any) => {
+    setDecisionMakingResult(result);
+    setShowDecisionMaking(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -735,6 +749,10 @@ export default function PathDetailScreen() {
 
   if (showGrief) {
     return <Grief onComplete={handleGriefComplete} />;
+  }
+
+  if (showDecisionMaking) {
+    return <DecisionMaking onComplete={handleDecisionMakingComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
