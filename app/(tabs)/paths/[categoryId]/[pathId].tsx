@@ -39,6 +39,7 @@ import LettingGoOfValidation from '@/components/mindset-wellness/mindset-shifts/
 import Grief from '@/components/mindset-wellness/mindset-shifts/Grief';
 import DecisionMaking from '@/components/mindset-wellness/mindset-shifts/DecisionMaking';
 import SunkCostFallacy from '@/components/mindset-wellness/mindset-shifts/SunkCostFallacy';
+import MissingDance from '@/components/mindset-wellness/mindset-shifts/MissingDance';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -79,6 +80,7 @@ export default function PathDetailScreen() {
   const [showGrief, setShowGrief] = useState(false);
   const [showDecisionMaking, setShowDecisionMaking] = useState(false);
   const [showSunkCostFallacy, setShowSunkCostFallacy] = useState(false);
+  const [showMissingDance, setShowMissingDance] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -115,6 +117,7 @@ export default function PathDetailScreen() {
   const [GriefResult, setGriefResult] = useState<any>(null);
   const [DecisionMakingResult, setDecisionMakingResult] = useState<any>(null);
   const [SunkCostFallacyResult, setSunkCostFallacyResult] = useState<any>(null);
+  const [MissingDanceResult, setMissingDanceResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -157,6 +160,7 @@ export default function PathDetailScreen() {
       setShowGrief(false);
       setShowDecisionMaking(false);
       setShowSunkCostFallacy(false);
+      setShowMissingDance(false);
     }, [categoryId, pathId])
   );
 
@@ -369,6 +373,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasSunkCostFallacy) {
         setCurrentDay(dayNumber);
         setShowSunkCostFallacy(true);
+      } else if (dayData.hasMissingDance) {
+        setCurrentDay(dayNumber);
+        setShowMissingDance(true);
       }
     }
   };
@@ -629,6 +636,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleMissingDanceComplete = (result: any) => {
+    setMissingDanceResult(result);
+    setShowMissingDance(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -771,6 +785,10 @@ export default function PathDetailScreen() {
 
   if (showSunkCostFallacy) {
     return <SunkCostFallacy onComplete={handleSunkCostFallacyComplete} />;
+  }
+
+  if (showMissingDance) {
+    return <MissingDance onComplete={handleMissingDanceComplete} />;
   }
 
 
