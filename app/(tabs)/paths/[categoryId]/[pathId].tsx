@@ -36,6 +36,7 @@ import WhoWouldYouHire from '@/components/career-transitions/skills-assessment/p
 import MakeYourPlan from '@/components/career-transitions/skills-assessment/prep-your-pivot/MakeYourPlan';
 import BeyondYourIdentity from '@/components/mindset-wellness/mindset-shifts/BeyondYourIdentity';
 import LettingGoOfValidation from '@/components/mindset-wellness/mindset-shifts/LettingGoOfValidation';
+import Grief from '@/components/mindset-wellness/mindset-shifts/Grief';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -73,6 +74,7 @@ export default function PathDetailScreen() {
   const [showMakeYourPlan, setShowMakeYourPlan] = useState(false);
   const [showBeyondYourIdentity, setShowBeyondYourIdentity] = useState(false);
   const [showLettingGoOfValidation, setShowLettingGoOfValidation] = useState(false);
+  const [showGrief, setShowGrief] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -106,6 +108,7 @@ export default function PathDetailScreen() {
   const [MakeYourPlanResult, setMakeYourPlanResult] = useState<any>(null);
   const [BeyondYourIdentityResult, setBeyondYourIdentityResult] = useState<any>(null);
   const [LettingGoOfValidationResult, setLettingGoOfValidationResult] = useState<any>(null);
+  const [GriefResult, setGriefResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -145,6 +148,7 @@ export default function PathDetailScreen() {
       setShowMakeYourPlan(false);
       setShowBeyondYourIdentity(false);
       setShowLettingGoOfValidation(false);
+      setShowGrief(false);
     }, [categoryId, pathId])
   );
 
@@ -348,6 +352,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasLettingGoOfValidation) {
         setCurrentDay(dayNumber);
         setShowLettingGoOfValidation(true);
+      } else if (dayData.hasGrief) {
+        setCurrentDay(dayNumber);
+        setShowGrief(true);
       }
     }
   };
@@ -587,6 +594,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleGriefComplete = (result: any) => {
+    setGriefResult(result);
+    setShowGrief(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -717,6 +731,10 @@ export default function PathDetailScreen() {
 
   if (showLettingGoOfValidation) {
     return <LettingGoOfValidation onComplete={handleLettingGoOfValidationComplete} />;
+  }
+
+  if (showGrief) {
+    return <Grief onComplete={handleGriefComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
