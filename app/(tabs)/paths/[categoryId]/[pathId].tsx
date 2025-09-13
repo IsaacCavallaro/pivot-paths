@@ -34,6 +34,20 @@ import DanceSkillMatch from '@/components/career-transitions/skills-assessment/p
 import LinkedinUpgrade from '@/components/career-transitions/skills-assessment/prep-your-pivot/LinkedinUpgrade';
 import WhoWouldYouHire from '@/components/career-transitions/skills-assessment/prep-your-pivot/WhoWouldYouHire';
 import MakeYourPlan from '@/components/career-transitions/skills-assessment/prep-your-pivot/MakeYourPlan';
+import BeyondYourIdentity from '@/components/mindset-wellness/mindset-shifts/BeyondYourIdentity';
+import LettingGoOfValidation from '@/components/mindset-wellness/mindset-shifts/LettingGoOfValidation';
+import Grief from '@/components/mindset-wellness/mindset-shifts/Grief';
+import DecisionMaking from '@/components/mindset-wellness/mindset-shifts/DecisionMaking';
+import SunkCostFallacy from '@/components/mindset-wellness/mindset-shifts/SunkCostFallacy';
+import MissingDance from '@/components/mindset-wellness/mindset-shifts/MissingDance';
+import IgniteYourCuriosity from '@/components/mindset-wellness/mindset-shifts/IgniteYourCuriosity';
+import EnergyAudit from '@/components/mindset-wellness/work-life-balance/EnergyAudit';
+import HobbyHunting from '@/components/mindset-wellness/work-life-balance/HobbyHunting';
+import MoreThanWork from '@/components/mindset-wellness/work-life-balance/MoreThanWork';
+import BoundariesCheck from '@/components/mindset-wellness/work-life-balance/BoundariesCheck';
+import TimeMapping from '@/components/mindset-wellness/work-life-balance/TimeMapping';
+import ANewYou from '@/components/mindset-wellness/work-life-balance/ANewYou';
+import ReflectAndAdjust from '@/components/mindset-wellness/work-life-balance/ReflectAndAdjust';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -69,6 +83,20 @@ export default function PathDetailScreen() {
   const [showLinkedinUpgrade, setShowLinkedinUpgrade] = useState(false);
   const [showWhoWouldYouHire, setShowWhoWouldYouHire] = useState(false);
   const [showMakeYourPlan, setShowMakeYourPlan] = useState(false);
+  const [showBeyondYourIdentity, setShowBeyondYourIdentity] = useState(false);
+  const [showLettingGoOfValidation, setShowLettingGoOfValidation] = useState(false);
+  const [showGrief, setShowGrief] = useState(false);
+  const [showDecisionMaking, setShowDecisionMaking] = useState(false);
+  const [showSunkCostFallacy, setShowSunkCostFallacy] = useState(false);
+  const [showMissingDance, setShowMissingDance] = useState(false);
+  const [showIgniteYourCuriosity, setShowIgniteYourCuriosity] = useState(false);
+  const [showEnergyAudit, setShowEnergyAudit] = useState(false);
+  const [showHobbyHunting, setShowHobbyHunting] = useState(false);
+  const [showMoreThanWork, setShowMoreThanWork] = useState(false);
+  const [showBoundariesCheck, setShowBoundariesCheck] = useState(false);
+  const [showTimeMapping, setShowTimeMapping] = useState(false);
+  const [showANewYou, setShowANewYou] = useState(false);
+  const [showReflectAndAdjust, setShowReflectAndAdjust] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -100,6 +128,20 @@ export default function PathDetailScreen() {
   const [LinkedinUpgradeResult, setLinkedinUpgradeResult] = useState<any>(null);
   const [WhoWouldYouHireResult, setWhoWouldYouHireResult] = useState<any>(null);
   const [MakeYourPlanResult, setMakeYourPlanResult] = useState<any>(null);
+  const [BeyondYourIdentityResult, setBeyondYourIdentityResult] = useState<any>(null);
+  const [LettingGoOfValidationResult, setLettingGoOfValidationResult] = useState<any>(null);
+  const [GriefResult, setGriefResult] = useState<any>(null);
+  const [DecisionMakingResult, setDecisionMakingResult] = useState<any>(null);
+  const [SunkCostFallacyResult, setSunkCostFallacyResult] = useState<any>(null);
+  const [MissingDanceResult, setMissingDanceResult] = useState<any>(null);
+  const [IgniteYourCuriosityResult, setIgniteYourCuriosityResult] = useState<any>(null);
+  const [EnergyAuditResult, setEnergyAuditResult] = useState<any>(null);
+  const [HobbyHuntingResult, setHobbyHuntingResult] = useState<any>(null);
+  const [MoreThanWorkResult, setMoreThanWorkResult] = useState<any>(null);
+  const [BoundariesCheckResult, setBoundariesCheckResult] = useState<any>(null);
+  const [TimeMappingResult, setTimeMappingResult] = useState<any>(null);
+  const [ANewYouResult, setANewYouResult] = useState<any>(null);
+  const [ReflectAndAdjustResult, setReflectAndAdjustResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -137,6 +179,20 @@ export default function PathDetailScreen() {
       setShowLinkedinUpgrade(false);
       setShowWhoWouldYouHire(false);
       setShowMakeYourPlan(false);
+      setShowBeyondYourIdentity(false);
+      setShowLettingGoOfValidation(false);
+      setShowGrief(false);
+      setShowDecisionMaking(false);
+      setShowSunkCostFallacy(false);
+      setShowMissingDance(false);
+      setShowIgniteYourCuriosity(false);
+      setShowEnergyAudit(false);
+      setShowHobbyHunting(false);
+      setShowMoreThanWork(false);
+      setShowBoundariesCheck(false);
+      setShowTimeMapping(false);
+      setShowANewYou(false);
+      setShowReflectAndAdjust(false);
     }, [categoryId, pathId])
   );
 
@@ -334,6 +390,48 @@ export default function PathDetailScreen() {
       } else if (dayData.hasMakeYourPlan) {
         setCurrentDay(dayNumber);
         setShowMakeYourPlan(true);
+      } else if (dayData.hasBeyondYourIdentity) {
+        setCurrentDay(dayNumber);
+        setShowBeyondYourIdentity(true);
+      } else if (dayData.hasLettingGoOfValidation) {
+        setCurrentDay(dayNumber);
+        setShowLettingGoOfValidation(true);
+      } else if (dayData.hasGrief) {
+        setCurrentDay(dayNumber);
+        setShowGrief(true);
+      } else if (dayData.hasDecisionMaking) {
+        setCurrentDay(dayNumber);
+        setShowDecisionMaking(true);
+      } else if (dayData.hasSunkCostFallacy) {
+        setCurrentDay(dayNumber);
+        setShowSunkCostFallacy(true);
+      } else if (dayData.hasMissingDance) {
+        setCurrentDay(dayNumber);
+        setShowMissingDance(true);
+      } else if (dayData.hasIgniteYourCuriosity) {
+        setCurrentDay(dayNumber);
+        setShowIgniteYourCuriosity(true);
+      } else if (dayData.hasEnergyAudit) {
+        setCurrentDay(dayNumber);
+        setShowEnergyAudit(true);
+      } else if (dayData.hasHobbyHunting) {
+        setCurrentDay(dayNumber);
+        setShowHobbyHunting(true);
+      } else if (dayData.hasMoreThanWork) {
+        setCurrentDay(dayNumber);
+        setShowMoreThanWork(true);
+      } else if (dayData.hasBoundariesCheck) {
+        setCurrentDay(dayNumber);
+        setShowBoundariesCheck(true);
+      } else if (dayData.hasANewYou) {
+        setCurrentDay(dayNumber);
+        setShowANewYou(true);
+      } else if (dayData.hasTimeMapping) {
+        setCurrentDay(dayNumber);
+        setShowTimeMapping(true);
+      } else if (dayData.hasReflectAndAdjust) {
+        setCurrentDay(dayNumber);
+        setShowReflectAndAdjust(true);
       }
     }
   };
@@ -559,6 +657,104 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleBeyondYourIdentityComplete = (result: any) => {
+    setBeyondYourIdentityResult(result);
+    setShowBeyondYourIdentity(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleLettingGoOfValidationComplete = (result: any) => {
+    setLettingGoOfValidationResult(result);
+    setShowLettingGoOfValidation(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleGriefComplete = (result: any) => {
+    setGriefResult(result);
+    setShowGrief(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleDecisionMakingComplete = (result: any) => {
+    setDecisionMakingResult(result);
+    setShowDecisionMaking(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleSunkCostFallacyComplete = (result: any) => {
+    setSunkCostFallacyResult(result);
+    setShowSunkCostFallacy(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleMissingDanceComplete = (result: any) => {
+    setMissingDanceResult(result);
+    setShowMissingDance(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleIgniteYourCuriosityComplete = (result: any) => {
+    setIgniteYourCuriosityResult(result);
+    setShowIgniteYourCuriosity(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleEnergyAuditComplete = (result: any) => {
+    setEnergyAuditResult(result);
+    setShowEnergyAudit(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleHobbyHuntingComplete = (result: any) => {
+    setHobbyHuntingResult(result);
+    setShowHobbyHunting(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleMoreThanWorkComplete = (result: any) => {
+    setMoreThanWorkResult(result);
+    setShowMoreThanWork(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleBoundariesCheckComplete = (result: any) => {
+    setBoundariesCheckResult(result);
+    setShowBoundariesCheck(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleTimeMappingComplete = (result: any) => {
+    setTimeMappingResult(result);
+    setShowTimeMapping(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleANewYouComplete = (result: any) => {
+    setANewYouResult(result);
+    setShowANewYou(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleReflectAndAdjustComplete = (result: any) => {
+    setReflectAndAdjustResult(result);
+    setShowReflectAndAdjust(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -681,6 +877,62 @@ export default function PathDetailScreen() {
 
   if (showMakeYourPlan) {
     return <MakeYourPlan onComplete={handleMakeYourPlanComplete} />;
+  }
+
+  if (showBeyondYourIdentity) {
+    return <BeyondYourIdentity onComplete={handleBeyondYourIdentityComplete} />;
+  }
+
+  if (showLettingGoOfValidation) {
+    return <LettingGoOfValidation onComplete={handleLettingGoOfValidationComplete} />;
+  }
+
+  if (showGrief) {
+    return <Grief onComplete={handleGriefComplete} />;
+  }
+
+  if (showDecisionMaking) {
+    return <DecisionMaking onComplete={handleDecisionMakingComplete} />;
+  }
+
+  if (showSunkCostFallacy) {
+    return <SunkCostFallacy onComplete={handleSunkCostFallacyComplete} />;
+  }
+
+  if (showMissingDance) {
+    return <MissingDance onComplete={handleMissingDanceComplete} />;
+  }
+
+  if (showIgniteYourCuriosity) {
+    return <IgniteYourCuriosity onComplete={handleIgniteYourCuriosityComplete} />;
+  }
+
+  if (showEnergyAudit) {
+    return <EnergyAudit onComplete={handleEnergyAuditComplete} />;
+  }
+
+  if (showHobbyHunting) {
+    return <HobbyHunting onComplete={handleHobbyHuntingComplete} />;
+  }
+
+  if (showMoreThanWork) {
+    return <MoreThanWork onComplete={handleMoreThanWorkComplete} />;
+  }
+
+  if (showBoundariesCheck) {
+    return <BoundariesCheck onComplete={handleBoundariesCheckComplete} />;
+  }
+
+  if (showTimeMapping) {
+    return <TimeMapping onComplete={handleTimeMappingComplete} />;
+  }
+
+  if (showANewYou) {
+    return <ANewYou onComplete={handleANewYouComplete} />;
+  }
+
+  if (showReflectAndAdjust) {
+    return <ReflectAndAdjust onComplete={handleReflectAndAdjustComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);

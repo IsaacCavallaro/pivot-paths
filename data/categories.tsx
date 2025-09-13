@@ -35,6 +35,20 @@ export interface PathDay {
   hasLinkedinUpgrade?: boolean;
   hasWhoWouldYouHire?: boolean;
   hasMakeYourPlan?: boolean;
+  hasBeyondYourIdentity?: boolean;
+  hasLettingGoOfValidation?: boolean;
+  hasGrief?: boolean;
+  hasDecisionMaking?: boolean;
+  hasSunkCostFallacy?: boolean;
+  hasMissingDance?: boolean;
+  hasIgniteYourCuriosity?: boolean;
+  hasEnergyAudit?: boolean;
+  hasHobbyHunting?: boolean;
+  hasMoreThanWork?: boolean;
+  hasBoundariesCheck?: boolean;
+  hasTimeMapping?: boolean;
+  hasANewYou?: boolean;
+  hasReflectAndAdjust?: boolean;
 }
 
 export interface Path {
@@ -120,37 +134,107 @@ export const categories: Category[] = [
         ]
       },
       {
-        id: 'identity-shift',
-        title: 'Identity Beyond Dance',
-        subtitle: 'Coming Soon',
+        id: 'mindset-shift',
+        title: 'Mindset Shift',
+        // subtitle: 'Coming Soon',
         description: 'Explore who you are beyond your dancer identity - comprehensive path coming soon',
         duration: '7 days',
         totalDays: 7,
         days: [
           {
             day: 1,
-            title: 'Coming Soon',
-            content: 'This comprehensive path on identity exploration is being developed and will be available soon. Check back for updates on discovering who you are beyond your dancer identity.',
-            prompt: 'What aspects of identity exploration would be most helpful for your transition? Consider values, interests, and personal strengths.',
+            title: 'Beyond Your Identity',
+            content: 'You are more than what you do and more than what you’ve done. Match each identity-rooted phrase with a reminder that you can just be you… no identity needed.',
+            hasBeyondYourIdentity: true,
           },
-          // Additional days will be added when path is developed
+          {
+            day: 2,
+            title: 'Letting Go of Validation',
+            content: 'As dancers, we’re used to applause, casting lists, and approval from teachers and directors. But what happens when those voices go quiet Let’s practice rewriting validation so it comes from you.',
+            hasLettingGoOfValidation: true,
+          },
+          {
+            day: 3,
+            title: 'Grief',
+            content: '',
+            hasGrief: true,
+          },
+          {
+            day: 4,
+            title: 'Decision Making',
+            content: 'As dancers, you know how to follow directions. But now, you’re the choreographer of your choices. ',
+            hasDecisionMaking: true,
+          },
+          {
+            day: 5,
+            title: 'Sunk Cost Fallacy',
+            content: 'You haven’t wasted your years in dance. Match each sunk-cost thought with a reframe that opens new doors.',
+            hasSunkCostFallacy: true,
+          },
+          {
+            day: 6,
+            title: 'Missing Dance',
+            content: 'You are more than what you do and more than what you’ve done. Match each identity-rooted phrase with a reminder that you can just be you… no identity needed.',
+            hasMissingDance: true,
+          },
+          {
+            day: 7,
+            title: 'Ignite Your Curiosity',
+            content: 'Curiosity isn’t something you either have or don’t.. it’s like a muscle. This quiz will stretch your curiosity and help you practice seeing the world with fresh eyes.',
+            hasIgniteYourCuriosity: true,
+          },
         ],
       },
       {
-        id: 'resilience-building',
-        title: 'Building Resilience',
-        subtitle: 'Coming Soon',
-        description: 'Develop mental toughness and resilience for life\'s challenges - comprehensive path coming soon',
+        id: 'work-life-balance',
+        title: 'Work/Life Banlance',
+        // subtitle: 'Coming Soon',
+        description: 'Let’s find out when your energy is at its peak and when it dips to help you plan your work, hobbies, and rest. ',
         duration: '7 days',
         totalDays: 7,
         days: [
           {
             day: 1,
-            title: 'Coming Soon',
-            content: 'This comprehensive path on building resilience is being developed and will be available soon. Check back for updates on developing mental toughness and resilience strategies.',
-            prompt: 'What resilience topics would be most helpful for your transition? Consider stress management, adaptability, and mental toughness.',
+            title: 'Energy Audit',
+            content: 'Let’s find out when your energy is at its peak and when it dips to help you plan your work, hobbies, and rest.',
+            hasEnergyAudit: true,
           },
-          // Additional days will be added when path is developed
+          {
+            day: 2,
+            title: 'Hobby Hunting',
+            content: 'As dancers, we often have a one-track mind and hobbies often get put on the backburner. So, today we’re hobby hunting! Pick the option that excites you most.',
+            hasHobbyHunting: true,
+          },
+          {
+            day: 3,
+            title: 'More Than Work',
+            content: 'As a dancer, you lived and breathed it. We all did! But now, we’re going to do things differently. Of course, we hope you find meaningful work off the stage. But we also want to make sure you’re still you, in ways that have nothing to do with your job. Here are some action ideas to remind you that you’re more than work.',
+            hasMoreThanWork: true,
+          },
+          {
+            day: 4,
+            title: 'Boundaries Check',
+            content: 'As dancers, we’re used to saying “yes” to everything: extra rehearsals, extra shifts, extra favors. But outside of dance, that same habit can drain your energy. Let’s practice spotting healthy boundaries.',
+            hasBoundariesCheck: true,
+          },
+          {
+            day: 5,
+            title: 'Time Mapping',
+            content: 'Choose the option that feels best to you and create a balanced schedule for work, hobbies, and rest.',
+            hasTimeMapping: true,
+          },
+          {
+            day: 6,
+            title: 'A New You',
+            content: '',
+            hasANewYou: true,
+          },
+          {
+            day: 7,
+            title: 'Reflect & Adjust',
+            content: 'You’ve tried new things this week to bring more balance into your life. Let’s reflect on how it felt. Your answers will help you see what’s working and what to adjust.',
+            hasReflectAndAdjust: true,
+          },
         ],
       },
     ],
