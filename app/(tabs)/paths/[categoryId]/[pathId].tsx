@@ -35,6 +35,7 @@ import LinkedinUpgrade from '@/components/career-transitions/skills-assessment/p
 import WhoWouldYouHire from '@/components/career-transitions/skills-assessment/prep-your-pivot/WhoWouldYouHire';
 import MakeYourPlan from '@/components/career-transitions/skills-assessment/prep-your-pivot/MakeYourPlan';
 import BeyondYourIdentity from '@/components/mindset-wellness/mindset-shifts/BeyondYourIdentity';
+import LettingGoOfValidation from '@/components/mindset-wellness/mindset-shifts/LettingGoOfValidation';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -71,6 +72,7 @@ export default function PathDetailScreen() {
   const [showWhoWouldYouHire, setShowWhoWouldYouHire] = useState(false);
   const [showMakeYourPlan, setShowMakeYourPlan] = useState(false);
   const [showBeyondYourIdentity, setShowBeyondYourIdentity] = useState(false);
+  const [showLettingGoOfValidation, setShowLettingGoOfValidation] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -103,6 +105,7 @@ export default function PathDetailScreen() {
   const [WhoWouldYouHireResult, setWhoWouldYouHireResult] = useState<any>(null);
   const [MakeYourPlanResult, setMakeYourPlanResult] = useState<any>(null);
   const [BeyondYourIdentityResult, setBeyondYourIdentityResult] = useState<any>(null);
+  const [LettingGoOfValidationResult, setLettingGoOfValidationResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -141,6 +144,7 @@ export default function PathDetailScreen() {
       setShowWhoWouldYouHire(false);
       setShowMakeYourPlan(false);
       setShowBeyondYourIdentity(false);
+      setShowLettingGoOfValidation(false);
     }, [categoryId, pathId])
   );
 
@@ -341,6 +345,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasBeyondYourIdentity) {
         setCurrentDay(dayNumber);
         setShowBeyondYourIdentity(true);
+      } else if (dayData.hasLettingGoOfValidation) {
+        setCurrentDay(dayNumber);
+        setShowLettingGoOfValidation(true);
       }
     }
   };
@@ -573,6 +580,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleLettingGoOfValidationComplete = (result: any) => {
+    setLettingGoOfValidationResult(result);
+    setShowLettingGoOfValidation(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -699,6 +713,10 @@ export default function PathDetailScreen() {
 
   if (showBeyondYourIdentity) {
     return <BeyondYourIdentity onComplete={handleBeyondYourIdentityComplete} />;
+  }
+
+  if (showLettingGoOfValidation) {
+    return <LettingGoOfValidation onComplete={handleLettingGoOfValidationComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
