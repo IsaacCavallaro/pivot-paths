@@ -18,7 +18,7 @@ Specifically, the progress you make on different paths is saved using AsyncStora
 
 **No data is saved to the cloud or transmitted to any external servers.** This means you have complete control over your information, and your privacy is fully protected. Your progress is only accessible on this device. If you uninstall the app or clear the app's data, your progress will be lost.
 
-We believe in empowering users to own their data and maintain a safe and secure environment for personal growth and exploration.
+We believe in empowering users to own their data and maintain a safe and secure environment for personal growth and exploration
 
 ## Technologies Used
 
