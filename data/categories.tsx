@@ -53,7 +53,7 @@ export interface PathDay {
   hasKnowYourValue?: boolean;
   hasGenerosity?: boolean;
   hasShameAroundMoney?: boolean;
-  hasScacityVsAbundance?: boolean;
+  hasScarcityVsAbundance?: boolean;
   hasMoreMoneyMoreHeadroom?: boolean;
   hasYourStartingLine?: boolean;
   hasGoalSetting?: boolean;
@@ -469,7 +469,7 @@ export const categories: Category[] = [
             day: 5,
             title: 'Scarcity Vs Abundance',
             content: 'As dancers, we’ve been taught to accept less… low pay, “exposure gigs,” and the starving artist life. But what if you flipped the script? Let’s explore scarcity vs. abundance thinking by matching the scarcity thought with the abundance reframe.',
-            hasScacityVsAbundance: true,
+            hasScarcityVsAbundance: true,
           },
           {
             day: 6,
