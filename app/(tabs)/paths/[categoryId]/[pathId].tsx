@@ -48,6 +48,27 @@ import BoundariesCheck from '@/components/mindset-wellness/work-life-balance/Bou
 import TimeMapping from '@/components/mindset-wellness/work-life-balance/TimeMapping';
 import ANewYou from '@/components/mindset-wellness/work-life-balance/ANewYou';
 import ReflectAndAdjust from '@/components/mindset-wellness/work-life-balance/ReflectAndAdjust';
+import StarvingArtist from '@/components/finance/money-mindsets/StarvingArtist';
+import KnowYourValue from '@/components/finance/money-mindsets/KnowYourValue';
+import Generosity from '@/components/finance/money-mindsets/Generosity';
+import ShameAroundMoney from '@/components/finance/money-mindsets/ShameAroundMoney';
+import ScarcityVsAbundance from '@/components/finance/money-mindsets/ScarcityVsAbundance';
+import MoreMoneyMoreHeadroom from '@/components/finance/money-mindsets/MoreMoneyMoreHeadroom';
+import YourStartingLine from '@/components/finance/money-mindsets/YourStartingLine';
+import GoalSetting from '@/components/finance/budgeting-for-dancers/GoalSetting';
+import SpendingTemperatureCheck from '@/components/finance/budgeting-for-dancers/SpendingTemperatureCheck';
+import BudgetingMethodsDecoded from '@/components/finance/budgeting-for-dancers/BudgetingMethodsDecoded';
+import Emergency from '@/components/finance/budgeting-for-dancers/Emergency';
+import MeetYourMustHaves from '@/components/finance/budgeting-for-dancers/MeetYourMustHaves';
+import FeastOrFamine from '@/components/finance/budgeting-for-dancers/FeastOrFamine';
+import SavingsSprint from '@/components/finance/budgeting-for-dancers/SavingsSprint';
+import TamingYourDebt from '@/components/finance/financial-futureproofing/TamingYourDebt';
+import SideHustleScoreCard from '@/components/finance/financial-futureproofing/SideHustleScoreCard';
+import AskForMore from '@/components/finance/financial-futureproofing/AskForMore';
+import TheTotalPackage from '@/components/finance/financial-futureproofing/TheTotalPackage';
+import InvestmentInvestigations from '@/components/finance/financial-futureproofing/InvestmentInvestigation';
+import LifestyleCreepRiskMeter from '@/components/finance/financial-futureproofing/LifestyleCreepRiskMeter';
+import CelebrateTheWins from '@/components/finance/financial-futureproofing/CelebrateTheWins';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -97,6 +118,27 @@ export default function PathDetailScreen() {
   const [showTimeMapping, setShowTimeMapping] = useState(false);
   const [showANewYou, setShowANewYou] = useState(false);
   const [showReflectAndAdjust, setShowReflectAndAdjust] = useState(false);
+  const [showStarvingArtist, setShowStarvingArtist] = useState(false);
+  const [showKnowYourValue, setShowKnowYourValue] = useState(false);
+  const [showGenerosity, setShowGenerosity] = useState(false);
+  const [showShameAroundMoney, setShowShameAroundMoney] = useState(false);
+  const [showScarcityVsAbundance, setShowScarcityVsAbundance] = useState(false);
+  const [showMoreMoneyMoreHeadroom, setShowMoreMoneyMoreHeadroom] = useState(false);
+  const [showYourStartingLine, setShowYourStartingLine] = useState(false);
+  const [showGoalSetting, setShowGoalSetting] = useState(false);
+  const [showSpendingTemperatureCheck, setShowSpendingTemperatureCheck] = useState(false);
+  const [showBudgetingMethodsDecoded, setShowBudgetingMethodsDecoded] = useState(false);
+  const [showEmergency, setShowEmergency] = useState(false);
+  const [showMeetYourMustHaves, setShowMeetYourMustHaves] = useState(false);
+  const [showFeastOrFamine, setShowFeastOrFamine] = useState(false);
+  const [showSavingsSprint, setShowSavingsSprint] = useState(false);
+  const [showTamingYourDebt, setShowTamingYourDebt] = useState(false);
+  const [showSideHustleScoreCard, setShowSideHustleScoreCard] = useState(false);
+  const [showAskForMore, setShowAskForMore] = useState(false);
+  const [showTheTotalPackage, setShowTheTotalPackage] = useState(false);
+  const [showInvestmentInvestigations, setShowInvestmentInvestigations] = useState(false);
+  const [showLifestyleCreepRiskMeter, setShowLifestyleCreepRiskMeter] = useState(false);
+  const [showCelebrateTheWins, setShowCelebrateTheWins] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -142,7 +184,27 @@ export default function PathDetailScreen() {
   const [TimeMappingResult, setTimeMappingResult] = useState<any>(null);
   const [ANewYouResult, setANewYouResult] = useState<any>(null);
   const [ReflectAndAdjustResult, setReflectAndAdjustResult] = useState<any>(null);
-
+  const [StarvingArtistResult, setStarvingArtistResult] = useState<any>(null);
+  const [KnowYourValueResult, setKnowYourValueResult] = useState<any>(null);
+  const [GenerosityResult, setGenerosityResult] = useState<any>(null);
+  const [ShameAroundMoneyResult, setShameAroundMoneyResult] = useState<any>(null);
+  const [ScarcityVsAbundanceResult, setScarcityVsAbundanceResult] = useState<any>(null);
+  const [MoreMoneyMoreHeadroomResult, setMoreMoneyMoreHeadroomResult] = useState<any>(null);
+  const [YourStartingLineResult, setYourStartingLineResult] = useState<any>(null);
+  const [GoalSettingResult, setGoalSettingResult] = useState<any>(null);
+  const [SpendingTemperatureCheckResult, setSpendingTemperatureCheckResult] = useState<any>(null);
+  const [BudgetingMethodsDecodedResult, setBudgetingMethodsDecodedResult] = useState<any>(null);
+  const [EmergencyResult, setEmergencyResult] = useState<any>(null);
+  const [MeetYourMustHavesResult, setMeetYourMustHavesResult] = useState<any>(null);
+  const [FeastOrFamineResult, setFeastOrFamineResult] = useState<any>(null);
+  const [SavingsSprintResult, setSavingsSprintResult] = useState<any>(null);
+  const [TamingYourDebtResult, setTamingYourDebtResult] = useState<any>(null);
+  const [SideHustleScoreCardResult, setSideHustleScoreCardResult] = useState<any>(null);
+  const [AskForMoreResult, setAskForMoreResult] = useState<any>(null);
+  const [TheTotalPackageResult, setTheTotalPackageResult] = useState<any>(null);
+  const [InvestmentInvestigationsResult, setInvestmentInvestigationsResult] = useState<any>(null);
+  const [LifestyleCreepRiskMeterResult, setLifestyleCreepRiskMeterResult] = useState<any>(null);
+  const [CelebrateTheWinsResult, setCelebrateTheWinsResult] = useState<any>(null);
 
   const path = getPathById(categoryId!, pathId!);
 
@@ -193,6 +255,27 @@ export default function PathDetailScreen() {
       setShowTimeMapping(false);
       setShowANewYou(false);
       setShowReflectAndAdjust(false);
+      setShowStarvingArtist(false);
+      setShowKnowYourValue(false);
+      setShowGenerosity(false);
+      setShowShameAroundMoney(false);
+      setShowScarcityVsAbundance(false);
+      setShowMoreMoneyMoreHeadroom(false);
+      setShowYourStartingLine(false);
+      setShowGoalSetting(false);
+      setShowSpendingTemperatureCheck(false);
+      setShowBudgetingMethodsDecoded(false);
+      setShowEmergency(false);
+      setShowMeetYourMustHaves(false);
+      setShowFeastOrFamine(false);
+      setShowSavingsSprint(false);
+      setShowTamingYourDebt(false);
+      setShowSideHustleScoreCard(false);
+      setShowAskForMore(false);
+      setShowTheTotalPackage(false);
+      setShowInvestmentInvestigations(false);
+      setShowLifestyleCreepRiskMeter(false);
+      setShowCelebrateTheWins(false);
     }, [categoryId, pathId])
   );
 
@@ -432,6 +515,69 @@ export default function PathDetailScreen() {
       } else if (dayData.hasReflectAndAdjust) {
         setCurrentDay(dayNumber);
         setShowReflectAndAdjust(true);
+      } else if (dayData.hasStarvingArtist) {
+        setCurrentDay(dayNumber);
+        setShowStarvingArtist(true);
+      } else if (dayData.hasKnowYourValue) {
+        setCurrentDay(dayNumber);
+        setShowKnowYourValue(true);
+      } else if (dayData.hasGenerosity) {
+        setCurrentDay(dayNumber);
+        setShowGenerosity(true);
+      } else if (dayData.hasShameAroundMoney) {
+        setCurrentDay(dayNumber);
+        setShowShameAroundMoney(true);
+      } else if (dayData.hasScarcityVsAbundance) {
+        setCurrentDay(dayNumber);
+        setShowScarcityVsAbundance(true);
+      } else if (dayData.hasMoreMoneyMoreHeadroom) {
+        setCurrentDay(dayNumber);
+        setShowMoreMoneyMoreHeadroom(true);
+      } else if (dayData.hasYourStartingLine) {
+        setCurrentDay(dayNumber);
+        setShowYourStartingLine(true);
+      } else if (dayData.hasGoalSetting) {
+        setCurrentDay(dayNumber);
+        setShowGoalSetting(true);
+      } else if (dayData.hasSpendingTemperatureCheck) {
+        setCurrentDay(dayNumber);
+        setShowSpendingTemperatureCheck(true);
+      } else if (dayData.hasBudgetingMethodsDecoded) {
+        setCurrentDay(dayNumber);
+        setShowBudgetingMethodsDecoded(true);
+      } else if (dayData.hasEmergency) {
+        setCurrentDay(dayNumber);
+        setShowEmergency(true);
+      } else if (dayData.hasMeetYourMustHaves) {
+        setCurrentDay(dayNumber);
+        setShowMeetYourMustHaves(true);
+      } else if (dayData.hasFeastOrFamine) {
+        setCurrentDay(dayNumber);
+        setShowFeastOrFamine(true);
+      } else if (dayData.hasSavingsSprint) {
+        setCurrentDay(dayNumber);
+        setShowSavingsSprint(true);
+      } else if (dayData.hasTamingYourDebt) {
+        setCurrentDay(dayNumber);
+        setShowTamingYourDebt(true);
+      } else if (dayData.hasSideHustleScoreCard) {
+        setCurrentDay(dayNumber);
+        setShowSideHustleScoreCard(true);
+      } else if (dayData.hasAskForMore) {
+        setCurrentDay(dayNumber);
+        setShowAskForMore(true);
+      } else if (dayData.hasTheTotalPackage) {
+        setCurrentDay(dayNumber);
+        setShowTheTotalPackage(true);
+      } else if (dayData.hasInvestmentInvestigations) {
+        setCurrentDay(dayNumber);
+        setShowInvestmentInvestigations(true);
+      } else if (dayData.hasLifestyleCreepRiskMeter) {
+        setCurrentDay(dayNumber);
+        setShowLifestyleCreepRiskMeter(true);
+      } else if (dayData.hasCelebrateTheWins) {
+        setCurrentDay(dayNumber);
+        setShowCelebrateTheWins(true);
       }
     }
   };
@@ -755,6 +901,153 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleStarvingArtistComplete = (result: any) => {
+    setStarvingArtistResult(result);
+    setShowStarvingArtist(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleKnowYourValueComplete = (result: any) => {
+    setKnowYourValueResult(result);
+    setShowKnowYourValue(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleGenerosityComplete = (result: any) => {
+    setGenerosityResult(result);
+    setShowGenerosity(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleShameAroundMoneyComplete = (result: any) => {
+    setShameAroundMoneyResult(result);
+    setShowShameAroundMoney(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleScarcityVsAbundanceComplete = (result: any) => {
+    setScarcityVsAbundanceResult(result);
+    setShowScarcityVsAbundance(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleMoreMoneyMoreHeadroomComplete = (result: any) => {
+    setMoreMoneyMoreHeadroomResult(result);
+    setShowMoreMoneyMoreHeadroom(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleYourStartingLineComplete = (result: any) => {
+    setYourStartingLineResult(result);
+    setShowYourStartingLine(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleGoalSettingComplete = (result: any) => {
+    setGoalSettingResult(result);
+    setShowGoalSetting(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleSpendingTemperatureCheckComplete = (result: any) => {
+    setSpendingTemperatureCheckResult(result);
+    setShowSpendingTemperatureCheck(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleBudgetingMethodsDecodedComplete = (result: any) => {
+    setBudgetingMethodsDecodedResult(result);
+    setShowBudgetingMethodsDecoded(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleEmergencyComplete = (result: any) => {
+    setEmergencyResult(result);
+    setShowEmergency(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleMeetYourMustHavesComplete = (result: any) => {
+    setMeetYourMustHavesResult(result);
+    setShowMeetYourMustHaves(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleFeastOrFamineComplete = (result: any) => {
+    setFeastOrFamineResult(result);
+    setShowFeastOrFamine(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleSavingsSprintComplete = (result: any) => {
+    setSavingsSprintResult(result);
+    setShowSavingsSprint(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleTamingYourDebtComplete = (result: any) => {
+    setTamingYourDebtResult(result);
+    setShowTamingYourDebt(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleSideHustleScoreCardComplete = (result: any) => {
+    setSideHustleScoreCardResult(result);
+    setShowSideHustleScoreCard(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleAskForMoreComplete = (result: any) => {
+    setAskForMoreResult(result);
+    setShowAskForMore(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleTheTotalPackageComplete = (result: any) => {
+    setTheTotalPackageResult(result);
+    setShowTheTotalPackage(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleInvestmentInvestigationsComplete = (result: any) => {
+    setInvestmentInvestigationsResult(result);
+    setShowInvestmentInvestigations(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleLifestyleCreepRiskMeterComplete = (result: any) => {
+    setLifestyleCreepRiskMeterResult(result);
+    setShowLifestyleCreepRiskMeter(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
+  const handleCelebrateTheWinsComplete = (result: any) => {
+    setCelebrateTheWinsResult(result);
+    setShowCelebrateTheWins(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -934,6 +1227,92 @@ export default function PathDetailScreen() {
   if (showReflectAndAdjust) {
     return <ReflectAndAdjust onComplete={handleReflectAndAdjustComplete} />;
   }
+
+  if (showStarvingArtist) {
+    return <StarvingArtist onComplete={handleStarvingArtistComplete} />;
+  }
+
+  if (showKnowYourValue) {
+    return <KnowYourValue onComplete={handleKnowYourValueComplete} />;
+  }
+
+  if (showGenerosity) {
+    return <Generosity onComplete={handleGenerosityComplete} />;
+  }
+
+  if (showShameAroundMoney) {
+    return <ShameAroundMoney onComplete={handleShameAroundMoneyComplete} />;
+  }
+
+  if (showScarcityVsAbundance) {
+    return <ScarcityVsAbundance onComplete={handleScarcityVsAbundanceComplete} />;
+  }
+
+
+  if (showMoreMoneyMoreHeadroom) {
+    return <MoreMoneyMoreHeadroom onComplete={handleMoreMoneyMoreHeadroomComplete} />;
+  }
+
+  if (showYourStartingLine) {
+    return <YourStartingLine onComplete={handleYourStartingLineComplete} />;
+  }
+
+  if (showGoalSetting) {
+    return <GoalSetting onComplete={handleGoalSettingComplete} />;
+  }
+
+  if (showSpendingTemperatureCheck) {
+    return <SpendingTemperatureCheck onComplete={handleSpendingTemperatureCheckComplete} />;
+  }
+
+  if (showBudgetingMethodsDecoded) {
+    return <BudgetingMethodsDecoded onComplete={handleBudgetingMethodsDecodedComplete} />;
+  }
+
+  if (showEmergency) {
+    return <Emergency onComplete={handleEmergencyComplete} />;
+  }
+
+  if (showMeetYourMustHaves) {
+    return <MeetYourMustHaves onComplete={handleMeetYourMustHavesComplete} />;
+  }
+
+  if (showFeastOrFamine) {
+    return <FeastOrFamine onComplete={handleFeastOrFamineComplete} />;
+  }
+
+  if (showSavingsSprint) {
+    return <SavingsSprint onComplete={handleSavingsSprintComplete} />;
+  }
+
+  if (showTamingYourDebt) {
+    return <TamingYourDebt onComplete={handleTamingYourDebtComplete} />;
+  }
+
+  if (showSideHustleScoreCard) {
+    return <SideHustleScoreCard onComplete={handleSideHustleScoreCardComplete} />;
+  }
+
+  if (showAskForMore) {
+    return <AskForMore onComplete={handleAskForMoreComplete} />;
+  }
+
+  if (showTheTotalPackage) {
+    return <TheTotalPackage onComplete={handleTheTotalPackageComplete} />;
+  }
+
+  if (showInvestmentInvestigations) {
+    return <InvestmentInvestigations onComplete={handleInvestmentInvestigationsComplete} />;
+  }
+
+  if (showLifestyleCreepRiskMeter) {
+    return <LifestyleCreepRiskMeter onComplete={handleLifestyleCreepRiskMeterComplete} />;
+  }
+
+  if (showCelebrateTheWins) {
+    return <CelebrateTheWins onComplete={handleCelebrateTheWinsComplete} />;
+  }
+
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
 
