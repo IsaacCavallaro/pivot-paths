@@ -66,7 +66,7 @@ import TamingYourDebt from '@/components/finance/financial-futureproofing/Taming
 import SideHustleScoreCard from '@/components/finance/financial-futureproofing/SideHustleScoreCard';
 import AskForMore from '@/components/finance/financial-futureproofing/AskForMore';
 import TheTotalPackage from '@/components/finance/financial-futureproofing/TheTotalPackage';
-import InvestmentInvestigations from '@/components/finance/financial-futureproofing/InvestmentInvestigations';
+import InvestmentInvestigations from '@/components/finance/financial-futureproofing/InvestmentInvestigation';
 import LifestyleCreepRiskMeter from '@/components/finance/financial-futureproofing/LifestyleCreepRiskMeter';
 import CelebrateTheWins from '@/components/finance/financial-futureproofing/CelebrateTheWins';
 
