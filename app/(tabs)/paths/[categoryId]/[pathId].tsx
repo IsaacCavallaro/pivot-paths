@@ -49,6 +49,7 @@ import TimeMapping from '@/components/mindset-wellness/work-life-balance/TimeMap
 import ANewYou from '@/components/mindset-wellness/work-life-balance/ANewYou';
 import ReflectAndAdjust from '@/components/mindset-wellness/work-life-balance/ReflectAndAdjust';
 import StarvingArtist from '@/components/finance/money-mindsets/StarvingArtist';
+import KnowYourValue from '@/components/finance/money-mindsets/KnowYourValue';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -99,6 +100,7 @@ export default function PathDetailScreen() {
   const [showANewYou, setShowANewYou] = useState(false);
   const [showReflectAndAdjust, setShowReflectAndAdjust] = useState(false);
   const [showStarvingArtist, setShowStarvingArtist] = useState(false);
+  const [showKnowYourValue, setShowKnowYourValue] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -145,6 +147,7 @@ export default function PathDetailScreen() {
   const [ANewYouResult, setANewYouResult] = useState<any>(null);
   const [ReflectAndAdjustResult, setReflectAndAdjustResult] = useState<any>(null);
   const [StarvingArtistResult, setStarvingArtistResult] = useState<any>(null);
+  const [KnowYourValueResult, setKnowYourValueResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -197,6 +200,7 @@ export default function PathDetailScreen() {
       setShowANewYou(false);
       setShowReflectAndAdjust(false);
       setShowStarvingArtist(false);
+      setShowKnowYourValue(false);
     }, [categoryId, pathId])
   );
 
@@ -439,6 +443,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasStarvingArtist) {
         setCurrentDay(dayNumber);
         setShowStarvingArtist(true);
+      } else if (dayData.hasKnowYourValue) {
+        setCurrentDay(dayNumber);
+        setShowKnowYourValue(true);
       }
     }
   };
@@ -768,6 +775,14 @@ export default function PathDetailScreen() {
     const newProgress = Math.max(progress, currentDay);
     saveProgress(newProgress);
   };
+
+  const handleKnowYourValueComplete = (result: any) => {
+    setKnowYourValueResult(result);
+    setShowKnowYourValue(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -950,6 +965,10 @@ export default function PathDetailScreen() {
 
   if (showStarvingArtist) {
     return <StarvingArtist onComplete={handleStarvingArtistComplete} />;
+  }
+
+  if (showKnowYourValue) {
+    return <KnowYourValue onComplete={handleKnowYourValueComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
