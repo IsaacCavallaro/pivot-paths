@@ -51,6 +51,7 @@ import ReflectAndAdjust from '@/components/mindset-wellness/work-life-balance/Re
 import StarvingArtist from '@/components/finance/money-mindsets/StarvingArtist';
 import KnowYourValue from '@/components/finance/money-mindsets/KnowYourValue';
 import Generosity from '@/components/finance/money-mindsets/Generosity';
+import ShameAroundMoney from '@/components/finance/money-mindsets/ShameAroundMoney';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -103,6 +104,7 @@ export default function PathDetailScreen() {
   const [showStarvingArtist, setShowStarvingArtist] = useState(false);
   const [showKnowYourValue, setShowKnowYourValue] = useState(false);
   const [showGenerosity, setShowGenerosity] = useState(false);
+  const [showShameAroundMoney, setShowShameAroundMoney] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -151,6 +153,7 @@ export default function PathDetailScreen() {
   const [StarvingArtistResult, setStarvingArtistResult] = useState<any>(null);
   const [KnowYourValueResult, setKnowYourValueResult] = useState<any>(null);
   const [GenerosityResult, setGenerosityResult] = useState<any>(null);
+  const [ShameAroundMoneyResult, setShameAroundMoneyResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -205,6 +208,7 @@ export default function PathDetailScreen() {
       setShowStarvingArtist(false);
       setShowKnowYourValue(false);
       setShowGenerosity(false);
+      setShowShameAroundMoney(false);
     }, [categoryId, pathId])
   );
 
@@ -453,6 +457,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasGenerosity) {
         setCurrentDay(dayNumber);
         setShowGenerosity(true);
+      } else if (dayData.hasShameAroundMoney) {
+        setCurrentDay(dayNumber);
+        setShowShameAroundMoney(true);
       }
     }
   };
@@ -797,6 +804,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleShameAroundMoneyComplete = (result: any) => {
+    setShameAroundMoneyResult(result);
+    setShowShameAroundMoney(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -987,6 +1001,10 @@ export default function PathDetailScreen() {
 
   if (showGenerosity) {
     return <Generosity onComplete={handleGenerosityComplete} />;
+  }
+
+  if (showShameAroundMoney) {
+    return <ShameAroundMoney onComplete={handleShameAroundMoneyComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
