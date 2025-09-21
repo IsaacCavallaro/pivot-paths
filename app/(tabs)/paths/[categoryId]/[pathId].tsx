@@ -50,6 +50,7 @@ import ANewYou from '@/components/mindset-wellness/work-life-balance/ANewYou';
 import ReflectAndAdjust from '@/components/mindset-wellness/work-life-balance/ReflectAndAdjust';
 import StarvingArtist from '@/components/finance/money-mindsets/StarvingArtist';
 import KnowYourValue from '@/components/finance/money-mindsets/KnowYourValue';
+import Generosity from '@/components/finance/money-mindsets/Generosity';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -101,6 +102,7 @@ export default function PathDetailScreen() {
   const [showReflectAndAdjust, setShowReflectAndAdjust] = useState(false);
   const [showStarvingArtist, setShowStarvingArtist] = useState(false);
   const [showKnowYourValue, setShowKnowYourValue] = useState(false);
+  const [showGenerosity, setShowGenerosity] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -148,6 +150,7 @@ export default function PathDetailScreen() {
   const [ReflectAndAdjustResult, setReflectAndAdjustResult] = useState<any>(null);
   const [StarvingArtistResult, setStarvingArtistResult] = useState<any>(null);
   const [KnowYourValueResult, setKnowYourValueResult] = useState<any>(null);
+  const [GenerosityResult, setGenerosityResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -201,6 +204,7 @@ export default function PathDetailScreen() {
       setShowReflectAndAdjust(false);
       setShowStarvingArtist(false);
       setShowKnowYourValue(false);
+      setShowGenerosity(false);
     }, [categoryId, pathId])
   );
 
@@ -446,6 +450,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasKnowYourValue) {
         setCurrentDay(dayNumber);
         setShowKnowYourValue(true);
+      } else if (dayData.hasGenerosity) {
+        setCurrentDay(dayNumber);
+        setShowGenerosity(true);
       }
     }
   };
@@ -783,6 +790,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleGenerosityComplete = (result: any) => {
+    setGenerosityResult(result);
+    setShowGenerosity(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -969,6 +983,10 @@ export default function PathDetailScreen() {
 
   if (showKnowYourValue) {
     return <KnowYourValue onComplete={handleKnowYourValueComplete} />;
+  }
+
+  if (showGenerosity) {
+    return <Generosity onComplete={handleGenerosityComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
