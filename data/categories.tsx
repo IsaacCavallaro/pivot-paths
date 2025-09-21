@@ -49,6 +49,28 @@ export interface PathDay {
   hasTimeMapping?: boolean;
   hasANewYou?: boolean;
   hasReflectAndAdjust?: boolean;
+  hasStarvingArtist?: boolean;
+  hasKnowYourValue?: boolean;
+  hasGenerosity?: boolean;
+  hasShameAroundMoney?: boolean;
+  hasScacityVsAbundance?: boolean;
+  hasMoreMoneyMoreHeadroom?: boolean;
+  hasYourStartingLine?: boolean;
+  hasGoalSetting?: boolean;
+  hasSpendingTemperatureCheck?: boolean;
+  hasBudgetingMethodsDecoded?: boolean;
+  hasEmergency?: boolean;
+  hasMeetYourMustHaves?: boolean;
+  hasFeastOrFamine?: boolean;
+  hasSavingsSprint?: boolean;
+  hasTamingYourDebt?: boolean;
+  hasSideHustleScorecard?: boolean;
+  hasAskForMore?: boolean;
+  hasTheTotalPackage?: boolean;
+  hasInvestmentInvestigations?: boolean;
+  hasLifestyleCreepRiskMeter?: boolean;
+  hasSavingsSprint?: boolean;
+
 }
 
 export interface Path {
@@ -412,19 +434,158 @@ export const categories: Category[] = [
     icon: <DollarSign size={24} color='rgba(226, 222, 208, 0.9)' />,
     paths: [
       {
-        id: 'coming-soon',
-        title: 'Financial Planning Paths',
-        subtitle: 'Coming Soon',
-        description: 'Comprehensive financial wellness paths are being developed and will be available soon',
-        duration: 'Coming Soon',
-        totalDays: 1,
+        id: 'money-mindsets',
+        title: 'Money Mindsets',
+        subtitle: '',
+        description: 'You don’t have to buy into the starving artist stereotype anymore. In this game, you’ll match the old belief with a reframe that frees you.',
+        duration: '7 days',
+        totalDays: 7,
         days: [
           {
             day: 1,
-            title: 'Coming Soon',
-            content: 'We\'re developing comprehensive financial wellness paths specifically for dancers in transition. These will include budgeting, emergency funds, transition planning, and investment strategies tailored to irregular dance income. Check back soon or visit pivotfordancers.com for updates!',
-            prompt: 'What financial topics would be most helpful for your transition? Consider budgeting, emergency planning, or investment strategies.',
-            callout: 'Get notified when financial paths launch at pivotfordancers.com',
+            title: 'Starving Artist No More',
+            content: 'You don’t have to buy into the starving artist stereotype anymore. In this game, you’ll match the old belief with a reframe that frees you.',
+            hasStarvingArtist: true,
+          },
+          {
+            day: 2,
+            title: 'Know Your Value',
+            content: 'In dance, it’s common to be underpaid or told you should “do it for exposure” That conditioning sticks. But your skills are worth real money and you deserve to ask for it.',
+            hasKnowYourValue: true,
+          },
+          {
+            day: 3,
+            title: 'Generosity',
+            content: 'Let’s explore a scenario where your financial situation influences how much you can give back. Choose what you’d do and then see what other options might open up if you had more stability and income.',
+            hasGenerosity: true,
+          },
+          {
+            day: 4,
+            title: 'Shame Around Money',
+            content: '',
+            hasShameAroundMoney: true,
+          },
+          {
+            day: 5,
+            title: 'Scarcity Vs Abundance',
+            content: 'As dancers, we’ve been taught to accept less… low pay, “exposure gigs,” and the starving artist life. But what if you flipped the script? Let’s explore scarcity vs. abundance thinking by matching the scarcity thought with the abundance reframe.',
+            hasScacityVsAbundance: true,
+          },
+          {
+            day: 6,
+            title: 'More Money, More Headroom',
+            content: 'Wanting more isn’t about greed… it’s about creating breathing room so your mind can think, create, and choose. Swipe through these cards. Each one ends with a tiny action you can actually try this week.s',
+            hasMoreMoneyMoreHeadroom: true,
+          },
+          {
+            day: 7,
+            title: 'Your Starting Line',
+            content: 'Before you can move forward with money, it helps to know where you’re standing. Answer these 10 quick questions to uncover your money starting line. No shame, just awareness. Let’s go.”',
+            hasYourStartingLine: true,
+          },
+        ],
+      },
+      {
+        id: 'budgeting-for-dancers',
+        title: 'Budgeting For Dancers',
+        subtitle: '',
+        description: 'Let’s talk about your money goals. Not the vague ones like ‘I should probably save more’—I’m talking about the goals that light you up. The ones that make budgeting worth it.',
+        duration: '7 days',
+        totalDays: 7,
+        days: [
+          {
+            day: 1,
+            title: 'Goal Setting',
+            content: '',
+            hasGoalSetting: true,
+          },
+          {
+            day: 2,
+            title: 'Spending Temperature Check',
+            content: 'In dance, it’s common to be underpaid or told you should “do it for exposure” That conditioning sticks. But your skills are worth real money and you deserve to ask for it.',
+            hasSpendingTemperatureCheck: true,
+          },
+          {
+            day: 3,
+            title: 'Budgeting Methods Decoded',
+            content: "You know you need a budget, but where to start? Dancers thrive with structure so let's find a financial framework that fits your flow. We'll walk through three popular methods. Your job is to see which one is best for you.",
+            hasBudgetingMethodsDecoded: true,
+          },
+          {
+            day: 4,
+            title: 'Emergency',
+            content: "Life is full of surprises. An emergency fund isn't just money in the bank… it's your ticket to handling a crisis with grace, not panic. Let's walk through a few scenarios. Choose what you'd do, and we'll show you how a safety net changes the game.",
+            hasEmergency: true,
+          },
+          {
+            day: 5,
+            title: 'Meet Your Must-Haves',
+            content: 'This is a game of instincts. We’re going to uncover what you truly value by having you choose between common spending categories. Your choices will help us build a personalized snapshot of your financial priorities. Don’t overthink it!',
+            hasMeetYourMustHaves: true,
+          },
+          {
+            day: 6,
+            title: 'Feast or Famine',
+            content: "Living with a variable income creates its own set of myths.Let's bust the ones that keep you stuck in a cycle of financial stress.",
+            hasFeastOrFamine: true,
+          },
+          {
+            day: 7,
+            title: 'Savings Sprint',
+            content: "This isn't about huge sacrifices, it's about small, consistent actions that prove you are in control of your money. Let's walk through three simple challenges.Your only job is to pick one and start.",
+            hasSavingsSprint: true,
+          },
+        ],
+      },
+      {
+        id: 'financial-futureproofing',
+        title: 'Financial Futureproofing ',
+        subtitle: '',
+        description: "Debt can feel like a weight holding you back. But think of it like a complex dance routine: it can be mastered one step at a time with a clear plan. You're not alone in this.Let's choose a strategy and build your payoff plan.",
+        duration: '7 days',
+        totalDays: 7,
+        days: [
+          {
+            day: 1,
+            title: 'Taming Your Debt',
+            content: "Debt can feel like a weight holding you back. But think of it like a complex dance routine: it can be mastered one step at a time with a clear plan. You're not alone in this.Let's choose a strategy and build your payoff plan.",
+            hasTamingYourDebt: true,
+          },
+          {
+            day: 2,
+            title: 'Side Hustle Scorecard',
+            content: "Your financial goals need fuel. A side hustle is a powerful way to generate extra cash to build your future, fast. This is a game of instincts.Choose the side gigs that sound most appealing to you.We'll use your choices to show you the impact that extra income can have.",
+            hasSideHustleScorecard: true,
+          },
+          {
+            day: 3,
+            title: 'Ask For More',
+            content: "In the dance world, talking about money can feel uncomfortable. But knowing your value and advocating for it is a non-negotiable skill for financial futureproofing. Let's practice. Choose how you'd handle this common scenario.",
+            hasAskForMore: true,
+          },
+          {
+            day: 4,
+            title: 'The Total Package',
+            content: "Your salary is just one part of your compensation. The full package includes benefits that can be even more valuable than a slight pay raise.",
+            hasTheTotalPackage: true,
+          },
+          {
+            day: 5,
+            title: 'Investment Investigations',
+            content: 'Building wealth means knowing both where to put your money (your accounts) and what to put in it (your investments).',
+            hasInvestmentInvestigations: true,
+          },
+          {
+            day: 6,
+            title: 'Lifestyle Creep Risk Meter',
+            content: "Lifestyle creep happens when your income rises, but your spending rises right alongside it (or faster). This quiz will help you see how at risk you are, and what you can do to keep more of your hard-earned money.",
+            hasLifestyleCreepRiskMeter: true,
+          },
+          {
+            day: 7,
+            title: 'Celebrate The Wins',
+            content: '',
+            hasCelebrateTheWins: true,
           },
         ],
       },
