@@ -64,12 +64,13 @@ export interface PathDay {
   hasFeastOrFamine?: boolean;
   hasSavingsSprint?: boolean;
   hasTamingYourDebt?: boolean;
-  hasSideHustleScorecard?: boolean;
+  hasSideHustleScoreCard?: boolean;
   hasAskForMore?: boolean;
   hasTheTotalPackage?: boolean;
   hasInvestmentInvestigations?: boolean;
   hasLifestyleCreepRiskMeter?: boolean;
   hasSavingsSprint?: boolean;
+  hasCelebrateTheWins?: boolean;
 
 }
 
@@ -555,7 +556,7 @@ export const categories: Category[] = [
             day: 2,
             title: 'Side Hustle Scorecard',
             content: "Your financial goals need fuel. A side hustle is a powerful way to generate extra cash to build your future, fast. This is a game of instincts.Choose the side gigs that sound most appealing to you.We'll use your choices to show you the impact that extra income can have.",
-            hasSideHustleScorecard: true,
+            hasSideHustleScoreCard: true,
           },
           {
             day: 3,
