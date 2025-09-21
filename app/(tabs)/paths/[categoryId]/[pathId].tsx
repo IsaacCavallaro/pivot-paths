@@ -54,6 +54,7 @@ import Generosity from '@/components/finance/money-mindsets/Generosity';
 import ShameAroundMoney from '@/components/finance/money-mindsets/ShameAroundMoney';
 import ScarcityVsAbundance from '@/components/finance/money-mindsets/ScarcityVsAbundance';
 import MoreMoneyMoreHeadroom from '@/components/finance/money-mindsets/MoreMoneyMoreHeadroom';
+import YourStartingLine from '@/components/finance/money-mindsets/YourStartingLine';
 
 export default function PathDetailScreen() {
   const router = useRouter();
@@ -109,6 +110,7 @@ export default function PathDetailScreen() {
   const [showShameAroundMoney, setShowShameAroundMoney] = useState(false);
   const [showScarcityVsAbundance, setShowScarcityVsAbundance] = useState(false);
   const [showMoreMoneyMoreHeadroom, setShowMoreMoneyMoreHeadroom] = useState(false);
+  const [showYourStartingLine, setShowYourStartingLine] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
   const [leadershipResult, setLeadershipResult] = useState<any>(null);
@@ -160,6 +162,7 @@ export default function PathDetailScreen() {
   const [ShameAroundMoneyResult, setShameAroundMoneyResult] = useState<any>(null);
   const [ScarcityVsAbundanceResult, setScarcityVsAbundanceResult] = useState<any>(null);
   const [MoreMoneyMoreHeadroomResult, setMoreMoneyMoreHeadroomResult] = useState<any>(null);
+  const [YourStartingLineResult, setYourStartingLineResult] = useState<any>(null);
 
 
   const path = getPathById(categoryId!, pathId!);
@@ -217,6 +220,7 @@ export default function PathDetailScreen() {
       setShowShameAroundMoney(false);
       setShowScarcityVsAbundance(false);
       setShowMoreMoneyMoreHeadroom(false);
+      setShowYourStartingLine(false);
     }, [categoryId, pathId])
   );
 
@@ -474,6 +478,9 @@ export default function PathDetailScreen() {
       } else if (dayData.hasMoreMoneyMoreHeadroom) {
         setCurrentDay(dayNumber);
         setShowMoreMoneyMoreHeadroom(true);
+      } else if (dayData.hasYourStartingLine) {
+        setCurrentDay(dayNumber);
+        setShowYourStartingLine(true);
       }
     }
   };
@@ -839,6 +846,13 @@ export default function PathDetailScreen() {
     saveProgress(newProgress);
   };
 
+  const handleYourStartingLineComplete = (result: any) => {
+    setYourStartingLineResult(result);
+    setShowYourStartingLine(false);
+    const newProgress = Math.max(progress, currentDay);
+    saveProgress(newProgress);
+  };
+
   if (!path) {
     return (
       <View style={styles.container}>
@@ -1042,6 +1056,10 @@ export default function PathDetailScreen() {
 
   if (showMoreMoneyMoreHeadroom) {
     return <MoreMoneyMoreHeadroom onComplete={handleMoreMoneyMoreHeadroomComplete} />;
+  }
+
+  if (showYourStartingLine) {
+    return <YourStartingLine onComplete={handleYourStartingLineComplete} />;
   }
 
   const progressPercentage = Math.round((progress / path.days.length) * 100);
