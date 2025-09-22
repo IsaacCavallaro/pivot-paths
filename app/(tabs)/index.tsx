@@ -32,7 +32,7 @@ export default function HomeScreen() {
     {
       icon: <BookOpen size={24} color="#E2DED0" />,
       title: 'Guided Paths',
-      description: '7 day journeys designed specifically for dancers in transition',
+      description: '7 day journeys designed specifically for professional dancers',
       onPress: handleGuidedPathsPress,
       badges: ['mindset', 'career', 'finance'],
     },
