@@ -85,9 +85,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           <View style={styles.introIcon}>
             <Users size={32} color="#928490" />
           </View>
-          
+
           <Text style={styles.introTitle}>What's the alternative?</Text>
-          
+
           <Text style={styles.introDescription}>
             Let's walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you'd be most likely to do in this scenario and we'll shed light on an alternative and show you that you have more options than you might think.
           </Text>
@@ -124,11 +124,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
             </View>
           </TouchableOpacity>
         </ScrollView>
-         <TouchableOpacity style={styles.backButton} onPress={goBack}>
+        <TouchableOpacity style={styles.backButton} onPress={goBack}>
           <ChevronLeft size={24} color="#647C90" />
-            <Text style={styles.backButtonText}>
-              {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-            </Text>
+          <Text style={styles.backButtonText}>
+            {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -157,7 +157,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
               activeOpacity={0.8}
             >
               <Text style={styles.choiceText}>
-                You can't <Text style={{fontStyle: 'italic'}}>really</Text> afford it but you plan to go, of course. That's what swings are for! You'll think about the financial consequences later…
+                You can't <Text style={{ fontStyle: 'italic' }}>really</Text> afford it but you plan to go, of course. That's what swings are for! You'll think about the financial consequences later…
               </Text>
             </TouchableOpacity>
 
@@ -170,17 +170,18 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 You have enough savings to cover the trip but you're nervous to ask your director for the time off so early into the contract.
               </Text>
             </TouchableOpacity>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-          <ChevronLeft size={24} color="#647C90" />
-            <Text style={styles.backButtonText}>
-              {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-            </Text>
-          </TouchableOpacity>
           </View>
         </ScrollView>
+        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+          <ChevronLeft size={24} color="#647C90" />
+          <Text style={styles.backButtonText}>
+            {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
+
 
   // Response Screen
   if (currentScreen === 3) {
@@ -201,10 +202,10 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
         </ScrollView>
         <TouchableOpacity style={styles.backButton} onPress={goBack}>
           <ChevronLeft size={24} color="#647C90" />
-            <Text style={styles.backButtonText}>
-              {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-            </Text>
-          </TouchableOpacity>
+          <Text style={styles.backButtonText}>
+            {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -217,21 +218,21 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           <Text style={styles.alternativeTitle}>Here's your situation</Text>
           <Text style={styles.followUpText}>{getFollowUpText()}</Text>
 
-        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-          <View
-            style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
-          >
-            <Text style={styles.continueButtonText}>See the Alternative</Text>
-            <ChevronRight size={16} color="#E2DED0" />
-          </View>
-        </TouchableOpacity>
-        </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-          <ChevronLeft size={24} color="#647C90" />
-            <Text style={styles.backButtonText}>
-              {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-            </Text>
+          <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+            <View
+              style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
+            >
+              <Text style={styles.continueButtonText}>See the Alternative</Text>
+              <ChevronRight size={16} color="#E2DED0" />
+            </View>
           </TouchableOpacity>
+        </ScrollView>
+        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+          <ChevronLeft size={24} color="#647C90" />
+          <Text style={styles.backButtonText}>
+            {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -244,9 +245,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           <View style={styles.alternativeIcon}>
             <Heart size={32} color="#5A7D7B" />
           </View>
-          
+
           <Text style={styles.alternativeTitle}>So, what's the alternative?</Text>
-          
+
           <Text style={styles.alternativeText}>
             You finish off your dance contract on your terms, retiring with grace and dignity. You've started in a new career making more money than ever with three weeks of paid time off. You take dance class every Thursday and spend your weekends trying different hobbies.
           </Text>
@@ -272,12 +273,12 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
             </View>
           </TouchableOpacity>
         </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
+        <TouchableOpacity style={styles.backButton} onPress={goBack}>
           <ChevronLeft size={24} color="#647C90" />
-            <Text style={styles.backButtonText}>
-              {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-            </Text>
-          </TouchableOpacity>
+          <Text style={styles.backButtonText}>
+            {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
