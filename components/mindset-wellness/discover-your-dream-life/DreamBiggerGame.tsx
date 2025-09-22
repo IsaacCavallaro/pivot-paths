@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Sparkles, ArrowLeft, ChevronLeft } from 'lucide-react-native';
 
@@ -15,6 +15,7 @@ interface DreamBiggerGameProps {
   onBack?: () => void;
 }
 
+const { width } = Dimensions.get('window');
 const dreamChoices: DreamChoice[] = [
   {
     id: 1,
@@ -86,7 +87,7 @@ const getStoryMapping = (choice: string): string => {
     'Run a marathon': 'marathon',
     'Annual yoga retreats': 'yoga retreat'
   };
-  
+
   return mappings[choice] || choice;
 };
 
@@ -173,20 +174,20 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
           <View style={styles.introIcon}>
             <Sparkles size={32} color="#928490" />
           </View>
-          
+
           <Text style={styles.introTitle}>Dream Bigger</Text>
-          
+
           <Text style={styles.introDescription}>
             This is a game of instincts. Choose the answer that you resonate with the most to help you dream bigger about what life after dance can be. Don't think too much! There's no right or wrong. Let's see what you can dream up.
           </Text>
-       <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
-          <View
-            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-          >
-            <Text style={styles.startButtonText}>Start dreaming</Text>
-            <ChevronRight size={16} color="#E2DED0" />
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
+            <View
+              style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
+            >
+              <Text style={styles.startButtonText}>Start dreaming</Text>
+              <ChevronRight size={16} color="#E2DED0" />
+            </View>
+          </TouchableOpacity>
         </ScrollView>
       </View>
     );
@@ -196,7 +197,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
   if (currentScreen >= 1 && currentScreen <= 10) {
     const choiceIndex = currentScreen - 1;
     const currentChoice = randomizedChoices[choiceIndex];
-    
+
     if (!currentChoice) return null;
 
     return (
@@ -248,15 +249,28 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
 
     return (
       <View style={styles.container}>
+        <View style={styles.storyBackground}>
+          <View style={styles.storyBackgroundPattern} />
+        </View>
+
         <ScrollView style={styles.content} contentContainerStyle={styles.storyContainer}>
           {isFinal && (
-            <Text style={styles.finalHeading}>How does this make you feel?</Text>
+            <View style={styles.finalHeader}>
+              <Sparkles size={24} color="#928490" />
+              <Text style={styles.finalHeading}>How does this make you feel?</Text>
+              <Sparkles size={24} color="#928490" />
+            </View>
           )}
 
           {isTitle ? (
-            <Text style={styles.storyTitle}>{storyText}</Text>
+            <View style={styles.storyTitleContainer}>
+              <Text style={styles.storyTitle}>{storyText}</Text>
+              <View style={styles.titleUnderline} />
+            </View>
           ) : (
-            <Text style={styles.storyText}>{storyText}</Text>
+            <View style={styles.storyTextContainer}>
+              <Text style={styles.storyText}>{storyText}</Text>
+            </View>
           )}
 
           <Text style={styles.alternativeClosing}>
@@ -264,14 +278,17 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
           </Text>
 
           <TouchableOpacity style={styles.continueButton} onPress={handleContinueStory}>
-            <View
-              style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
+            <LinearGradient
+              colors={['#928490', '#7A6D7B']}
+              style={styles.continueButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
             >
               <Text style={styles.continueButtonText}>
                 {isFinal ? 'Mark as complete' : 'Continue'}
               </Text>
               <ChevronRight size={16} color="#E2DED0" />
-            </View>
+            </LinearGradient>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -286,12 +303,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#E2DED0',
   },
+  storyBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+  },
+  storyBackgroundPattern: {
+    flex: 1,
+    opacity: 0.03,
+    backgroundColor: '#928490',
+    transform: [{ rotate: '45deg' }, { scale: 1.5 }],
+  },
   alternativeClosing: {
     fontFamily: 'Montserrat-Medium',
     fontSize: 16,
     color: '#647C90',
     textAlign: 'center',
     marginBottom: 40,
+    marginTop: 20,
   },
   topBackButton: {
     position: 'absolute',
@@ -302,6 +334,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    zIndex: 1,
   },
   introContainer: {
     flexGrow: 1,
@@ -404,32 +437,61 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 40,
   },
+  storyTitleContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+    paddingHorizontal: 20,
+  },
   storyTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 28,
+    fontSize: 32,
     color: '#4E4F50',
     textAlign: 'center',
+    lineHeight: 38,
+  },
+  titleUnderline: {
+    height: 4,
+    width: 60,
+    backgroundColor: '#928490',
+    borderRadius: 2,
+    marginTop: 16,
+    opacity: 0.6,
+  },
+  storyTextContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 20,
+    padding: 24,
     marginBottom: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   storyText: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 18,
     color: '#4E4F50',
     textAlign: 'center',
-    lineHeight: 26,
-    marginBottom: 40,
+    lineHeight: 28,
   },
   continueButton: {
     borderRadius: 12,
     overflow: 'hidden',
     alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   continueButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingVertical: 16,
+    minWidth: width * 0.6,
   },
   continueButtonText: {
     fontFamily: 'Montserrat-SemiBold',
@@ -449,12 +511,17 @@ const styles = StyleSheet.create({
     color: '#647C90',
     marginLeft: 8,
   },
+  finalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 30,
+    gap: 12,
+  },
   finalHeading: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 24,
     color: '#4E4F50',
     textAlign: 'center',
-    marginBottom: 20,
-    width: '100%',
   },
 });
