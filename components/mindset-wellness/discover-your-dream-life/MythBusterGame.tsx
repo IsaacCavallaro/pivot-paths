@@ -278,11 +278,11 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#5A7D7B' }]}>
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <View style={styles.backButton} />
             <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Great Work!</Text>
+              <Text style={styles.titleText}>Reflection</Text>
             </View>
             <View style={styles.backButton} />
           </View>
@@ -292,7 +292,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
           <View style={styles.content}>
             <View style={styles.reflectionCard}>
               <View style={styles.reflectionIconContainer}>
-                <View style={[styles.reflectionIconGradient, { backgroundColor: '#5A7D7B' }]}>
+                <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
                   <Zap size={40} color="#E2DED0" />
                 </View>
               </View>
