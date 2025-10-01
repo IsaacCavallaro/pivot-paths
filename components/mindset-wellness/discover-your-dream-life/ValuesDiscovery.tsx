@@ -461,7 +461,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: result.color }]}>
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <View style={styles.backButton} />
             <View style={styles.headerTitleContainer}>
@@ -475,7 +475,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
           <View style={styles.centeredContent}>
             <View style={styles.resultCard}>
               <View style={styles.resultIconContainer}>
-                <View style={[styles.resultIconGradient, { backgroundColor: result.color }]}>
+                <View style={[styles.resultIconGradient, { backgroundColor: '#928490' }]}>
                   <Compass size={40} color="#E2DED0" />
                 </View>
               </View>
@@ -491,7 +491,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
                 onPress={handleContinueToFinal}
                 activeOpacity={0.8}
               >
-                <View style={[styles.continueButtonContent, { backgroundColor: result.color }]}>
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
                   <Text style={styles.continueButtonText}>Continue</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
