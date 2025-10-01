@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Compass, ArrowLeft, ChevronLeft } from 'lucide-react-native';
 
@@ -19,6 +19,8 @@ interface ValuesResult {
   description: string;
   color: string;
 }
+
+const { width, height } = Dimensions.get('window');
 
 const valuesQuestions: ValuesQuestion[] = [
   {
@@ -313,12 +315,12 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
       stability: 0,
       creativity: 0
     };
-    
+
     Object.values(finalAnswers).forEach(value => {
       valueScores[value]++;
     });
 
-    const dominantValue = Object.entries(valueScores).reduce((a, b) => 
+    const dominantValue = Object.entries(valueScores).reduce((a, b) =>
       valueScores[a[0]] > valueScores[b[0]] ? a : b
     )[0];
 
@@ -349,30 +351,46 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
   if (currentScreen === 0) {
     return (
       <View style={styles.container}>
-        {onBack && (
-          <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-            <ArrowLeft size={28} color="#647C90" />
-          </TouchableOpacity>
-        )}
-        <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-          <View style={styles.introIcon}>
-            <Compass size={32} color="#928490" />
-          </View>
-          
-          <Text style={styles.introTitle}>What do you actually value?</Text>
-          
-          <Text style={styles.introDescription}>
-            We might all be dancers, but we all connected with dance for different reasons. Why we love something comes down to what we value and understanding our values helps us to build a dream life. Let's explore our hidden values to discover all the exciting ways we can build our dream life based on our values, not the other way around.
-          </Text>
-
-          <TouchableOpacity style={styles.startButton} onPress={handleStartQuiz}>
-            <View
-              style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-            >
-              <Text style={styles.startButtonText}>Let's Explore</Text>
-              <ChevronRight size={16} color="#E2DED0" />
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.headerTitleContainer}>
+              <Text style={styles.titleText}>Values Discovery</Text>
             </View>
-          </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.centeredContent}>
+            <View style={styles.introCard}>
+              <View style={styles.introIconContainer}>
+                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                  <Compass size={32} color="#E2DED0" />
+                </View>
+              </View>
+
+              <Text style={styles.introTitle}>What do you actually value?</Text>
+
+              <Text style={styles.introDescription}>
+                We might all be dancers, but we all connected with dance for different reasons. Why we love something comes down to what we value and understanding our values helps us to build a dream life. Let's explore our hidden values to discover all the exciting ways we can build our dream life based on our values, not the other way around.
+              </Text>
+
+              <TouchableOpacity
+                style={styles.startButton}
+                onPress={handleStartQuiz}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.startButtonText}>Let's Explore</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
         </ScrollView>
       </View>
     );
@@ -382,62 +400,109 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
   if (currentScreen === 12) {
     return (
       <View style={styles.container}>
-        <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-          <View style={styles.finalIcon}>
-            <Compass size={40} color="#5A7D7B" />
-          </View>
-          <Text style={styles.introTitle}>Your Values</Text>
-          <Text style={styles.finalText}>
-            There are so many ways to build a dream life beyond dance. When you start with your values and open your mind to unique ways to bring those values together, you'll realize that dance was just one piece of the puzzle.
-          </Text>
-
-          <Text style={styles.finalClosing}>
-            See you again tomorrow.
-          </Text>
-
-          <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-            <View
-              style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-            >
-              <Text style={styles.completeButtonText}>Mark As Complete</Text>
-              <ChevronRight size={16} color="#E2DED0" />
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <View style={styles.backButton} />
+            <View style={styles.headerTitleContainer}>
+              <Text style={styles.titleText}>Your Values</Text>
             </View>
-          </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.centeredContent}>
+            <View style={styles.finalCard}>
+              <View style={styles.finalIconContainer}>
+                <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
+                  <Compass size={40} color="#E2DED0" />
+                </View>
+              </View>
+
+              <View style={styles.finalHeader}>
+                <Compass size={24} color="#928490" />
+                <Text style={styles.finalHeading}>How does this make you feel?</Text>
+                <Compass size={24} color="#928490" />
+              </View>
+
+              <View style={styles.finalTextContainer}>
+                <Text style={styles.finalText}>
+                  There are so many ways to build a dream life beyond dance. When you start with your values and open your mind to unique ways to bring those values together, you'll realize that dance was just one piece of the puzzle.
+                </Text>
+              </View>
+
+              <Text style={styles.alternativeClosing}>
+                See you again tomorrow.
+              </Text>
+
+              <View style={styles.finalButtonContainer}>
+                <TouchableOpacity
+                  style={styles.continueButton}
+                  onPress={handleComplete}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                    <Text style={styles.continueButtonText}>Mark As Complete</Text>
+                    <ChevronRight size={16} color="#E2DED0" />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </ScrollView>
       </View>
     );
   }
+
 
   // Result Screen
   if (currentScreen === 11 && result) {
     return (
       <View style={styles.container}>
-        <LinearGradient
-          colors={[result.color, `${result.color}CC`]}
-          style={styles.resultHeader}
-        >
-          <View style={styles.resultIcon}>
-            <Compass size={24} color="#E2DED0" />
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: result.color }]}>
+          <View style={styles.headerRow}>
+            <View style={styles.backButton} />
+            <View style={styles.headerTitleContainer}>
+              <Text style={styles.titleText}>Your Values</Text>
+            </View>
+            <View style={styles.backButton} />
           </View>
-          <Text style={styles.resultTitle}>{result.title}</Text>
-        </LinearGradient>
+        </View>
 
-        <ScrollView style={styles.resultContent}>
-          <Text style={styles.resultDescription}>{result.description}</Text>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.centeredContent}>
+            <View style={styles.resultCard}>
+              <View style={styles.resultIconContainer}>
+                <View style={[styles.resultIconGradient, { backgroundColor: result.color }]}>
+                  <Compass size={40} color="#E2DED0" />
+                </View>
+              </View>
 
-          <TouchableOpacity style={styles.continueButton} onPress={handleContinueToFinal}>
-            <LinearGradient
-              colors={[result.color, `${result.color}DD`]}
-              style={styles.continueButtonGradient}
-            >
-              <Text style={styles.continueButtonText}>Continue</Text>
-              <ChevronRight size={16} color="#E2DED0" />
-            </LinearGradient>
-          </TouchableOpacity>
+              <Text style={styles.resultTitle}>{result.title}</Text>
+
+              <View style={styles.resultTextContainer}>
+                <Text style={styles.resultText}>{result.description}</Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleContinueToFinal}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: result.color }]}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
         </ScrollView>
       </View>
     );
   }
+
 
   // Question Screens
   if (randomizedQuestions.length === 0) {
@@ -449,42 +514,42 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.progressContainer}>
-          <Text style={styles.progressText}>
-            Question {currentScreen} of 10
-          </Text>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
+      {/* Sticky Header with Progress */}
+      <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backButton} onPress={goBack}>
+            <ArrowLeft size={28} color="#E2DED0" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.progressText}>Question {currentScreen} of 10</Text>
           </View>
+          <View style={styles.backButton} />
+        </View>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: `${progress}%` }]} />
         </View>
       </View>
 
-      <ScrollView style={styles.content}>
-        <Text style={styles.questionText}>{question.question}</Text>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={styles.centeredContent}>
+          <View style={styles.choiceCard}>
+            <Text style={styles.questionText}>{question.question}</Text>
 
-        <View style={styles.optionsContainer}>
-          {question.options.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={styles.optionButton}
-              onPress={() => handleAnswer(option.value)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.optionText}>{option.text}</Text>
-            </TouchableOpacity>
-          ))}
+            <View style={styles.choiceButtons}>
+              {question.options.map((option) => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={styles.choiceButton}
+                  onPress={() => handleAnswer(option.value)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.choiceButtonText}>{option.text}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         </View>
       </ScrollView>
-
-      {currentScreen >= 1 && currentScreen <= 10 && (
-        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-          <ChevronLeft size={24} color="#647C90" />
-          <Text style={styles.backButtonText}>
-            {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-          </Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
@@ -494,88 +559,143 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#E2DED0',
   },
-  topBackButton: {
+  stickyHeader: {
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 20,
     position: 'absolute',
-    top: 60,
-    left: 24,
-    zIndex: 1,
-    padding: 8,
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-  content: {
+  scrollView: {
     flex: 1,
+    marginTop: 100,
+    zIndex: 1,
   },
-  introContainer: {
-    flexGrow: 1,
+  centeredContent: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
+    minHeight: height - 200,
+    paddingBottom: 30,
   },
-  introIcon: {
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backButton: {
+    width: 28,
+  },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  titleText: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 25,
+    color: '#E2DED0',
+    textAlign: 'center',
+  },
+  progressText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#E2DED0',
+    textAlign: 'center',
+  },
+  progressBar: {
+    width: '100%',
+    height: 6,
+    backgroundColor: 'rgba(226, 222, 208, 0.3)',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginTop: 12,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#E2DED0',
+    borderRadius: 3,
+  },
+  introCard: {
+    width: width * 0.85,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginVertical: 20,
+  },
+  introIconContainer: {
+    marginBottom: 24,
+  },
+  introIconGradient: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   introTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 28,
-    color: '#4E4F50',
+    fontSize: 32,
+    color: '#647C90',
     textAlign: 'center',
     marginBottom: 20,
+    fontWeight: '700',
   },
   introDescription: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
-    color: '#746C70',
+    color: '#928490',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 40,
+    marginBottom: 32,
+    fontStyle: 'italic',
   },
   startButton: {
-    borderRadius: 12,
+    borderRadius: 30,
     overflow: 'hidden',
   },
-  startButtonGradient: {
+  startButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
     paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
   },
   startButtonText: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 18,
     color: '#E2DED0',
     marginRight: 8,
+    fontWeight: '600',
   },
-  header: {
-    padding: 20,
-    paddingTop: 60,
-  },
-  progressContainer: {
-    alignItems: 'center',
-  },
-  progressText: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 14,
-    color: '#647C90',
-    marginBottom: 10,
-  },
-  progressBar: {
-    width: '100%',
-    height: 6,
-    backgroundColor: 'rgba(100, 124, 144, 0.2)',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#928490',
-    borderRadius: 3,
+  choiceCard: {
+    width: width * 0.85,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginVertical: 20,
   },
   questionText: {
     fontFamily: 'Merriweather-Bold',
@@ -584,20 +704,18 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     marginBottom: 30,
     textAlign: 'center',
-    paddingHorizontal: 24,
   },
-  optionsContainer: {
-    paddingHorizontal: 24,
+  choiceButtons: {
     gap: 15,
   },
-  optionButton: {
+  choiceButton: {
     backgroundColor: 'rgba(146, 132, 144, 0.1)',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 20,
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  optionText: {
+  choiceButtonText: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
     color: '#4E4F50',
@@ -605,117 +723,182 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   resultHeader: {
-    padding: 30,
+    paddingHorizontal: 24,
     paddingTop: 60,
-    alignItems: 'center',
+    paddingBottom: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-  resultIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(226, 222, 208, 0.2)',
+  storyCard: {
+    width: width * 0.85,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginVertical: 20,
+  },
+  resultIconContainer: {
+    marginBottom: 24,
+  },
+  resultIconGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   resultTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 24,
-    color: '#E2DED0',
+    fontSize: 28,
+    color: '#4E4F50',
     textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '700',
   },
-  resultContent: {
-    flex: 1,
-    backgroundColor: '#E2DED0',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -20,
-    paddingTop: 30,
-    paddingHorizontal: 24,
+  resultCard: {
+    width: width * 0.85,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginVertical: 20,
   },
-  resultDescription: {
+  resultTextContainer: {
+    width: '100%',
+    marginBottom: 32,
+  },
+  resultText: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
     color: '#4E4F50',
-    lineHeight: 24,
-    marginBottom: 30,
     textAlign: 'center',
+    lineHeight: 24,
+  },
+
+  storyTextContainer: {
+    width: '100%',
+    marginBottom: 32,
+  },
+  storyText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
   },
   continueButton: {
-    borderRadius: 12,
+    borderRadius: 30,
     overflow: 'hidden',
-    marginBottom: 30,
   },
-  continueButtonGradient: {
+  continueButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+    minWidth: width * 0.5,
   },
   continueButtonText: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 16,
     color: '#E2DED0',
     marginRight: 8,
+    fontWeight: '600',
   },
-  finalContainer: {
-    flexGrow: 1,
+  alternativeClosing: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 32,
+    marginTop: 20,
+    fontWeight: '600',
+  },
+  finalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 30,
+    gap: 12,
+  },
+  finalHeading: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 24,
+    color: '#647C90',
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  finalContentContainer: {
+    flexGrow: 1,
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingTop: 40,
+    paddingBottom: 60,
   },
-  finalIcon: {
+  finalIconContainer: {
+    marginBottom: 30,
+  },
+  finalIconGradient: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(90, 125, 123, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  finalTextContainer: {
+    width: '100%',
+    marginBottom: 40,
   },
   finalText: {
     fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
+    fontSize: 18,
     color: '#4E4F50',
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 20,
+    lineHeight: 28,
   },
-  finalClosing: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 16,
-    color: '#647C90',
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  completeButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  completeButtonGradient: {
-    flexDirection: 'row',
+  finalButtonContainer: {
+    width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
+    marginTop: 20,
   },
-  completeButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
-    color: '#E2DED0',
-    marginRight: 8,
+  finalScrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    paddingBottom: 60,
   },
-  backButton: {
-    flexDirection: 'row',
+  finalCard: {
+    width: width * 0.85,   // ✅ match introCard/storyCard
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 10,
-  },
-  backButtonText: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 14,
-    color: '#647C90',
-    marginLeft: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginVertical: 20,
   },
 });
