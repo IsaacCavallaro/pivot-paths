@@ -593,6 +593,7 @@ const styles = StyleSheet.create({
   },
   completedPathsContainer: {
     paddingHorizontal: 24,
+    marginTop: 30,
     marginBottom: 30,
   },
   completedPathCard: {

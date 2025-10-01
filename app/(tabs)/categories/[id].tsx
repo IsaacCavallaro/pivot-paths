@@ -133,11 +133,6 @@ export default function CategoryScreen() {
                                 <Text style={styles.progressBadgeText}>{progressPercentage}% complete</Text>
                               </View>
                             )}
-                            {isCompleted && (
-                              <View style={styles.completedBadge}>
-                                <Text style={styles.completedBadgeText}>Completed</Text>
-                              </View>
-                            )}
                           </View>
                         </View>
                         <View style={styles.chevronIcon}>
