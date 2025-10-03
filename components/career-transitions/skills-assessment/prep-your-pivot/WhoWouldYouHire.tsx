@@ -106,34 +106,81 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
         return "";
     };
 
+    const getHeaderTitle = () => {
+        switch (currentScreen) {
+            case 0:
+                return "Who would you hire?";
+            case 1:
+                return "Scenario";
+            case 2:
+                return "Your Choice";
+            case 3:
+                return "Feedback";
+            case 4:
+                return "Complete";
+            default:
+                return "Who would you hire?";
+        }
+    };
+
+    const getHeaderColor = () => {
+        switch (currentScreen) {
+            case 0:
+            case 1:
+            case 2:
+            case 4:
+                return '#928490';
+            case 3:
+                return '#647C90';
+            default:
+                return '#928490';
+        }
+    };
+
     // Intro Screen
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Users size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Who would you hire?</Text>
-
-                    <Text style={styles.introDescription}>
-                        Take yourself out of the equation and pretend YOU are the hiring manager putting another dancer in the hot seat for an interview. Put yourself in their shoes and decide who you would hire.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Begin</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Users size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Who would you hire?</Text>
+
+                            <Text style={styles.introDescription}>
+                                Take yourself out of the equation and pretend YOU are the hiring manager putting another dancer in the hot seat for an interview. Put yourself in their shoes and decide who you would hire.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.startButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Begin</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -143,25 +190,41 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
     if (currentScreen === 1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.scenarioContainer}>
-                    <Text style={styles.introTitle}>You're hiring a {scenarios[currentScenario].role}.</Text>
-                    <Text style={styles.scenarioText}>
-                        The role involves {scenarios[currentScenario].challenge}. Two dancers explain their experience. Who would you hire?
-                    </Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.continueButtonText}>See their answers</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.scenarioCard}>
+                            <Text style={styles.scenarioTitle}>You're hiring a {scenarios[currentScenario].role}.</Text>
+
+                            <Text style={styles.scenarioText}>
+                                The role involves {scenarios[currentScenario].challenge}. Two dancers explain their experience. Who would you hire?
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.continueButtonText}>See their answers</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back to Intro</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -170,34 +233,48 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
     if (currentScreen === 2) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.choicesScreenContainer}>
-                    <View style={styles.choicesContainer}>
-                        <Text style={styles.alternativeTitle}>Who would you hire?</Text>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(1)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                {scenarios[currentScenario].choice1}
-                            </Text>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(2)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                {scenarios[currentScenario].choice2}
-                            </Text>
-                        </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.choicesCard}>
+                            <Text style={styles.choicesTitle}>Who would you hire?</Text>
+
+                            <View style={styles.choicesContainer}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        {scenarios[currentScenario].choice1}
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        {scenarios[currentScenario].choice2}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -206,25 +283,43 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
     if (currentScreen === 3) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.responseContainer}>
-                    <Text style={styles.responseText}>{getResponseText()}</Text>
-                    <Text style={styles.continuePrompt}>
-                        {currentScenario < scenarios.length - 1 ? "Let's try another one." : "Ready for the final thoughts?"}
-                    </Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.continueButtonText}>Continue</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.responseCard}>
+                            <Text style={styles.responseTitle}>Here's our take</Text>
+
+                            <Text style={styles.responseText}>{getResponseText()}</Text>
+
+                            <Text style={styles.continuePrompt}>
+                                {currentScenario < scenarios.length - 1 ? "Let's try another one." : "Ready for the final thoughts?"}
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.continueButtonText}>Continue</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -233,38 +328,55 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
     if (currentScreen === 4) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.alternativeContainer}>
-                    <View style={styles.alternativeIcon}>
-                        <Award size={32} color="#5A7D7B" />
-                    </View>
-
-                    <Text style={styles.alternativeTitle}>Both candidates did well.</Text>
-
-                    <Text style={styles.alternativeText}>
-                        The difference is in how they translated their skills, focused on their strengths, and highlighted how they could add value to the particular role they applied for.
-                    </Text>
-
-                    <Text style={styles.alternativeText}>
-                        When preparing for your interviews, keep putting yourself in the employer's shoes and choose your answers based on what will resonate for them.
-                    </Text>
-
-                    <Text style={styles.alternativeClosing}>
-                        See you for your final step tomorrow.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.alternativeCard}>
+                            <View style={styles.alternativeIconContainer}>
+                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#5A7D7B' }]}>
+                                    <Award size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.alternativeTitle}>Both candidates did well.</Text>
+
+                            <Text style={styles.alternativeText}>
+                                The difference is in how they translated their skills, focused on their strengths, and highlighted how they could add value to the particular role they applied for.
+                            </Text>
+
+                            <Text style={styles.alternativeText}>
+                                When preparing for your interviews, keep putting yourself in the employer's shoes and choose your answers based on what will resonate for them.
+                            </Text>
+
+                            <Text style={styles.alternativeClosing}>
+                                See you for your final step tomorrow.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.completeButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -282,69 +394,127 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    topBackButton: {
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
         position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    scrollView: {
+        flex: 1,
+        marginTop: 100,
     },
     content: {
-        flex: 1,
+        paddingBottom: 30,
     },
-    introContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    headerRow: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        justifyContent: 'space-between',
     },
-    introIcon: {
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    introCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    scenarioContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 40,
+    scenarioCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    scenarioTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 24,
+        fontWeight: '700',
     },
     scenarioText: {
         fontFamily: 'Montserrat-Regular',
@@ -352,38 +522,55 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 26,
-        marginBottom: 40,
+        marginBottom: 32,
     },
     continueButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
-        alignSelf: 'center',
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
+    },
+    choicesCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    choicesTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 30,
+        fontWeight: '700',
     },
     choicesContainer: {
-        paddingHorizontal: 24,
-        gap: 15,
-    },
-    choicesScreenContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingVertical: 40,
+        gap: 16,
     },
     choiceButton: {
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 20,
         borderWidth: 2,
         borderColor: 'transparent',
@@ -392,14 +579,29 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
-        lineHeight: 22,
+        lineHeight: 24,
         textAlign: 'center',
     },
-    responseContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+    responseCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    responseTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 25,
+        fontWeight: '700',
     },
     responseText: {
         fontFamily: 'Montserrat-Regular',
@@ -414,30 +616,42 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: 32,
     },
-    alternativeContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    alternativeCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
-    alternativeIcon: {
+    alternativeIconContainer: {
+        marginBottom: 24,
+    },
+    alternativeIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     alternativeTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
+        fontSize: 24,
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 25,
+        fontWeight: '700',
     },
     alternativeText: {
         fontFamily: 'Montserrat-Regular',
@@ -448,39 +662,32 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     alternativeClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: 32,
+        fontWeight: '600',
     },
     completeButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
+        fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
+        fontWeight: '600',
     },
 });
