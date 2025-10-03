@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Target, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 interface StepData {
     id: number;
@@ -129,35 +131,51 @@ export default function WorkBackwards({ onComplete, onBack }: WorkBackwardsProps
     if (screenHistory.length === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Target size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Work Backwards from Job Descriptions</Text>
-
-                    <Text style={styles.introDescription}>
-                        Not sure what skills to learn first? The best place to look is in real job descriptions. They show you what employers *actually* value.
-                    </Text>
-
-                    <Text style={styles.introSubDescription}>
-                        Let's go step by step on how to scan a role and figure out where to start upskilling.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartLearning}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Let's go</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                                <ArrowLeft size={24} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backIconWrapper} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Work Backwards</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.introIcon}>
+                                <Target size={32} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>Work Backwards from Job Descriptions</Text>
+
+                            <Text style={styles.introDescription}>
+                                Not sure what skills to learn first? The best place to look is in real job descriptions. They show you what employers *actually* value.
+                            </Text>
+
+                            <Text style={styles.introSubDescription}>
+                                Let's go step by step on how to scan a role and figure out where to start upskilling.
+                            </Text>
+
+                            <TouchableOpacity style={styles.startButton} onPress={handleStartLearning}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Let's go</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -166,37 +184,48 @@ export default function WorkBackwards({ onComplete, onBack }: WorkBackwardsProps
     if (screenHistory[screenHistory.length - 1] === -1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <Target size={40} color="#928490" />
-                    </View>
-                    <Text style={styles.finalTitle}>Start Learning Today!</Text>
-                    <Text style={styles.finalText}>
-                        Upskilling doesn't have to be overwhelming.
-                    </Text>
-                    <Text style={styles.finalProcess}>
-                        Work backwards from the jobs you want → start with the most common skills → and practice as you go.
-                    </Text>
-                    <Text style={styles.finalClosing}>
-                        Each step builds momentum. You'll be surprised how quickly you start to feel "hire ready."
-                    </Text>
-                    <Text style={styles.finalNote}>
-                        See you tomorrow for your next step!
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backIconWrapper} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Work Backwards</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.finalIcon}>
+                                <Target size={40} color="#928490" />
+                            </View>
+                            <Text style={styles.introTitle}>Start Learning Today!</Text>
+                            <Text style={styles.finalText}>
+                                Upskilling doesn't have to be overwhelming.
+                            </Text>
+                            <Text style={styles.finalProcess}>
+                                Work backwards from the jobs you want → start with the most common skills → and practice as you go.
+                            </Text>
+                            <Text style={styles.finalClosing}>
+                                Each step builds momentum. You'll be surprised how quickly you start to feel "hire ready."
+                            </Text>
+                            <Text style={styles.finalNote}>
+                                See you tomorrow for your next step!
+                            </Text>
+
+                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -209,59 +238,65 @@ export default function WorkBackwards({ onComplete, onBack }: WorkBackwardsProps
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>
-                        {currentStepIndex + 1} of {steps.length} steps
-                    </Text>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${stepProgress}%` }]} />
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                        <ChevronLeft size={24} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.headerTitle}>
+                            {currentStepIndex + 1} of {steps.length}
+                        </Text>
                     </View>
+                    <View style={styles.backIconWrapper} />
+                </View>
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${stepProgress}%` }]} />
                 </View>
             </View>
 
-            <ScrollView style={styles.content} contentContainerStyle={styles.stepContainer}>
-                <Text style={styles.stepTitle}>{currentStep.title}</Text>
+            <View style={styles.scrollContainer}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.card}>
+                        <Text style={styles.stepTitle}>{currentStep.title}</Text>
 
-                <View style={styles.stepCard}>
-                    <Text style={styles.stepDescription}>{currentStep.description}</Text>
+                        <View style={styles.stepCard}>
+                            <Text style={styles.stepDescription}>{currentStep.description}</Text>
 
-                    {currentStep.examples && (
-                        <View style={styles.examplesContainer}>
-                            {currentStep.examples.map((example, index) => (
-                                <View key={index} style={styles.exampleItem}>
-                                    <View style={styles.bulletPoint} />
-                                    <Text style={styles.exampleText}>{example}</Text>
+                            {currentStep.examples && (
+                                <View style={styles.examplesContainer}>
+                                    {currentStep.examples.map((example, index) => (
+                                        <View key={index} style={styles.exampleItem}>
+                                            <View style={styles.bulletPoint} />
+                                            <Text style={styles.exampleText}>{example}</Text>
+                                        </View>
+                                    ))}
                                 </View>
-                            ))}
+                            )}
+
+                            {currentStep.tips && (
+                                <View style={styles.tipContainer}>
+                                    <Text style={styles.tipLabel}>Pro tip:</Text>
+                                    <Text style={styles.tipText}>{currentStep.tips}</Text>
+                                </View>
+                            )}
                         </View>
-                    )}
 
-                    {currentStep.tips && (
-                        <View style={styles.tipContainer}>
-                            <Text style={styles.tipLabel}>Pro tip:</Text>
-                            <Text style={styles.tipText}>{currentStep.tips}</Text>
-                        </View>
-                    )}
-                </View>
-
-                <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                    <LinearGradient
-                        colors={['#5A7D7B', '#647C90']}
-                        style={styles.continueButtonGradient}
-                    >
-                        <Text style={styles.continueButtonText}>{currentStep.buttonText}</Text>
-                        <ChevronRight size={16} color="#E2DED0" />
-                    </LinearGradient>
-                </TouchableOpacity>
-            </ScrollView>
-
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                <ChevronLeft size={20} color="#647C90" />
-                <Text style={styles.backButtonText}>
-                    {screenHistory.length <= 1 ? 'Back to Intro' : 'Previous'}
-                </Text>
-            </TouchableOpacity>
+                        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                            <LinearGradient
+                                colors={['#928490', '#928490']}
+                                style={styles.continueButtonContent}
+                            >
+                                <Text style={styles.continueButtonText}>{currentStep.buttonText}</Text>
+                                <ChevronRight size={16} color="#E2DED0" />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </View>
         </View>
     );
 }
@@ -269,34 +304,71 @@ export default function WorkBackwards({ onComplete, onBack }: WorkBackwardsProps
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#E2DED0',
+        backgroundColor: '#E2DED0'
     },
-    content: {
+    scrollContainer: {
         flex: 1,
     },
-    introContainer: {
+    scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 20,
+    },
+
+    stickyHeader: {
         paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backIconWrapper: { width: 40, alignItems: 'center' },
+    headerTitleContainer: { flex: 1, alignItems: 'center' },
+    headerTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 20,
+        color: '#E2DED0',
+    },
+
+    card: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 120,
     },
     introIcon: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        backgroundColor: 'rgba(146,132,144,0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
-        lineHeight: 38,
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
@@ -314,16 +386,18 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 40,
     },
+
     startButton: {
         borderRadius: 12,
-        overflow: 'hidden',
+        overflow: 'hidden'
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -331,27 +405,23 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    stepContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     stepTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
+        fontSize: 22,
         color: '#4E4F50',
         textAlign: 'center',
-        marginBottom: 30,
-        lineHeight: 30,
+        marginBottom: 24,
+        lineHeight: 28,
     },
     stepCard: {
         backgroundColor: 'rgba(90, 125, 123, 0.15)',
         borderRadius: 16,
         padding: 24,
-        marginBottom: 40,
+        marginBottom: 32,
         borderLeftWidth: 4,
         borderLeftColor: '#928490',
+        width: '100%',
     },
     stepDescription: {
         fontFamily: 'Montserrat-Regular',
@@ -401,17 +471,18 @@ const styles = StyleSheet.create({
         color: '#746C70',
         lineHeight: 20,
     },
+
     continueButton: {
         borderRadius: 12,
-        overflow: 'hidden',
-        alignSelf: 'center',
+        overflow: 'hidden'
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
+        borderRadius: 12,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -419,28 +490,15 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     finalIcon: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
+        backgroundColor: 'rgba(100,124,144,0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
-    },
-    finalTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 20,
     },
     finalText: {
         fontFamily: 'Montserrat-Regular',
@@ -473,16 +531,18 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 40,
     },
+
     completeButton: {
         borderRadius: 12,
-        overflow: 'hidden',
+        overflow: 'hidden'
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -490,48 +550,17 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
+
     progressBar: {
         width: '100%',
         height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
+        backgroundColor: 'rgba(255,255,255,0.3)',
         borderRadius: 3,
-        overflow: 'hidden',
+        marginTop: 12,
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#928490',
+        backgroundColor: '#E2DED0',
         borderRadius: 3,
-    },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
     },
 });
