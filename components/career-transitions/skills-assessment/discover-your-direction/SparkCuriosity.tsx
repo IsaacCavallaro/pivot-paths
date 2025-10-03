@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Lightbulb, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 interface CuriosityCard {
     id: number;
@@ -119,35 +121,51 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
     if (screenHistory.length === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Lightbulb size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Spark Curiosity</Text>
-
-                    <Text style={styles.introDescription}>
-                        Curiosity is the engine of your pivot. Today we're here to spark new ideas, help you explore untapped careers, and uncover possibilities you might not have considered.
-                    </Text>
-
-                    <Text style={styles.introDescription}>
-                        Swipe through each card, reflect, and take note of what excites you.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Let's go</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                                <ArrowLeft size={24} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backIconWrapper} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Spark Curiosity</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.introIcon}>
+                                <Lightbulb size={32} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>Spark Curiosity</Text>
+
+                            <Text style={styles.introDescription}>
+                                Curiosity is the engine of your pivot. Today we're here to spark new ideas, help you explore untapped careers, and uncover possibilities you might not have considered.
+                            </Text>
+
+                            <Text style={styles.introDescription}>
+                                Swipe through each card, reflect, and take note of what excites you.
+                            </Text>
+
+                            <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Let's go</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -157,36 +175,49 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
     if (currentScreen.cardIndex === -1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <Lightbulb size={40} color="#928490" />
-                    </View>
-                    <Text style={styles.introTitle}>It's Time to Reflect</Text>
-                    <Text style={styles.finalText}>
-                        Exploring your curiosity doesn't mean you have to have all the answers right now. Each question is a doorway to possibilities, and the more you engage with them, the clearer your path becomes.
-                    </Text>
-
-                    <Text style={styles.finalText}>
-                        Take note of anything that excites you. You'll come back to it as you explore career options in the coming days.
-                    </Text>
-
-                    <Text style={styles.finalClosing}>
-                        See you tomorrow.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark as Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Spark Curiosity</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.finalIcon}>
+                                <Lightbulb size={40} color="#928490" />
+                            </View>
+                            <Text style={styles.introTitle}>It's Time to Reflect</Text>
+                            <Text style={styles.finalText}>
+                                Exploring your curiosity doesn't mean you have to have all the answers right now. Each question is a doorway to possibilities, and the more you engage with them, the clearer your path becomes.
+                            </Text>
+
+                            <Text style={styles.finalText}>
+                                Take note of anything that excites you. You'll come back to it as you explore career options in the coming days.
+                            </Text>
+
+                            <Text style={styles.finalText}>
+                                See you tomorrow.
+                            </Text>
+
+                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark as Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -199,38 +230,45 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>
-                        {currentCardIndex + 1} of {curiosityCards.length}
-                    </Text>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${cardProgress}%` }]} />
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                        <ChevronLeft size={24} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.headerTitle}>
+                            {currentCardIndex + 1} of {curiosityCards.length}
+                        </Text>
                     </View>
+                    <View style={styles.backIconWrapper} />
+                </View>
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${cardProgress}%` }]} />
                 </View>
             </View>
 
-            <ScrollView style={styles.content} contentContainerStyle={styles.cardContainer}>
-                <View style={styles.promptCard}>
-                    <Text style={styles.promptText}>"{currentCard.prompt}"</Text>
-                </View>
+            <View style={styles.scrollContainer}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.card}>
+                        <View style={styles.promptCard}>
+                            <Text style={styles.promptText}>"{currentCard.prompt}"</Text>
+                        </View>
 
-                <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                    <LinearGradient
-                        colors={['#5A7D7B', '#647C90']}
-                        style={styles.continueButtonGradient}
-                    >
-                        <Text style={styles.continueButtonText}>{currentCard.buttonText}</Text>
-                        <ChevronRight size={16} color="#E2DED0" />
-                    </LinearGradient>
-                </TouchableOpacity>
-            </ScrollView>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                <ChevronLeft size={20} color="#647C90" />
-                <Text style={styles.backButtonText}>
-                    {screenHistory.length <= 1 ? 'Back to Intro' : 'Previous'}
-                </Text>
-            </TouchableOpacity>
+                        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                            <LinearGradient
+                                colors={['#928490', '#928490']}
+                                style={styles.continueButtonGradient}
+                            >
+                                <Text style={styles.continueButtonText}>{currentCard.buttonText}</Text>
+                                <ChevronRight size={16} color="#E2DED0" />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </View>
         </View>
     );
 }
@@ -240,15 +278,59 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    content: {
+    scrollContainer: {
         flex: 1,
     },
-    introContainer: {
+    scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 20,
+    },
+
+    stickyHeader: {
         paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backIconWrapper: {
+        width: 40,
+        alignItems: 'center'
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 20,
+        color: '#E2DED0',
+    },
+
+    card: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 120,
     },
     introIcon: {
         width: 80,
@@ -261,7 +343,7 @@ const styles = StyleSheet.create({
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
@@ -274,17 +356,19 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 20,
     },
+
     startButton: {
         borderRadius: 12,
         overflow: 'hidden',
         marginTop: 20,
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -292,19 +376,15 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    cardContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     promptCard: {
         backgroundColor: 'rgba(90, 125, 123, 0.15)',
         borderRadius: 16,
         padding: 24,
-        marginBottom: 40,
+        marginBottom: 30,
         borderLeftWidth: 4,
         borderLeftColor: '#928490',
+        width: '100%',
     },
     promptText: {
         fontFamily: 'Montserrat-Regular',
@@ -316,7 +396,6 @@ const styles = StyleSheet.create({
     continueButton: {
         borderRadius: 12,
         overflow: 'hidden',
-        alignSelf: 'center',
     },
     continueButtonGradient: {
         flexDirection: 'row',
@@ -324,6 +403,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
+        borderRadius: 12,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -331,18 +411,12 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     finalIcon: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
@@ -355,23 +429,17 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 20,
     },
-    finalClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 40,
-    },
     completeButton: {
         borderRadius: 12,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -379,48 +447,17 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
+
     progressBar: {
         width: '100%',
         height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
+        backgroundColor: 'rgba(255, 255, 255, 0.3)',
         borderRadius: 3,
-        overflow: 'hidden',
+        marginTop: 12,
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#928490',
+        backgroundColor: '#E2DED0',
         borderRadius: 3,
-    },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
     },
 });
