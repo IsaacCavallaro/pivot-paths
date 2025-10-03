@@ -889,7 +889,7 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   finalCard: {
-    width: width * 0.85,   // ✅ match introCard/storyCard
+    width: width * 0.85,
     borderRadius: 24,
     backgroundColor: '#F5F5F5',
     padding: 40,
