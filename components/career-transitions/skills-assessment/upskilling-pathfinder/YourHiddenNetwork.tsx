@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { ChevronRight, Users, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { ChevronRight, Users, ArrowLeft } from 'lucide-react-native';
 
 interface NetworkQuestion {
     id: number;
@@ -12,6 +12,8 @@ interface YourHiddenNetworkProps {
     onComplete: () => void;
     onBack?: () => void;
 }
+
+const { width, height } = Dimensions.get('window');
 
 const networkQuestions: NetworkQuestion[] = [
     {
@@ -154,28 +156,46 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                    <ArrowLeft size={28} color="#647C90" />
-                </TouchableOpacity>
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Users size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Your Hidden Network</Text>
-
-                    <Text style={styles.introDescription}>
-                        This is a game of instincts to uncover your hidden network. Choose the answer that makes the most sense for you. There's no right or wrong!
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={() => setCurrentScreen(1)}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Start the game</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Hidden Network</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Users size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Your Hidden Network</Text>
+
+                            <Text style={styles.introDescription}>
+                                This is a game of instincts to uncover your hidden network. Choose the answer that makes the most sense for you. There's no right or wrong!
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.startButton}
+                                onPress={() => setCurrentScreen(1)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Start the game</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -196,45 +216,45 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
 
         return (
             <View style={styles.container}>
-                <View style={styles.header}>
-                    <View style={styles.progressContainer}>
-                        <Text style={styles.progressText}>
-                            {currentScreen}/9 questions
-                        </Text>
-                        <View style={styles.progressBar}>
-                            <View style={[styles.progressFill, { width: `${(currentScreen / 9) * 100}%` }]} />
+                {/* Sticky Header with Progress */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.progressText}>{currentScreen} of 9</Text>
                         </View>
+                        <View style={styles.backButton} />
+                    </View>
+                    <View style={styles.progressBar}>
+                        <View style={[styles.progressFill, { width: `${(currentScreen / 9) * 100}%` }]} />
                     </View>
                 </View>
 
-                <ScrollView style={styles.content} contentContainerStyle={styles.questionContainer}>
-                    <Text style={styles.questionTitle}>Your Hidden Network</Text>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.choiceCard}>
+                            <View style={styles.choiceButtons}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(question.id, question.optionA)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonText}>{question.optionA}</Text>
+                                </TouchableOpacity>
 
-                    <View style={styles.choicesContainer}>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(question.id, question.optionA)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>{question.optionA}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(question.id, question.optionB)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>{question.optionB}</Text>
-                        </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(question.id, question.optionB)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonText}>{question.optionB}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
-
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>
-                        {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-                    </Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -243,24 +263,41 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
     if (currentScreen === 10) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.transitionContainer}>
-                    <View style={styles.transitionIcon}>
-                        <Users size={40} color="#5A7D7B" />
-                    </View>
+                <View style={styles.storyBackground}>
+                    <View style={styles.storyBackgroundPattern} />
+                </View>
 
-                    <Text style={styles.transitionTitle}>Explore Your Hidden Network</Text>
-
-                    <TouchableOpacity
-                        style={styles.continueButton}
-                        onPress={() => setCurrentScreen(11)}
-                    >
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#5A7D7B' }]}
-                        >
-                            <Text style={styles.continueButtonText}>Continue</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Hidden Network</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.storyCard}>
+                            <View style={styles.storyTitleContainer}>
+                                <Text style={styles.storyTitle}>Explore Your Hidden Network</Text>
+                                <View style={styles.titleUnderline} />
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={() => setCurrentScreen(11)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.continueButtonText}>Continue</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -273,20 +310,40 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
 
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.storyContainer}>
-                    <View style={styles.storyIcon}>
-                        <Users size={32} color="#5A7D7B" />
+                <View style={styles.storyBackground}>
+                    <View style={styles.storyBackgroundPattern} />
+                </View>
+
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Hidden Network</Text>
+                        </View>
+                        <View style={styles.backButton} />
                     </View>
+                </View>
 
-                    <Text style={styles.storyText}>{storyText}</Text>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.storyCard}>
+                            <View style={styles.storyTextContainer}>
+                                <Text style={styles.storyText}>{storyText}</Text>
+                            </View>
 
-                    <TouchableOpacity
-                        style={styles.nextButton}
-                        onPress={() => setCurrentScreen(currentScreen + 1)}
-                    >
-                        <Text style={styles.nextButtonText}>Swipe to continue</Text>
-                        <ChevronRight size={16} color="#647C90" />
-                    </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={() => setCurrentScreen(currentScreen + 1)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.continueButtonText}>Continue</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -296,29 +353,52 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
     if (currentScreen === 20) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <Users size={40} color="#5A7D7B" />
-                    </View>
+                <View style={styles.storyBackground}>
+                    <View style={styles.storyBackgroundPattern} />
+                </View>
 
-                    <Text style={styles.finalTitle}>Your Hidden Network</Text>
-
-                    <Text style={styles.finalText}>
-                        Your network is everywhere. Each conversation, connection, and small act of courage adds another stepping stone on your path forward. You don't have to do this alone! Your support system is already forming around you if you're willing to look.
-                    </Text>
-
-                    <Text style={styles.finalClosing}>
-                        See you tomorrow!
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Hidden Network</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.storyCard}>
+                            <View style={styles.finalHeader}>
+                                <Users size={24} color="#928490" />
+                                <Text style={styles.finalHeading}>Your Hidden Network</Text>
+                                <Users size={24} color="#928490" />
+                            </View>
+
+                            <View style={styles.storyTextContainer}>
+                                <Text style={styles.storyText}>
+                                    Your network is everywhere. Each conversation, connection, and small act of courage adds another stepping stone on your path forward. You don't have to do this alone! Your support system is already forming around you if you're willing to look.
+                                </Text>
+                            </View>
+
+                            <Text style={styles.alternativeClosing}>
+                                See you tomorrow!
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={onComplete}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.continueButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -332,102 +412,159 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    topBackButton: {
+    storyBackground: {
         position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 0,
     },
-    content: {
+    storyBackgroundPattern: {
         flex: 1,
+        opacity: 0.03,
+        backgroundColor: '#928490',
+        transform: [{ rotate: '45deg' }, { scale: 1.5 }],
     },
-    introContainer: {
-        flexGrow: 1,
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    scrollView: {
+        flex: 1,
+        marginTop: 100,
+        zIndex: 1,
+    },
+    centeredContent: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        minHeight: height - 200,
+        paddingBottom: 30,
     },
-    introIcon: {
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+    introCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 32,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
-        marginBottom: 15,
+        marginBottom: 20,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#746C70',
+        fontSize: 16,
+        color: '#928490',
         textAlign: 'center',
-        marginBottom: 40,
+        lineHeight: 24,
+        marginBottom: 32,
+        fontStyle: 'italic',
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    header: {
-        padding: 20,
-        paddingTop: 60,
+    choiceCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
-    },
-    questionContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    questionTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 40,
-    },
-    choicesContainer: {
+    choiceButtons: {
         gap: 20,
     },
     choiceButton: {
@@ -438,157 +575,100 @@ const styles = StyleSheet.create({
         borderColor: 'transparent',
         minHeight: 80,
         justifyContent: 'center',
-        alignItems: 'center',
     },
-    choiceText: {
+    choiceButtonText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
+        fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
-        lineHeight: 22,
     },
-    backButton: {
-        flexDirection: 'row',
+    storyCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    transitionContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    storyTitleContainer: {
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    transitionIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    transitionTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
-        textAlign: 'center',
         marginBottom: 40,
     },
-    continueButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
+    storyTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 32,
+        color: '#647C90',
+        textAlign: 'center',
+        lineHeight: 38,
+        fontWeight: '700',
     },
-    continueButtonGradient: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
+    titleUnderline: {
+        height: 4,
+        width: 60,
+        backgroundColor: '#928490',
+        borderRadius: 2,
+        marginTop: 16,
+        opacity: 0.6,
     },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-    storyContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    storyIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
+    storyTextContainer: {
+        width: '100%',
+        marginBottom: 32,
     },
     storyText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
-        lineHeight: 26,
-        marginBottom: 40,
+        lineHeight: 28,
     },
-    nextButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-    },
-    nextButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginRight: 8,
-    },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    finalIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    finalTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 24,
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
-    },
-    finalClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 40,
-    },
-    completeButton: {
-        borderRadius: 12,
+    continueButton: {
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
+        minWidth: width * 0.5,
     },
-    completeButtonText: {
+    continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
+    },
+    alternativeClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
+        marginTop: 20,
+        fontWeight: '600',
+    },
+    finalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 30,
+        gap: 12,
+    },
+    finalHeading: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        fontWeight: '700',
     },
 });
