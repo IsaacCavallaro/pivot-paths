@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Sparkles, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 interface TimeChoice {
     id: number;
@@ -145,30 +147,47 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Sparkles size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Plan Your Ideal Week</Text>
-
-                    <Text style={styles.introDescription}>
-                        Choose the option that feels best to you and create a balanced schedule for work, hobbies, and rest.
-                    </Text>
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Start planning</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                                <ArrowLeft size={24} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backIconWrapper} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Plan Your Ideal Week</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.introIcon}>
+                                <Sparkles size={32} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>Plan Your Ideal Week</Text>
+
+                            <Text style={styles.introDescription}>
+                                Choose the option that feels best to you and create a balanced schedule for work, hobbies, and rest.
+                            </Text>
+
+                            <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Start planning</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -179,45 +198,56 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
 
         if (!currentChoice) return null;
 
+        // Calculate progress for choice screens
+        const choiceProgress = ((currentScreen) / 6) * 100;
+
         return (
             <View style={styles.container}>
-                <View style={styles.choiceHeader}>
-                    <Text style={styles.choiceProgress}>
-                        {currentScreen} of 6
-                    </Text>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>
+                                {currentScreen} of 6
+                            </Text>
+                        </View>
+                        <View style={styles.backIconWrapper} />
+                    </View>
                     <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${(currentScreen / 6) * 100}%` }]} />
+                        <View style={[styles.progressFill, { width: `${choiceProgress}%` }]} />
                     </View>
                 </View>
 
-                <ScrollView style={styles.content} contentContainerStyle={styles.choiceContainer}>
-                    <Text style={styles.choiceQuestion}>{currentChoice.question}</Text>
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <Text style={styles.choiceQuestion}>{currentChoice.question}</Text>
 
-                    <View style={styles.choiceButtons}>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoice(currentChoice.resultKey, currentChoice.option1)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceButtonText}>{currentChoice.option1}</Text>
-                        </TouchableOpacity>
+                            <View style={styles.choiceButtons}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoice(currentChoice.resultKey, currentChoice.option1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonText}>{currentChoice.option1}</Text>
+                                </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoice(currentChoice.resultKey, currentChoice.option2)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceButtonText}>{currentChoice.option2}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
-
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>
-                        {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-                    </Text>
-                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoice(currentChoice.resultKey, currentChoice.option2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonText}>{currentChoice.option2}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -228,67 +258,83 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
 
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.resultsContainer}>
-                    <Text style={styles.resultsTitle}>Your Ideal Weekly Rhythm</Text>
-
-                    <View style={styles.scheduleSection}>
-                        <Text style={styles.scheduleHeading}>Monday–Friday</Text>
-                        <View style={styles.scheduleItem}>
-                            <Text style={styles.scheduleTime}>Morning:</Text>
-                            <Text style={styles.scheduleActivity}>{results.weekdayMorning}</Text>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                                <ArrowLeft size={24} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backIconWrapper} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Your Ideal Week</Text>
                         </View>
-                        <View style={styles.scheduleItem}>
-                            <Text style={styles.scheduleTime}>Midday:</Text>
-                            <Text style={styles.scheduleActivity}>{results.weekdayMidday}</Text>
-                        </View>
-                        <View style={styles.scheduleItem}>
-                            <Text style={styles.scheduleTime}>Afternoon:</Text>
-                            <Text style={styles.scheduleActivity}>{results.weekdayAfternoon}</Text>
-                        </View>
-                        <View style={styles.scheduleItem}>
-                            <Text style={styles.scheduleTime}>Evening:</Text>
-                            <Text style={styles.scheduleActivity}>{results.weekdayEvening}</Text>
-                        </View>
-                        <View style={styles.scheduleItem}>
-                            <Text style={styles.scheduleTime}>Before Bed:</Text>
-                            <Text style={styles.scheduleActivity}>{results.weekdayBed}</Text>
-                        </View>
+                        <View style={styles.backIconWrapper} />
                     </View>
+                </View>
 
-                    <View style={styles.scheduleSection}>
-                        <Text style={styles.scheduleHeading}>Saturday–Sunday</Text>
-                        <View style={styles.scheduleItem}>
-                            <Text style={styles.scheduleTime}>Morning:</Text>
-                            <Text style={styles.scheduleActivity}>{results.weekendMorning}</Text>
-                        </View>
-                        <View style={styles.scheduleItem}>
-                            <Text style={styles.scheduleTime}>Daytime:</Text>
-                            <Text style={styles.scheduleActivity}>{results.weekendDaytime}</Text>
-                        </View>
-                        <View style={styles.scheduleItem}>
-                            <Text style={styles.scheduleTime}>Evening:</Text>
-                            <Text style={styles.scheduleActivity}>{results.weekendEvening}</Text>
-                        </View>
-                        <View style={styles.scheduleItem}>
-                            <Text style={styles.scheduleTime}>Night:</Text>
-                            <Text style={styles.scheduleActivity}>{results.weekendNight}</Text>
-                        </View>
-                    </View>
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <Text style={styles.resultsTitle}>Your Ideal Weekly Rhythm</Text>
 
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.continueButtonText}>Continue</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                            <View style={styles.scheduleSection}>
+                                <Text style={styles.scheduleHeading}>Monday–Friday</Text>
+                                <View style={styles.scheduleItem}>
+                                    <Text style={styles.scheduleTime}>Morning:</Text>
+                                    <Text style={styles.scheduleActivity}>{results.weekdayMorning}</Text>
+                                </View>
+                                <View style={styles.scheduleItem}>
+                                    <Text style={styles.scheduleTime}>Midday:</Text>
+                                    <Text style={styles.scheduleActivity}>{results.weekdayMidday}</Text>
+                                </View>
+                                <View style={styles.scheduleItem}>
+                                    <Text style={styles.scheduleTime}>Afternoon:</Text>
+                                    <Text style={styles.scheduleActivity}>{results.weekdayAfternoon}</Text>
+                                </View>
+                                <View style={styles.scheduleItem}>
+                                    <Text style={styles.scheduleTime}>Evening:</Text>
+                                    <Text style={styles.scheduleActivity}>{results.weekdayEvening}</Text>
+                                </View>
+                                <View style={styles.scheduleItem}>
+                                    <Text style={styles.scheduleTime}>Before Bed:</Text>
+                                    <Text style={styles.scheduleActivity}>{results.weekdayBed}</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.scheduleSection}>
+                                <Text style={styles.scheduleHeading}>Saturday–Sunday</Text>
+                                <View style={styles.scheduleItem}>
+                                    <Text style={styles.scheduleTime}>Morning:</Text>
+                                    <Text style={styles.scheduleActivity}>{results.weekendMorning}</Text>
+                                </View>
+                                <View style={styles.scheduleItem}>
+                                    <Text style={styles.scheduleTime}>Daytime:</Text>
+                                    <Text style={styles.scheduleActivity}>{results.weekendDaytime}</Text>
+                                </View>
+                                <View style={styles.scheduleItem}>
+                                    <Text style={styles.scheduleTime}>Evening:</Text>
+                                    <Text style={styles.scheduleActivity}>{results.weekendEvening}</Text>
+                                </View>
+                                <View style={styles.scheduleItem}>
+                                    <Text style={styles.scheduleTime}>Night:</Text>
+                                    <Text style={styles.scheduleActivity}>{results.weekendNight}</Text>
+                                </View>
+                            </View>
+
+                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.continueButtonText}>Continue</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -297,33 +343,50 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
     if (currentScreen === 8) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <Text style={styles.finalTitle}>Your Day, Your Terms</Text>
-
-                    <Text style={styles.finalText}>
-                        One of the best parts of stepping away from dance is finally gaining control of your day.
-                        But there's no perfect schedule. What matters is that it reflects you… your energy,
-                        your priorities, and your personality.
-                    </Text>
-
-                    <Text style={styles.finalText}>
-                        Even small shifts can make your days feel more aligned. Keep experimenting until your
-                        week feels like it's working for you… not the other way around.
-                    </Text>
-
-                    <Text style={styles.finalText}>
-                        See you tomorrow for the next step!
-                    </Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.continueButtonText}>Mark as complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backIconWrapper} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Plan Your Ideal Week</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.finalIcon}>
+                                <Sparkles size={40} color="#928490" />
+                            </View>
+                            <Text style={styles.introTitle}>Your Day, Your Terms</Text>
+                            <Text style={styles.finalText}>
+                                One of the best parts of stepping away from dance is finally gaining control of your day.
+                                But there's no perfect schedule. What matters is that it reflects you… your energy,
+                                your priorities, and your personality.
+                            </Text>
+
+                            <Text style={styles.finalText}>
+                                Even small shifts can make your days feel more aligned. Keep experimenting until your
+                                week feels like it's working for you… not the other way around.
+                            </Text>
+
+                            <Text style={styles.finalText}>
+                                See you tomorrow for the next step!
+                            </Text>
+
+                            <TouchableOpacity style={styles.completeButton} onPress={handleContinue}>
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark as complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -336,22 +399,59 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
-    },
-    content: {
+    scrollContainer: {
         flex: 1,
     },
-    introContainer: {
+    scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 20,
+    },
+
+    stickyHeader: {
         paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backIconWrapper: {
+        width: 40,
+        alignItems: 'center'
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 20,
+        color: '#E2DED0',
+    },
+
+    card: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 120,
     },
     introIcon: {
         width: 80,
@@ -364,7 +464,7 @@ const styles = StyleSheet.create({
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
@@ -376,18 +476,19 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 24,
         marginBottom: 40,
-        fontStyle: 'italic',
     },
+
     startButton: {
         borderRadius: 12,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -395,43 +496,17 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    choiceHeader: {
-        padding: 20,
-        paddingTop: 60,
-        alignItems: 'center',
-    },
-    choiceProgress: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '80%',
-        height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
-    },
-    choiceContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-    },
+
     choiceQuestion: {
-        fontFamily: 'Montserrat-SemiBold',
+        fontFamily: 'Merriweather-Bold',
         fontSize: 20,
         color: '#4E4F50',
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: 30,
     },
     choiceButtons: {
         gap: 20,
+        width: '100%',
     },
     choiceButton: {
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
@@ -448,24 +523,21 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
     },
-    resultsContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 60,
-    },
+
     resultsTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
+        fontSize: 24,
         color: '#4E4F50',
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: 30,
     },
     scheduleSection: {
         marginBottom: 30,
+        width: '100%',
     },
     scheduleHeading: {
         fontFamily: 'Montserrat-Bold',
-        fontSize: 20,
+        fontSize: 18,
         color: '#4E4F50',
         marginBottom: 16,
     },
@@ -484,17 +556,33 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         lineHeight: 22,
     },
-    finalContainer: {
-        flexGrow: 1,
+
+    continueButton: {
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    continueButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingVertical: 14,
+        borderRadius: 12,
     },
-    finalTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
-        textAlign: 'center',
+    continueButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 16,
+        color: '#E2DED0',
+        marginRight: 8,
+    },
+
+    finalIcon: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
         marginBottom: 30,
     },
     finalText: {
@@ -505,35 +593,35 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 20,
     },
-    continueButton: {
+    completeButton: {
         borderRadius: 12,
         overflow: 'hidden',
-        alignSelf: 'center',
-        marginTop: 30,
     },
-    continueButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 12,
     },
-    continueButtonText: {
+    completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
     },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
+
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+        borderRadius: 3,
+        marginTop: 12,
     },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
     },
 });
