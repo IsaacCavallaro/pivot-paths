@@ -119,38 +119,78 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
         return "";
     };
 
+    const getHeaderColor = () => {
+        if (currentScreen === 0) return '#928490';
+        if (currentScreen >= 1 && currentScreen <= 5) return '#928490'; // Scenario 1
+        if (currentScreen >= 6 && currentScreen <= 8) return '#928490'; // Scenario 2
+        if (currentScreen >= 9 && currentScreen <= 11) return '#928490'; // Scenario 3
+        return '#647C90'; // Conclusion
+    };
+
+    const getHeaderTitle = () => {
+        if (currentScreen === 0) return "Emergency!";
+        if (currentScreen === 1) return "Scenario 1";
+        if (currentScreen === 2) return "Your Options";
+        if (currentScreen === 3) return "Your Choice";
+        if (currentScreen === 4) return "The Big Picture";
+        if (currentScreen === 5) return "Scenario 2";
+        if (currentScreen === 6) return "Your Options";
+        if (currentScreen === 7) return "Your Choice";
+        if (currentScreen === 8) return "Scenario 3";
+        if (currentScreen === 9) return "Your Options";
+        if (currentScreen === 10) return "Your Choice";
+        if (currentScreen === 11) return "Conclusion";
+        return "Emergency!";
+    };
+
     // Intro Screen (Screen 1)
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <AlertTriangle size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Emergency!</Text>
-
-                    <Text style={styles.introDescription}>
-                        Life is full of surprises. An emergency fund isn't just money in the bank… it's your ticket to handling a crisis with grace, not panic.
-                    </Text>
-
-                    <Text style={styles.introDescription}>
-                        Let's walk through a few scenarios. Choose what you'd do, and we'll show you how a safety net changes the game.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStart}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Begin</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: getHeaderColor() }]}>
+                                    <AlertTriangle size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Emergency!</Text>
+
+                            <Text style={styles.introDescription}>
+                                Life is full of surprises. An emergency fund isn't just money in the bank… it's your ticket to handling a crisis with grace, not panic.
+                            </Text>
+
+                            <Text style={styles.introDescription}>
+                                Let's walk through a few scenarios. Choose what you'd do, and we'll show you how a safety net changes the game.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.startButton}
+                                onPress={handleStart}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.startButtonContent, { backgroundColor: getHeaderColor() }]}>
+                                    <Text style={styles.startButtonText}>Begin</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -160,25 +200,41 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.scenarioContainer}>
-                    <Text style={styles.scenarioTitle}>Scenario 1: The Unexpected Audition</Text>
-                    <Text style={styles.scenarioText}>
-                        It's a Tuesday afternoon. Your agent calls: there's a last-minute audition for a dream job tomorrow in Los Angeles. Flights and a hotel will cost at least $800. What do you do?
-                    </Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.continueButtonText}>See Your Options</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.scenarioCard}>
+                            <Text style={styles.scenarioTitle}>Scenario 1: The Unexpected Audition</Text>
+
+                            <Text style={styles.scenarioText}>
+                                It's a Tuesday afternoon. Your agent calls: there's a last-minute audition for a dream job tomorrow in Los Angeles. Flights and a hotel will cost at least $800. What do you do?
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
+                                    <Text style={styles.continueButtonText}>See Your Options</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -187,44 +243,58 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 2) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.choicesScreenContainer}>
-                    <View style={styles.choicesContainer}>
-                        <Text style={styles.choicesTitle}>What would you do?</Text>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(1)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                Put it all on a credit card. This opportunity is worth the debt!
-                            </Text>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(2)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                Politely decline. You feel a pit in your stomach, but your bank account is already too tight.
-                            </Text>
-                        </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.choicesCard}>
+                            <Text style={styles.choicesTitle}>What would you do?</Text>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(3)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                You check your dedicated "Opportunity Fund", book the trip, and go to bed stress-free.
-                            </Text>
-                        </TouchableOpacity>
+                            <View style={styles.choicesContainer}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        Put it all on a credit card. This opportunity is worth the debt!
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        Politely decline. You feel a pit in your stomach, but your bank account is already too tight.
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(3)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        You check your dedicated "Opportunity Fund", book the trip, and go to bed stress-free.
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -233,23 +303,39 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 3) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.responseContainer}>
-                    <Text style={styles.responseTitle}>Your Choice</Text>
-                    <Text style={styles.responseText}>{getResponseText()}</Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.continueButtonText}>Continue</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.responseCard}>
+                            <Text style={styles.responseTitle}>Your Choice</Text>
+
+                            <Text style={styles.responseText}>{getResponseText()}</Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
+                                    <Text style={styles.continueButtonText}>Continue</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -258,25 +344,41 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 4) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.followUpContainer}>
-                    <Text style={styles.followUpTitle}>The Big Picture</Text>
-                    <Text style={styles.followUpText}>
-                        An emergency fund turns a crisis or a huge opportunity into a simple, manageable event. It's the difference between reacting from a place of fear and responding from a place of power.
-                    </Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.continueButtonText}>Next Scenario</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.followUpCard}>
+                            <Text style={styles.followUpTitle}>The Big Picture</Text>
+
+                            <Text style={styles.followUpText}>
+                                An emergency fund turns a crisis or a huge opportunity into a simple, manageable event. It's the difference between reacting from a place of fear and responding from a place of power.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
+                                    <Text style={styles.continueButtonText}>Next Scenario</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -285,28 +387,47 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 5) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.scenarioContainer}>
-                    <View style={styles.scenarioIcon}>
-                        <Briefcase size={32} color="#5A7D7B" />
-                    </View>
-                    <Text style={styles.scenarioTitle}>Scenario 2: The Sudden Career Pivot</Text>
-                    <Text style={styles.scenarioText}>
-                        You're unexpectedly injured and you've decided to pivot! You land an entry-level interview in a new field. The job offers huge opportunities for growth but initially, it's a pay cut. What's your move?
-                    </Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#5A7D7B' }]}
-                        >
-                            <Text style={styles.continueButtonText}>See Your Options</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.scenarioCard}>
+                            <View style={styles.scenarioIconContainer}>
+                                <View style={[styles.scenarioIconGradient, { backgroundColor: getHeaderColor() }]}>
+                                    <Briefcase size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.scenarioTitle}>Scenario 2: The Sudden Career Pivot</Text>
+
+                            <Text style={styles.scenarioText}>
+                                You're unexpectedly injured and you've decided to pivot! You land an entry-level interview in a new field. The job offers huge opportunities for growth but initially, it's a pay cut. What's your move?
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
+                                    <Text style={styles.continueButtonText}>See Your Options</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -315,44 +436,58 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 6) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.choicesScreenContainer}>
-                    <View style={styles.choicesContainer}>
-                        <Text style={styles.choicesTitle}>What would you do?</Text>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(1)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                Panic and decline. You can't afford the pay cut, so you stay in the familiar grind of dance gigs.
-                            </Text>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(2)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                Take the job but pile on extra teaching hours nights/weekends to make ends meet, risking burnout.
-                            </Text>
-                        </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.choicesCard}>
+                            <Text style={styles.choicesTitle}>What would you do?</Text>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(3)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                Confidently accept, knowing your emergency fund can cover the income gap for the first year.
-                            </Text>
-                        </TouchableOpacity>
+                            <View style={styles.choicesContainer}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        Panic and decline. You can't afford the pay cut, so you stay in the familiar grind of dance gigs.
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        Take the job but pile on extra teaching hours nights/weekends to make ends meet, risking burnout.
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(3)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        Confidently accept, knowing your emergency fund can cover the income gap for the first year.
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -361,23 +496,39 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 7) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.responseContainer}>
-                    <Text style={styles.responseTitle}>Your Choice</Text>
-                    <Text style={styles.responseText}>{getResponseText()}</Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#5A7D7B' }]}
-                        >
-                            <Text style={styles.continueButtonText}>Next Scenario</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.responseCard}>
+                            <Text style={styles.responseTitle}>Your Choice</Text>
+
+                            <Text style={styles.responseText}>{getResponseText()}</Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
+                                    <Text style={styles.continueButtonText}>Next Scenario</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -386,28 +537,47 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 8) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.scenarioContainer}>
-                    <View style={styles.scenarioIcon}>
-                        <Heart size={32} color="#C76B6B" />
-                    </View>
-                    <Text style={styles.scenarioTitle}>Scenario 3: The Family Emergency</Text>
-                    <Text style={styles.scenarioText}>
-                        You get a call that a parent back home has had a medical emergency. You need to book a last-minute flight across the country and may need to stay for a while to help out. What is your first thought?
-                    </Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#C76B6B' }]}
-                        >
-                            <Text style={styles.continueButtonText}>See Your Options</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.scenarioCard}>
+                            <View style={styles.scenarioIconContainer}>
+                                <View style={[styles.scenarioIconGradient, { backgroundColor: getHeaderColor() }]}>
+                                    <Heart size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.scenarioTitle}>Scenario 3: The Family Emergency</Text>
+
+                            <Text style={styles.scenarioText}>
+                                You get a call that a parent back home has had a medical emergency. You need to book a last-minute flight across the country and may need to stay for a while to help out. What is your first thought?
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
+                                    <Text style={styles.continueButtonText}>See Your Options</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -416,44 +586,58 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 9) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.choicesScreenContainer}>
-                    <View style={styles.choicesContainer}>
-                        <Text style={styles.choicesTitle}>What is your first thought?</Text>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(1)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                "How much will this cost?" Your first feeling is dread, overshadowing your concern.
-                            </Text>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(2)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                "I need to ask my director for an advance on my pay." You feel uncomfortable adding a financial conversation to a stressful time.
-                            </Text>
-                        </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.choicesCard}>
+                            <Text style={styles.choicesTitle}>What is your first thought?</Text>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(3)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                "I'll book the next flight out." Your first and only thought is getting home.
-                            </Text>
-                        </TouchableOpacity>
+                            <View style={styles.choicesContainer}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        "How much will this cost?" Your first feeling is dread, overshadowing your concern.
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        "I need to ask my director for an advance on my pay." You feel uncomfortable adding a financial conversation to a stressful time.
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(3)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        "I'll book the next flight out." Your first and only thought is getting home.
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -462,23 +646,39 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 10) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.responseContainer}>
-                    <Text style={styles.responseTitle}>Your Choice</Text>
-                    <Text style={styles.responseText}>{getResponseText()}</Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#C76B6B' }]}
-                        >
-                            <Text style={styles.continueButtonText}>Conclusion</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.responseCard}>
+                            <Text style={styles.responseTitle}>Your Choice</Text>
+
+                            <Text style={styles.responseText}>{getResponseText()}</Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
+                                    <Text style={styles.continueButtonText}>Conclusion</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -487,48 +687,65 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     if (currentScreen === 11) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.conclusionContainer}>
-                    <View style={styles.conclusionIcon}>
-                        <AlertTriangle size={32} color="#647C90" />
-                    </View>
-
-                    <Text style={styles.conclusionTitle}>Your Financial Safety Net</Text>
-
-                    <Text style={styles.conclusionText}>
-                        An emergency fund isn't about being paranoid. It's about being prepared. It's the key that unlocks:
-                    </Text>
-
-                    <Text style={styles.conclusionBullet}>
-                        • <Text style={styles.conclusionBold}>Career Opportunities</Text> without debt
-                    </Text>
-                    <Text style={styles.conclusionBullet}>
-                        • <Text style={styles.conclusionBold}>Career Transitions</Text> without panic
-                    </Text>
-                    <Text style={styles.conclusionBullet}>
-                        • <Text style={styles.conclusionBold}>Family Support</Text> without hesitation
-                    </Text>
-
-                    <Text style={styles.conclusionText}>
-                        Your first goal is $500. Then go for one month's expenses. Then three. Start building your safety net today. You never know when you'll need to use it, but you'll always be glad it's there.
-                    </Text>
-
-                    <Text style={styles.conclusionClosing}>
-                        Come back tomorrow for more.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#647C90' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.conclusionCard}>
+                            <View style={styles.conclusionIconContainer}>
+                                <View style={[styles.conclusionIconGradient, { backgroundColor: getHeaderColor() }]}>
+                                    <AlertTriangle size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.conclusionTitle}>Your Financial Safety Net</Text>
+
+                            <Text style={styles.conclusionText}>
+                                An emergency fund isn't about being paranoid. It's about being prepared. It's the key that unlocks:
+                            </Text>
+
+                            <Text style={styles.conclusionBullet}>
+                                • <Text style={styles.conclusionBold}>Career Opportunities</Text> without debt
+                            </Text>
+                            <Text style={styles.conclusionBullet}>
+                                • <Text style={styles.conclusionBold}>Career Transitions</Text> without panic
+                            </Text>
+                            <Text style={styles.conclusionBullet}>
+                                • <Text style={styles.conclusionBold}>Family Support</Text> without hesitation
+                            </Text>
+
+                            <Text style={styles.conclusionText}>
+                                Your first goal is $500. Then go for one month's expenses. Then three. Start building your safety net today. You never know when you'll need to use it, but you'll always be glad it's there.
+                            </Text>
+
+                            <Text style={styles.conclusionClosing}>
+                                Come back tomorrow for more.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.completeButton}
+                                onPress={onComplete}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.completeButtonContent, { backgroundColor: getHeaderColor() }]}>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -541,87 +758,141 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    topBackButton: {
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
         position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    scrollView: {
+        flex: 1,
+        marginTop: 100,
     },
     content: {
-        flex: 1,
+        paddingBottom: 30,
     },
-    introContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    headerRow: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        justifyContent: 'space-between',
     },
-    introIcon: {
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    introCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         lineHeight: 24,
         marginBottom: 20,
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
-        marginTop: 20,
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    scenarioContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    scenarioCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
-    scenarioIcon: {
+    scenarioIconContainer: {
+        marginBottom: 24,
+    },
+    scenarioIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     scenarioTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 22,
-        color: '#4E4F50',
+        fontSize: 24,
+        color: '#647C90',
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: 24,
+        fontWeight: '700',
     },
     scenarioText: {
         fontFamily: 'Montserrat-Regular',
@@ -629,45 +900,55 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
     },
     continueButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
-        alignSelf: 'center',
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    choicesScreenContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingVertical: 40,
-    },
-    choicesContainer: {
-        paddingHorizontal: 24,
-        gap: 15,
+    choicesCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
     choicesTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
+        fontSize: 24,
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 30,
+        fontWeight: '700',
+    },
+    choicesContainer: {
+        gap: 16,
     },
     choiceButton: {
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 20,
         borderWidth: 2,
         borderColor: 'transparent',
@@ -676,22 +957,29 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
-        lineHeight: 22,
+        lineHeight: 24,
         textAlign: 'center',
     },
-    responseContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    responseCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
     responseTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
+        fontSize: 24,
+        color: '#647C90',
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: 25,
+        fontWeight: '700',
     },
     responseText: {
         fontFamily: 'Montserrat-Regular',
@@ -699,21 +987,28 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
     },
-    followUpContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    followUpCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
     followUpTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
+        fontSize: 24,
+        color: '#647C90',
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: 25,
+        fontWeight: '700',
     },
     followUpText: {
         fontFamily: 'Montserrat-Regular',
@@ -721,30 +1016,42 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
     },
-    conclusionContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    conclusionCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
-    conclusionIcon: {
+    conclusionIconContainer: {
+        marginBottom: 24,
+    },
+    conclusionIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(100, 124, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     conclusionTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: 25,
+        fontWeight: '700',
     },
     conclusionText: {
         fontFamily: 'Montserrat-Regular',
@@ -767,40 +1074,33 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat-SemiBold',
     },
     conclusionClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: 32,
         marginTop: 20,
+        fontWeight: '600',
     },
     completeButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
+        fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
+        fontWeight: '600',
     },
 });
