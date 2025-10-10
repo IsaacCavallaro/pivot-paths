@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Play, Pause, ExternalLink } from 'lucide-react-native';
+import { Play, Pause, ExternalLink, ArrowLeft } from 'lucide-react-native';
+
+const { width, height } = Dimensions.get('window');
 
 interface CelebrateTheWinsProps {
     onComplete: () => void;
+    onBack?: () => void;
 }
 
-export default function CelebrateTheWins({ onComplete }: CelebrateTheWinsProps) {
+export default function CelebrateTheWins({ onComplete, onBack }: CelebrateTheWinsProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentScreen, setCurrentScreen] = useState(0); // 0 = celebrate wins, 1 = ebook promotion
 
@@ -28,50 +31,80 @@ export default function CelebrateTheWins({ onComplete }: CelebrateTheWinsProps) 
         console.log('Opening How to Pivot ebook link');
     };
 
+    const handleBack = () => {
+        if (onBack) {
+            onBack();
+        }
+    };
+
     // Celebrate Wins Screen
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.celebrateContainer}>
-                    <View style={styles.celebrateIcon}>
-                        <TouchableOpacity
-                            style={styles.playButton}
-                            onPress={handlePlayPause}
-                            activeOpacity={0.8}
-                        >
-                            <LinearGradient
-                                colors={['#647C90', '#928490']}
-                                style={styles.playButtonGradient}
-                            >
-                                {isPlaying ? (
-                                    <Pause size={40} color="#E2DED0" />
-                                ) : (
-                                    <Play size={40} color="#E2DED0" />
-                                )}
-                            </LinearGradient>
-                        </TouchableOpacity>
-                    </View>
-
-                    <Text style={styles.celebrateTitle}>Celebrate Your Wins</Text>
-
-                    <Text style={styles.celebrateDescription}>
-                        {isPlaying
-                            ? "Celebrating your achievements..."
-                            : "Tap to celebrate your recent wins"
-                        }
-                    </Text>
-
-                    {isPlaying && (
-                        <View style={styles.playingIndicator}>
-                            <View style={styles.waveform}>
-                                {[...Array(5)].map((_, i) => (
-                                    <View key={i} style={[styles.wave, { animationDelay: `${i * 0.1}s` }]} />
-                                ))}
-                            </View>
-                            <Text style={styles.playingText}>Celebrating...</Text>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                                <ArrowLeft size={28} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backButton} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Celebrate Your Wins</Text>
                         </View>
-                    )}
-                </ScrollView>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.celebrateIcon}>
+                                <TouchableOpacity
+                                    style={styles.playButton}
+                                    onPress={handlePlayPause}
+                                    activeOpacity={0.8}
+                                >
+                                    <LinearGradient
+                                        colors={['#647C90', '#928490']}
+                                        style={styles.playButtonGradient}
+                                    >
+                                        {isPlaying ? (
+                                            <Pause size={40} color="#E2DED0" />
+                                        ) : (
+                                            <Play size={40} color="#E2DED0" />
+                                        )}
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            </View>
+
+                            <Text style={styles.celebrateTitle}>Celebrate Your Wins</Text>
+
+                            <Text style={styles.celebrateDescription}>
+                                {isPlaying
+                                    ? "Celebrating your achievements..."
+                                    : "Tap to celebrate your recent wins"
+                                }
+                            </Text>
+
+                            {isPlaying && (
+                                <View style={styles.playingIndicator}>
+                                    <View style={styles.waveform}>
+                                        {[...Array(5)].map((_, i) => (
+                                            <View key={i} style={[styles.wave, { animationDelay: `${i * 0.1}s` }]} />
+                                        ))}
+                                    </View>
+                                    <Text style={styles.playingText}>Celebrating...</Text>
+                                </View>
+                            )}
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -79,42 +112,60 @@ export default function CelebrateTheWins({ onComplete }: CelebrateTheWinsProps) 
     // Ebook Promotion Screen
     return (
         <View style={styles.container}>
-            <ScrollView style={styles.content} contentContainerStyle={styles.ebookContainer}>
-                <View style={styles.ebookIcon}>
-                    <ExternalLink size={32} color="#928490" />
+            {/* Sticky Header */}
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <View style={styles.backButton} />
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.titleText}>Ready for More?</Text>
+                    </View>
+                    <View style={styles.backButton} />
                 </View>
+            </View>
 
-                <Text style={styles.ebookTitle}>Ready for More?</Text>
+            <View style={styles.scrollContainer}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.card}>
+                        <View style={styles.ebookIcon}>
+                            <ExternalLink size={32} color="#928490" />
+                        </View>
 
-                <Text style={styles.ebookText}>
-                    You're ready to dream bigger and step into a full and rich life beyond dance.
-                </Text>
+                        <Text style={styles.ebookTitle}>Ready for More?</Text>
 
-                <Text style={styles.ebookText}>
-                    Now, take it one step further with our How to Pivot ebook. Dive deeper into your values, mindset, and next steps with actionable activities and real-life examples.
-                </Text>
+                        <Text style={styles.ebookText}>
+                            You're ready to dream bigger and step into a full and rich life beyond dance.
+                        </Text>
 
-                <Text style={styles.ebookCallout}>
-                    Life is yours for the taking. Will you reach out and grab it?
-                </Text>
+                        <Text style={styles.ebookText}>
+                            Now, take it one step further with our How to Pivot ebook. Dive deeper into your values, mindset, and next steps with actionable activities and real-life examples.
+                        </Text>
 
-                <TouchableOpacity style={styles.ebookButton} onPress={handleEbookLink}>
-                    <View
-                        style={[styles.ebookButtonGradient, { backgroundColor: '#928490' }]}
-                    >
-                        <Text style={styles.ebookButtonText}>Get the How to Pivot Ebook</Text>
-                        <ExternalLink size={16} color="#E2DED0" />
+                        <Text style={styles.ebookCallout}>
+                            Life is yours for the taking. Will you reach out and grab it?
+                        </Text>
+
+                        <TouchableOpacity style={styles.ebookButton} onPress={handleEbookLink}>
+                            <View
+                                style={[styles.ebookButtonContent, { backgroundColor: '#928490' }]}
+                            >
+                                <Text style={styles.ebookButtonText}>Get the How to Pivot Ebook</Text>
+                                <ExternalLink size={16} color="#E2DED0" />
+                            </View>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
+                            <View
+                                style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}
+                            >
+                                <Text style={styles.completeButtonText}>Mark as complete</Text>
+                            </View>
+                        </TouchableOpacity>
                     </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
-                    <View
-                        style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                    >
-                        <Text style={styles.completeButtonText}>Mark as complete</Text>
-                    </View>
-                </TouchableOpacity>
-            </ScrollView>
+                </ScrollView>
+            </View>
         </View>
     );
 }
@@ -124,15 +175,58 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    content: {
+    scrollContainer: {
+        marginTop: 70,
         flex: 1,
     },
-    celebrateContainer: {
+    scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 24,
         paddingVertical: 40,
+    },
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    card: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
     celebrateIcon: {
         marginBottom: 30,
@@ -183,18 +277,11 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#647C90',
     },
-    ebookContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
     ebookIcon: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
@@ -227,12 +314,13 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         marginBottom: 20,
     },
-    ebookButtonGradient: {
+    ebookButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 24,
+        paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     ebookButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -244,28 +332,17 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 24,
+        paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
     },
 });
