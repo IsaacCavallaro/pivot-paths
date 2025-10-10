@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, PiggyBank, ArrowLeft, ChevronLeft, Target, Trash2 } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 interface ChallengeOption {
     id: number;
@@ -112,35 +114,51 @@ export default function SavingsSprint({ onComplete, onBack }: SavingsSprintProps
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <PiggyBank size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>The 30-Day Savings Sprint</Text>
-
-                    <Text style={styles.introDescription}>
-                        Think you can't save? Think again. This isn't about huge sacrifices, it's about small, consistent actions that prove you are in control of your money.
-                    </Text>
-
-                    <Text style={styles.introSubtext}>
-                        Let's walk through three simple challenges. Your only job is to pick one and start.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={() => navigateTo(1)}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Let's begin</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                                <ArrowLeft size={24} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backIconWrapper} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>30-Day Savings Sprint</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.introIcon}>
+                                <PiggyBank size={32} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>The 30-Day Savings Sprint</Text>
+
+                            <Text style={styles.introDescription}>
+                                Think you can't save? Think again. This isn't about huge sacrifices, it's about small, consistent actions that prove you are in control of your money.
+                            </Text>
+
+                            <Text style={styles.introSubtext}>
+                                Let's walk through three simple challenges. Your only job is to pick one and start.
+                            </Text>
+
+                            <TouchableOpacity style={styles.startButton} onPress={() => navigateTo(1)}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Let's begin</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -148,69 +166,90 @@ export default function SavingsSprint({ onComplete, onBack }: SavingsSprintProps
     // Challenge Detail Screens (1-3)
     if (currentScreen >= 1 && currentScreen <= 3) {
         const challenge = challengeOptions[currentScreen - 1];
+        const progress = ((currentScreen) / 3) * 100;
 
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.challengeContainer}>
-                    <Text style={styles.challengeTitle}>{challenge.title}</Text>
-                    <Text style={styles.challengeDescription}>{challenge.description}</Text>
-
-                    <View style={styles.infoCard}>
-                        <Text style={styles.infoLabel}>The Goal:</Text>
-                        <Text style={styles.infoText}>{challenge.goal}</Text>
-
-                        <Text style={styles.infoLabel}>The Target:</Text>
-                        <Text style={styles.infoText}>{challenge.target}</Text>
-
-                        <Text style={styles.infoLabel}>The Result:</Text>
-                        <Text style={styles.infoText}>{challenge.result}</Text>
-
-                        <Text style={styles.infoLabel}>Best for:</Text>
-                        <Text style={styles.infoText}>{challenge.bestFor}</Text>
-                    </View>
-
-                    <Text style={styles.sectionTitle}>How to Do It</Text>
-
-                    <View style={styles.stepsContainer}>
-                        {challenge.steps.map((step, index) => (
-                            <View key={index} style={styles.stepRow}>
-                                <View style={styles.stepNumber}>
-                                    <Text style={styles.stepNumberText}>{index + 1}</Text>
-                                </View>
-                                <Text style={styles.stepText}>{step}</Text>
-                            </View>
-                        ))}
-                    </View>
-
-                    <View style={styles.proTipContainer}>
-                        <Text style={styles.proTipText}>Pro Tip: {challenge.proTip}</Text>
-                    </View>
-
-                    <TouchableOpacity
-                        style={styles.continueButton}
-                        onPress={() => {
-                            if (currentScreen < 3) {
-                                navigateTo(currentScreen + 1);
-                            } else {
-                                navigateTo(4); // Go to choose screen after last challenge
-                            }
-                        }}
-                    >
-                        <LinearGradient
-                            colors={['#928490', '#746C70']}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>
-                                {currentScreen < 3 ? 'Next Challenge' : 'Choose Your Challenge'}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>
+                                {currentScreen} of 3
                             </Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        </View>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                    <View style={styles.progressBar}>
+                        <View style={[styles.progressFill, { width: `${progress}%` }]} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <Text style={styles.challengeTitle}>{challenge.title}</Text>
+                            <Text style={styles.challengeDescription}>{challenge.description}</Text>
+
+                            <View style={styles.infoCard}>
+                                <Text style={styles.infoLabel}>The Goal:</Text>
+                                <Text style={styles.infoText}>{challenge.goal}</Text>
+
+                                <Text style={styles.infoLabel}>The Target:</Text>
+                                <Text style={styles.infoText}>{challenge.target}</Text>
+
+                                <Text style={styles.infoLabel}>The Result:</Text>
+                                <Text style={styles.infoText}>{challenge.result}</Text>
+
+                                <Text style={styles.infoLabel}>Best for:</Text>
+                                <Text style={styles.infoText}>{challenge.bestFor}</Text>
+                            </View>
+
+                            <Text style={styles.sectionTitle}>How to Do It</Text>
+
+                            <View style={styles.stepsContainer}>
+                                {challenge.steps.map((step, index) => (
+                                    <View key={index} style={styles.stepRow}>
+                                        <View style={styles.stepNumber}>
+                                            <Text style={styles.stepNumberText}>{index + 1}</Text>
+                                        </View>
+                                        <Text style={styles.stepText}>{step}</Text>
+                                    </View>
+                                ))}
+                            </View>
+
+                            <View style={styles.proTipContainer}>
+                                <Text style={styles.proTipText}>Pro Tip: {challenge.proTip}</Text>
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={() => {
+                                    if (currentScreen < 3) {
+                                        navigateTo(currentScreen + 1);
+                                    } else {
+                                        navigateTo(4); // Go to choose screen after last challenge
+                                    }
+                                }}
+                            >
+                                <LinearGradient
+                                    colors={['#928490', '#746C70']}
+                                    style={styles.continueButtonContent}
+                                >
+                                    <Text style={styles.continueButtonText}>
+                                        {currentScreen < 3 ? 'Next Challenge' : 'Choose Your Challenge'}
+                                    </Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -219,56 +258,71 @@ export default function SavingsSprint({ onComplete, onBack }: SavingsSprintProps
     if (currentScreen === 4) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.chooseContainer}>
-                    <Text style={styles.chooseTitle}>Choose Your Saving Style</Text>
-                    <Text style={styles.chooseDescription}>
-                        Reflect for a moment. Which challenge felt the most doable?
-                    </Text>
-
-                    {challengeOptions.map((challenge) => (
-                        <TouchableOpacity
-                            key={challenge.id}
-                            style={[
-                                styles.challengeOption,
-                                selectedChallenge === challenge.id && styles.challengeOptionSelected
-                            ]}
-                            onPress={() => setSelectedChallenge(challenge.id)}
-                        >
-                            <View style={styles.challengeOptionIcon}>
-                                {challenge.icon}
-                            </View>
-                            <View style={styles.challengeOptionText}>
-                                <Text style={styles.challengeOptionTitle}>
-                                    {challenge.id === 1 && "The Daily Habit (Spare Change)"}
-                                    {challenge.id === 2 && "The One-Time Win (10% Transfer)"}
-                                    {challenge.id === 3 && "The Bonus Round (Declutter)"}
-                                </Text>
-                            </View>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
                         </TouchableOpacity>
-                    ))}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Choose Your Style</Text>
+                        </View>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
 
-                    <Text style={styles.chooseFooter}>
-                        There is no wrong answer. The best challenge is the one you'll actually do.
-                    </Text>
-
-                    <TouchableOpacity
-                        style={[styles.continueButton, !selectedChallenge && styles.continueButtonDisabled]}
-                        onPress={() => navigateTo(5)}
-                        disabled={!selectedChallenge}
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
                     >
-                        <LinearGradient
-                            colors={['#5A7D7B', '#647C90']}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>Confirm Selection</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.card}>
+                            <Text style={styles.chooseTitle}>Choose Your Saving Style</Text>
+                            <Text style={styles.chooseDescription}>
+                                Reflect for a moment. Which challenge felt the most doable?
+                            </Text>
+
+                            {challengeOptions.map((challenge) => (
+                                <TouchableOpacity
+                                    key={challenge.id}
+                                    style={[
+                                        styles.challengeOption,
+                                        selectedChallenge === challenge.id && styles.challengeOptionSelected
+                                    ]}
+                                    onPress={() => setSelectedChallenge(challenge.id)}
+                                >
+                                    <View style={styles.challengeOptionIcon}>
+                                        {challenge.icon}
+                                    </View>
+                                    <View style={styles.challengeOptionText}>
+                                        <Text style={styles.challengeOptionTitle}>
+                                            {challenge.id === 1 && "The Daily Habit (Spare Change)"}
+                                            {challenge.id === 2 && "The One-Time Win (10% Transfer)"}
+                                            {challenge.id === 3 && "The Bonus Round (Declutter)"}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+
+                            <Text style={styles.chooseFooter}>
+                                There is no wrong answer. The best challenge is the one you'll actually do.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={[styles.continueButton, !selectedChallenge && styles.continueButtonDisabled]}
+                                onPress={() => navigateTo(5)}
+                                disabled={!selectedChallenge}
+                            >
+                                <LinearGradient
+                                    colors={['#928490', '#928490']}
+                                    style={styles.continueButtonContent}
+                                >
+                                    <Text style={styles.continueButtonText}>Confirm Selection</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -279,32 +333,48 @@ export default function SavingsSprint({ onComplete, onBack }: SavingsSprintProps
 
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.missionContainer}>
-                    <Text style={styles.missionTitle}>Your Mission, Should You Choose to Accept It</Text>
-
-                    <View style={styles.missionSteps}>
-                        <Text style={styles.missionStep}>1. Pick one challenge to commit to for the next 30 days.</Text>
-                        <Text style={styles.missionStep}>2. Schedule it. Put the actionable step in your calendar or set those reminders.</Text>
-                        <Text style={styles.missionStep}>3. Name your savings goal. What is this pot of money for? Emergency Fund, Pivot Savings, Breathing Room</Text>
-                    </View>
-
-                    <Text style={styles.missionEncouragement}>
-                        You are building proof that you can do this.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark as complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Your Mission</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.finalIcon}>
+                                <PiggyBank size={40} color="#647C90" />
+                            </View>
+                            <Text style={styles.missionTitle}>Your Mission, Should You Choose to Accept It</Text>
+
+                            <View style={styles.missionSteps}>
+                                <Text style={styles.missionStep}>1. Pick one challenge to commit to for the next 30 days.</Text>
+                                <Text style={styles.missionStep}>2. Schedule it. Put the actionable step in your calendar or set those reminders.</Text>
+                                <Text style={styles.missionStep}>3. Name your savings goal. What is this pot of money for? Emergency Fund, Pivot Savings, Breathing Room</Text>
+                            </View>
+
+                            <Text style={styles.missionEncouragement}>
+                                You are building proof that you can do this.
+                            </Text>
+
+                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#647C90' }]}>
+                                    <Text style={styles.completeButtonText}>Mark as complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -317,28 +387,88 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    content: {
+    scrollContainer: {
         flex: 1,
     },
-    introContainer: {
+    scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingVertical: 20,
     },
+
+    // Header Styles
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backIconWrapper: {
+        width: 40,
+        alignItems: 'center'
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center'
+    },
+    headerTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 20,
+        color: '#E2DED0',
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(255,255,255,0.3)',
+        borderRadius: 3,
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+
+    // Card Styles
+    card: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 150,
+    },
+
+    // Intro Screen Styles
     introIcon: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        backgroundColor: 'rgba(146,132,144,0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
@@ -359,16 +489,19 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 40,
     },
+
+    // Button Styles
     startButton: {
         borderRadius: 12,
-        overflow: 'hidden',
+        overflow: 'hidden'
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -376,11 +509,8 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    challengeContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
+    // Challenge Detail Styles
     challengeTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -400,6 +530,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 20,
         marginBottom: 30,
+        width: '100%',
     },
     infoLabel: {
         fontFamily: 'Montserrat-SemiBold',
@@ -419,9 +550,11 @@ const styles = StyleSheet.create({
         fontSize: 22,
         color: '#4E4F50',
         marginBottom: 15,
+        alignSelf: 'flex-start',
     },
     stepsContainer: {
         marginBottom: 20,
+        width: '100%',
     },
     stepRow: {
         flexDirection: 'row',
@@ -456,7 +589,8 @@ const styles = StyleSheet.create({
         padding: 16,
         marginBottom: 30,
         borderLeftWidth: 4,
-        borderLeftColor: '#5A7D7B',
+        borderLeftColor: '#928490',
+        width: '100%',
     },
     proTipText: {
         fontFamily: 'Montserrat-Italic',
@@ -464,21 +598,22 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         lineHeight: 22,
     },
+
+    // Continue Button Styles
     continueButton: {
         borderRadius: 12,
-        overflow: 'hidden',
-        alignSelf: 'center',
-        marginTop: 10,
+        overflow: 'hidden'
     },
     continueButtonDisabled: {
         opacity: 0.5,
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
+        borderRadius: 12,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -486,11 +621,8 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    chooseContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
+    // Choose Screen Styles
     chooseTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -512,11 +644,12 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 16,
         marginBottom: 15,
+        width: '100%',
     },
     challengeOptionSelected: {
         backgroundColor: 'rgba(90, 125, 123, 0.2)',
         borderWidth: 2,
-        borderColor: '#5A7D7B',
+        borderColor: '#928490',
     },
     challengeOptionIcon: {
         marginRight: 15,
@@ -536,10 +669,16 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginVertical: 20,
     },
-    missionContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+
+    // Mission Screen Styles
+    finalIcon: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: 'rgba(100,124,144,0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 30,
     },
     missionTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -550,6 +689,7 @@ const styles = StyleSheet.create({
     },
     missionSteps: {
         marginBottom: 30,
+        width: '100%',
     },
     missionStep: {
         fontFamily: 'Montserrat-Regular',
@@ -561,45 +701,26 @@ const styles = StyleSheet.create({
     missionEncouragement: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#5A7D7B',
+        color: '#928490',
         textAlign: 'center',
         marginBottom: 40,
     },
     completeButton: {
         borderRadius: 12,
-        overflow: 'hidden',
-        alignSelf: 'center',
+        overflow: 'hidden'
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
     },
 });
