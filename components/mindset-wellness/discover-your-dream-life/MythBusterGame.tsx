@@ -256,7 +256,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               <Text style={styles.introTitle}>Myth Buster</Text>
 
               <Text style={styles.introDescription}>
-                Match the myth to the reality
+                Let's see if we can expose the myths of the dance industry by matching the myth to the reality
               </Text>
 
               <TouchableOpacity

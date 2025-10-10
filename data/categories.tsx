@@ -120,13 +120,13 @@ export const categories: Category[] = [
           },
           {
             day: 2,
-            title: 'Permission to Want More',
+            title: 'Myth Buster',
             content: 'Today we explore what it means to give yourself full permission to want more than what feels "realistic" or "safe."',
             hasMythBuster: true,
           },
           {
             day: 3,
-            title: 'Beyond the Practical',
+            title: "What's The Alternative ",
             content: 'Let\'s walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you\'d be most likely to do in this scenario and we\'ll shed light on an alternative.',
             hasRoleplay: true,
           },
