@@ -354,7 +354,10 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
                 <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                  <Sparkles size={32} color="#E2DED0" />
+                  <Image
+                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                    style={styles.heroImage}
+                  />
                 </View>
               </View>
 
@@ -770,6 +773,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderColor: '#647C90',
     borderWidth: 2,
+    marginBottom: 10,
   },
   finalTitle: {
     fontFamily: 'Merriweather-Bold',

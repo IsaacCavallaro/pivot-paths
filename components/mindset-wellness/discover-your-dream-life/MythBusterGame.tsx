@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Zap, ArrowLeft, ChevronLeft } from 'lucide-react-native';
 
@@ -246,7 +246,10 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
                 <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                  <Zap size={32} color="#E2DED0" />
+                  <Image
+                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                    style={styles.heroImage}
+                  />
                 </View>
               </View>
 
@@ -293,7 +296,10 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
             <View style={styles.reflectionCard}>
               <View style={styles.reflectionIconContainer}>
                 <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
-                  <Zap size={40} color="#E2DED0" />
+                  <Image
+                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                    style={styles.heroImage}
+                  />
                 </View>
               </View>
 
@@ -693,5 +699,12 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     marginRight: 8,
     fontWeight: '600',
+  },
+  heroImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderColor: '#647C90',
+    borderWidth: 2,
   },
 });
