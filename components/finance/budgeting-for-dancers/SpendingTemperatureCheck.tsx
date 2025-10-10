@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, ChevronLeft, DollarSign, ArrowLeft } from 'lucide-react-native';
 
@@ -20,6 +20,8 @@ interface SpendingTemperatureResult {
     subtitle: string;
     color: string;
 }
+
+const { width, height } = Dimensions.get('window');
 
 const quizQuestions: QuizQuestion[] = [
     {
@@ -226,14 +228,14 @@ const spendingTemperatureResults: { [key: string]: SpendingTemperatureResult } =
         title: 'Warm Spender',
         description: 'You make intentional choices... sometimes saving, sometimes spending. With a little structure, you\'ll feel even more confident.',
         subtitle: 'You balance saving and spending with thoughtful choices.',
-        color: '#F4A460'
+        color: '#928490'
     },
     'Hot': {
         type: 'Hot',
         title: 'Hot Spender',
         description: 'You lean toward spending in the moment. That passion is great, but with more planning you can enjoy the fun *and* still hit your goals.',
         subtitle: 'You enjoy spending but could benefit from more planning.',
-        color: '#E74C3C'
+        color: '#928490'
     }
 };
 
@@ -307,30 +309,46 @@ export default function SpendingTemperatureCheck({ onComplete, onBack }: Spendin
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <DollarSign size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Spending Temperature Check</Text>
-
-                    <Text style={styles.introDescription}>
-                        How do you feel about spending money? Let's check your <Text style={styles.emphasisText}>spending temperature</Text> and see if you tend to run hot (spend easily), cold (hold back), or warm (somewhere in between).
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartQuiz}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Get started</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Temperature Check</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <DollarSign size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Spending Temperature Check</Text>
+
+                            <Text style={styles.introDescription}>
+                                How do you feel about spending money? Let's check your <Text style={styles.emphasisText}>spending temperature</Text> and see if you tend to run hot (spend easily), cold (hold back), or warm (somewhere in between).
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.startButton}
+                                onPress={handleStartQuiz}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Get started</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -340,37 +358,64 @@ export default function SpendingTemperatureCheck({ onComplete, onBack }: Spendin
     if (currentScreen === 11) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <DollarSign size={40} color="#928490" />
-                    </View>
-
-                    <Text style={styles.finalTitle}>Check Your Spending Habits</Text>
-
-                    <Text style={styles.finalDescription}>
-                        Your spending temperature is just a snapshot of how you relate to money right now. There's no "good" or "bad" zone... just information you can use to make clearer choices.
-                    </Text>
-
-                    <Text style={styles.finalClosing}>
-                        Think about where you landed: are you spending in a way that supports your current *and* future self?
-                    </Text>
-
-                    <Text style={styles.finalClosing}>
-                        Small shifts in awareness can make a big difference. Take note of one choice you want to make differently this week.
-                    </Text>
-
-                    <Text style={styles.finalClosing}>
-                        See you tomorrow.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark as complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Temperature</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.finalCard}>
+                            <View style={styles.finalIconContainer}>
+                                <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
+                                    <DollarSign size={40} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <View style={styles.finalHeader}>
+                                <DollarSign size={24} color="#928490" />
+                                <Text style={styles.finalHeading}>Check Your Spending Habits</Text>
+                                <DollarSign size={24} color="#928490" />
+                            </View>
+
+                            <View style={styles.finalTextContainer}>
+                                <Text style={styles.finalText}>
+                                    Your spending temperature is just a snapshot of how you relate to money right now. There's no "good" or "bad" zone... just information you can use to make clearer choices.
+                                </Text>
+                            </View>
+
+                            <Text style={styles.finalText}>
+                                Think about where you landed: are you spending in a way that supports your current *and* future self?
+                            </Text>
+
+                            <Text style={styles.finalText}>
+                                Small shifts in awareness can make a big difference. Take note of one choice you want to make differently this week.
+                            </Text>
+
+                            <Text style={styles.alternativeClosing}>
+                                See you tomorrow.
+                            </Text>
+
+                            <View style={styles.finalButtonContainer}>
+                                <TouchableOpacity
+                                    style={styles.continueButton}
+                                    onPress={handleComplete}
+                                    activeOpacity={0.8}
+                                >
+                                    <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                        <Text style={styles.continueButtonText}>Mark as complete</Text>
+                                        <ChevronRight size={16} color="#E2DED0" />
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -380,29 +425,48 @@ export default function SpendingTemperatureCheck({ onComplete, onBack }: Spendin
     if (currentScreen === 10 && result) {
         return (
             <View style={styles.container}>
-                <LinearGradient
-                    colors={[result.color, `${result.color}CC`]}
-                    style={styles.resultHeader}
-                >
-                    <Text style={styles.resultTitle}>{result.title}</Text>
-                </LinearGradient>
-
-                <ScrollView style={styles.resultContent} contentContainerStyle={styles.resultContentContainer}>
-                    <Text style={styles.resultDescription}>{result.description}</Text>
-
-                    <View style={styles.resultSubtitleContainer}>
-                        <Text style={styles.resultSubtitle}>{result.subtitle}</Text>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: result.color }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Result</Text>
+                        </View>
+                        <View style={styles.backButton} />
                     </View>
+                </View>
 
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinueToFinal}>
-                        <LinearGradient
-                            colors={[result.color, `${result.color}DD`]}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>Continue</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.resultCard}>
+                            <View style={styles.resultIconContainer}>
+                                <View style={[styles.resultIconGradient, { backgroundColor: result.color }]}>
+                                    <DollarSign size={40} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.resultTitle}>{result.title}</Text>
+
+                            <View style={styles.resultTextContainer}>
+                                <Text style={styles.resultText}>{result.description}</Text>
+                            </View>
+
+                            <View style={styles.resultSubtitleContainer}>
+                                <Text style={styles.resultSubtitle}>{result.subtitle}</Text>
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinueToFinal}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: result.color }]}>
+                                    <Text style={styles.continueButtonText}>Continue</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -414,40 +478,42 @@ export default function SpendingTemperatureCheck({ onComplete, onBack }: Spendin
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>
-                        Question {currentScreen} of 9
-                    </Text>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            {/* Sticky Header with Progress */}
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                        <ArrowLeft size={28} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.progressText}>Question {currentScreen} of 9</Text>
                     </View>
+                    <View style={styles.backButton} />
+                </View>
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${progress}%` }]} />
                 </View>
             </View>
 
-            <ScrollView style={styles.content} contentContainerStyle={styles.questionContainer}>
-                <Text style={styles.questionText}>{question.question}</Text>
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.centeredContent}>
+                    <View style={styles.choiceCard}>
+                        <Text style={styles.questionText}>{question.question}</Text>
 
-                <View style={styles.optionsContainer}>
-                    {question.options.map((option) => (
-                        <TouchableOpacity
-                            key={option.id}
-                            style={styles.optionButton}
-                            onPress={() => handleAnswer(option.type)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.optionText}>{option.text}</Text>
-                        </TouchableOpacity>
-                    ))}
+                        <View style={styles.choiceButtons}>
+                            {question.options.map((option) => (
+                                <TouchableOpacity
+                                    key={option.id}
+                                    style={styles.choiceButton}
+                                    onPress={() => handleAnswer(option.type)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonText}>{option.text}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
                 </View>
             </ScrollView>
-
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                <ChevronLeft size={24} color="#647C90" />
-                <Text style={styles.backButtonText}>
-                    {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-                </Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -457,98 +523,147 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    topBackButton: {
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
         position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
     },
-    content: {
+    scrollView: {
         flex: 1,
+        marginTop: 100,
+        zIndex: 1,
     },
-    introContainer: {
-        flexGrow: 1,
+    centeredContent: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        minHeight: height - 200,
+        paddingBottom: 30,
     },
-    introIcon: {
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+    introCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
+        fontSize: 32,
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
+        fontStyle: 'italic',
     },
     emphasisText: {
         fontStyle: 'italic',
         fontWeight: '600',
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
-    },
-    questionContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 40,
+    choiceCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
     questionText: {
         fontFamily: 'Merriweather-Bold',
@@ -558,72 +673,75 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         textAlign: 'center',
     },
-    optionsContainer: {
+    choiceButtons: {
         gap: 15,
     },
-    optionButton: {
+    choiceButton: {
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 20,
         borderWidth: 2,
         borderColor: 'transparent',
     },
-    optionText: {
+    choiceButtonText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
         lineHeight: 22,
         textAlign: 'center',
     },
-    backButton: {
-        flexDirection: 'row',
+    resultCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
+    resultIconContainer: {
+        marginBottom: 24,
     },
-    resultHeader: {
-        paddingTop: 60,
-        padding: 30,
+    resultIconGradient: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     resultTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#E2DED0',
+        fontSize: 28,
+        color: '#4E4F50',
         textAlign: 'center',
+        marginBottom: 20,
+        fontWeight: '700',
     },
-    resultContent: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        marginHorizontal: 10,
+    resultTextContainer: {
+        width: '100%',
+        marginBottom: 24,
     },
-    resultContentContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 30,
-    },
-    resultDescription: {
+    resultText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
-        lineHeight: 24,
-        marginBottom: 20,
         textAlign: 'center',
+        lineHeight: 24,
     },
     resultSubtitleContainer: {
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 12,
         padding: 16,
-        marginBottom: 30,
+        marginBottom: 32,
+        width: '100%',
     },
     resultSubtitle: {
         fontFamily: 'Montserrat-Medium',
@@ -634,46 +752,73 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
     },
     continueButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
-        marginBottom: 30,
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
+        minWidth: width * 0.5,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    finalCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
-    finalIcon: {
+    finalIconContainer: {
+        marginBottom: 30,
+    },
+    finalIconGradient: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
-    finalTitle: {
+    finalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 30,
+        gap: 12,
+    },
+    finalHeading: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
+        fontWeight: '700',
+    },
+    finalTextContainer: {
+        width: '100%',
         marginBottom: 20,
     },
-    finalDescription: {
+    finalText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
@@ -681,29 +826,18 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 20,
     },
-    finalClosing: {
+    alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
+        fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 20,
-    },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
+        marginBottom: 32,
         marginTop: 20,
+        fontWeight: '600',
     },
-    completeButtonGradient: {
-        flexDirection: 'row',
+    finalButtonContainer: {
+        width: '100%',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
+        marginTop: 20,
     },
 });
