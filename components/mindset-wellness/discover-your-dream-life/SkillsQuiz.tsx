@@ -261,7 +261,7 @@ const dreamerResults: { [key: string]: DreamerResult } = {
     title: 'The Limited Dreamer',
     description: 'You\'ve been dreaming small, maybe without even realizing it. Whether due to burnout, self-protection, or past letdowns, your imagination needs a little spark. This path is your invitation to let yourself want more.',
     subtitle: 'Playing small won\'t keep you safe, it just keeps you stuck. Let\'s expand your vision together.',
-    color: '#746C70'
+    color: '#928490'
   }
 };
 
