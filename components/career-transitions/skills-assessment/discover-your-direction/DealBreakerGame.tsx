@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { ChevronRight, AlertTriangle, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { ChevronRight, AlertTriangle, ArrowLeft } from 'lucide-react-native';
 
 interface DealBreakerPair {
     id: number;
@@ -242,8 +242,11 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                     <View style={styles.content}>
                         <View style={styles.introCard}>
                             <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <AlertTriangle size={32} color="#E2DED0" />
+                                <View style={styles.finalIconContainer}>
+                                    <Image
+                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                        style={styles.heroImage}
+                                    />
                                 </View>
                             </View>
 
@@ -288,9 +291,10 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                     <View style={styles.content}>
                         <View style={styles.reflectionCard}>
                             <View style={styles.reflectionIconContainer}>
-                                <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
-                                    <AlertTriangle size={40} color="#E2DED0" />
-                                </View>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.reflectionTitle}>Take a moment to reflect</Text>
@@ -588,7 +592,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 2,
         borderColor: 'transparent',
-        height: 80,
+        height: 100,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -693,5 +697,15 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
         fontWeight: '600',
+    },
+    finalIconContainer: {
+        marginBottom: 30,
+    },
+    heroImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
     },
 });
