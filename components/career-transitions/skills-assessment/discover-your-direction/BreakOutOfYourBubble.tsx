@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking, Image } from 'react-native';
 import { Play, Pause, ExternalLink, ArrowLeft } from 'lucide-react-native';
+
+const { width, height } = Dimensions.get('window');
 
 interface BreakOutOfYourBubbleProps {
     onComplete: () => void;
@@ -10,75 +11,76 @@ interface BreakOutOfYourBubbleProps {
 
 export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfYourBubbleProps) {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = voice message, 1 = ebook promotion
-
-    const handleBack = () => {
-        onBack?.();
-    };
+    const [currentScreen, setCurrentScreen] = useState(1); // Start at screen 1 (voice message)
 
     const handlePlayPause = () => {
-        // Placeholder for audio functionality
         setIsPlaying(!isPlaying);
 
-        // Simulate audio completion after 3 seconds for demo
         if (!isPlaying) {
             setTimeout(() => {
                 setIsPlaying(false);
-                setCurrentScreen(1);
+                setCurrentScreen(2);
             }, 3000);
         }
     };
 
     const handleEbookLink = () => {
-        console.log('Opening How to Pivot ebook link');
+        Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
+    };
+
+    const goBack = () => {
+        if (currentScreen === 2) {
+            // Go back from ebook to voice message
+            setCurrentScreen(1);
+        } else if (currentScreen === 1) {
+            if (onBack) {
+                onBack();
+            }
+        }
     };
 
     // Voice Message Screen
-    if (currentScreen === 0) {
+    if (currentScreen === 1) {
         return (
             <View style={styles.container}>
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Visualize Your Dream</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.voiceCard}>
-                            <View style={styles.voiceIconContainer}>
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.voiceIcon}>
                                 <TouchableOpacity
                                     style={styles.playButton}
                                     onPress={handlePlayPause}
                                     activeOpacity={0.8}
                                 >
-                                    <LinearGradient
-                                        colors={['#647C90', '#928490']}
-                                        style={styles.playButtonGradient}
+                                    <View
+                                        style={[styles.playButtonGradient, { backgroundColor: '#928490' }]}
                                     >
                                         {isPlaying ? (
                                             <Pause size={40} color="#E2DED0" />
                                         ) : (
                                             <Play size={40} color="#E2DED0" />
                                         )}
-                                    </LinearGradient>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
 
-                            <Text style={styles.voiceTitle}>Visualize your dream</Text>
+                            <Text style={styles.voiceTitle}>Visualize Your Dream</Text>
 
                             <Text style={styles.voiceDescription}>
-                                {isPlaying
-                                    ? "Playing personal message..."
-                                    : "Tap to listen to a guided visualization"
-                                }
+                                {!isPlaying && "Tap to listen to a guided visualization"}
                             </Text>
 
                             {isPlaying && (
@@ -92,8 +94,8 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
                                 </View>
                             )}
                         </View>
-                    </View>
-                </ScrollView>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -104,21 +106,24 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
             {/* Sticky Header */}
             <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                 <View style={styles.headerRow}>
-                    <View style={styles.backButton} />
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.titleText}>Ready for More?</Text>
-                    </View>
+                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                        <ArrowLeft size={28} color="#E2DED0" />
+                    </TouchableOpacity>
                     <View style={styles.backButton} />
                 </View>
             </View>
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.content}>
-                    <View style={styles.ebookCard}>
-                        <View style={styles.ebookIconContainer}>
-                            <View style={[styles.ebookIconGradient, { backgroundColor: '#928490' }]}>
-                                <ExternalLink size={32} color="#E2DED0" />
-                            </View>
+            <View style={styles.scrollContainer}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.card}>
+                        <View style={styles.finalIconContainer}>
+                            <Image
+                                source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                style={styles.heroImage}
+                            />
                         </View>
 
                         <Text style={styles.ebookTitle}>Ready for More?</Text>
@@ -135,29 +140,25 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
                             Life is yours for the taking. Will you reach out and grab it?
                         </Text>
 
-                        <TouchableOpacity
-                            style={styles.ebookButton}
-                            onPress={handleEbookLink}
-                            activeOpacity={0.8}
-                        >
-                            <View style={[styles.ebookButtonContent, { backgroundColor: '#928490' }]}>
+                        <TouchableOpacity style={styles.ebookButton} onPress={handleEbookLink}>
+                            <View
+                                style={[styles.ebookButtonContent, { backgroundColor: '#928490' }]}
+                            >
                                 <Text style={styles.ebookButtonText}>Get the How to Pivot Ebook</Text>
                                 <ExternalLink size={16} color="#E2DED0" />
                             </View>
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.completeButton}
-                            onPress={onComplete}
-                            activeOpacity={0.8}
-                        >
-                            <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                        <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
+                            <View
+                                style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}
+                            >
                                 <Text style={styles.completeButtonText}>Mark as complete</Text>
                             </View>
                         </TouchableOpacity>
                     </View>
-                </View>
-            </ScrollView>
+                </ScrollView>
+            </View>
         </View>
     );
 }
@@ -166,6 +167,16 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#E2DED0',
+    },
+    scrollContainer: {
+        marginTop: 70,
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 40,
     },
     stickyHeader: {
         paddingHorizontal: 24,
@@ -178,13 +189,6 @@ const styles = StyleSheet.create({
         zIndex: 1000,
         borderBottomLeftRadius: 24,
         borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
-        paddingBottom: 30,
     },
     headerRow: {
         flexDirection: 'row',
@@ -204,9 +208,8 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         textAlign: 'center',
     },
-    voiceCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
+    card: {
+        width: width * 0.85,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
@@ -216,17 +219,14 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 12,
         elevation: 5,
+        marginVertical: 20,
     },
-    voiceIconContainer: {
+    voiceIcon: {
         marginBottom: 30,
     },
     playButton: {
         borderRadius: 60,
         overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
     },
     playButtonGradient: {
         width: 120,
@@ -237,16 +237,15 @@ const styles = StyleSheet.create({
     },
     voiceTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
+        fontSize: 28,
+        color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 15,
-        fontWeight: '700',
     },
     voiceDescription: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#928490',
+        fontSize: 16,
+        color: '#746C70',
         textAlign: 'center',
         lineHeight: 24,
     },
@@ -271,40 +270,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#647C90',
     },
-    ebookCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    ebookIconContainer: {
-        marginBottom: 30,
-    },
-    ebookIconGradient: {
+    ebookIcon: {
         width: 80,
         height: 80,
         borderRadius: 40,
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
+        marginBottom: 30,
     },
     ebookTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
+        fontSize: 28,
+        color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 25,
-        fontWeight: '700',
     },
     ebookText: {
         fontFamily: 'Montserrat-Regular',
@@ -321,10 +301,9 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 30,
         fontStyle: 'italic',
-        fontWeight: '600',
     },
     ebookButton: {
-        borderRadius: 30,
+        borderRadius: 12,
         overflow: 'hidden',
         marginBottom: 20,
     },
@@ -334,19 +313,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderRadius: 12,
     },
     ebookButtonText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
+        fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
-        fontWeight: '600',
     },
     completeButton: {
-        borderRadius: 30,
+        borderRadius: 12,
         overflow: 'hidden',
     },
     completeButtonContent: {
@@ -355,14 +331,21 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderRadius: 12,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
+        fontSize: 16,
         color: '#E2DED0',
-        fontWeight: '600',
     },
-}); 
+    finalIconContainer: {
+        marginBottom: 30,
+    },
+    heroImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
+    },
+});
