@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -234,28 +233,46 @@ export default function StartWithYourStrengths({ onComplete, onBack }: StartWith
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                    <ArrowLeft size={28} color="#647C90" />
-                </TouchableOpacity>
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Star size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Start With Your Strengths</Text>
-
-                    <Text style={styles.introDescription}>
-                        Match your natural strengths as a dancer with relevant job titles.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={() => setCurrentScreen(1)}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Start the Game</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Start With Your Strengths</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Star size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Start With Your Strengths</Text>
+
+                            <Text style={styles.introDescription}>
+                                Match your natural strengths as a dancer with relevant job titles.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.startButton}
+                                onPress={() => setCurrentScreen(1)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Start the Game</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -265,33 +282,52 @@ export default function StartWithYourStrengths({ onComplete, onBack }: StartWith
     if (currentScreen === 2) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.reflectionContainer}>
-                    <View style={styles.reflectionIcon}>
-                        <Star size={40} color="#5A7D7B" />
-                    </View>
-
-                    <Text style={styles.reflectionTitle}>Step Back & Reflect</Text>
-
-                    <Text style={styles.reflectionText}>
-                        The best place to start learning new skills is not to start from scratch, but to build on your existing strengths.
-                    </Text>
-
-                    <Text style={styles.reflectionText}>
-                        As you matched these pairs, did you start to consider a few career paths you hadn't previously considered?
-                    </Text>
-
-                    <Text style={styles.reflectionClosing}>
-                        We'll build on this tomorrow.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Reflection</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.reflectionCard}>
+                            <View style={styles.reflectionIconContainer}>
+                                <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Star size={40} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.reflectionTitle}>Step Back & Reflect</Text>
+
+                            <Text style={styles.reflectionText}>
+                                The best place to start learning new skills is not to start from scratch, but to build on your existing strengths.
+                            </Text>
+
+                            <Text style={styles.reflectionText}>
+                                As you matched these pairs, did you start to consider a few career paths you hadn't previously considered?
+                            </Text>
+
+                            <Text style={styles.reflectionClosing}>
+                                We'll build on this tomorrow.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.completeButton}
+                                onPress={handleComplete}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -300,76 +336,80 @@ export default function StartWithYourStrengths({ onComplete, onBack }: StartWith
     // Game Screen
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>
-                        {matchedPairs.length}/{strengthPairs.length} pairs matched
-                    </Text>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${(matchedPairs.length / strengthPairs.length) * 100}%` }]} />
+            {/* Sticky Header with Progress */}
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                        <ArrowLeft size={28} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.progressText}>
+                            {matchedPairs.length}/{strengthPairs.length} pairs matched
+                        </Text>
                     </View>
+                    <View style={styles.backButton} />
+                </View>
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${(matchedPairs.length / strengthPairs.length) * 100}%` }]} />
                 </View>
             </View>
 
-            <ScrollView style={styles.content}>
-                <Text style={styles.gameTitle}>Start With Your Strengths</Text>
-                <Text style={styles.gameInstructions}>
-                    Tap to match dancer strengths with relevant job titles
-                </Text>
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.content}>
+                    <View style={styles.gameCard}>
+                        <Text style={styles.gameTitle}>Start With Your Strengths</Text>
+                        <Text style={styles.gameInstructions}>
+                            Tap to match dancer strengths with relevant job titles
+                        </Text>
 
-                <View style={styles.columnsContainer}>
-                    <View style={styles.column}>
-                        <Text style={styles.columnTitle}>Dancer Strength</Text>
-                        {gameItems.filter(item => item.type === 'strength').map((item) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={getItemStyle(item.id)}
-                                onPress={() => handleItemPress(item.id)}
-                                activeOpacity={0.8}
-                                disabled={matchedPairs.includes(item.pairId)}
-                            >
-                                <Text style={[
-                                    styles.gameButtonText,
-                                    selectedItems.includes(item.id) && styles.selectedButtonText,
-                                    matchedPairs.includes(item.pairId) && styles.matchedButtonText,
-                                    selectedItems.includes(item.id) && showMismatch && styles.mismatchButtonText
-                                ]}>
-                                    {item.text}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                        <View style={styles.columnsContainer}>
+                            <View style={styles.column}>
+                                <Text style={styles.columnTitle}>Strength</Text>
+                                {gameItems.filter(item => item.type === 'strength').map((item) => (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        style={getItemStyle(item.id)}
+                                        onPress={() => handleItemPress(item.id)}
+                                        activeOpacity={0.8}
+                                        disabled={matchedPairs.includes(item.pairId)}
+                                    >
+                                        <Text style={[
+                                            styles.gameButtonText,
+                                            selectedItems.includes(item.id) && styles.selectedButtonText,
+                                            matchedPairs.includes(item.pairId) && styles.matchedButtonText,
+                                            selectedItems.includes(item.id) && showMismatch && styles.mismatchButtonText
+                                        ]}>
+                                            {item.text}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
 
-                    <View style={styles.column}>
-                        <Text style={styles.columnTitle}>Job Titles</Text>
-                        {gameItems.filter(item => item.type === 'jobTitles').map((item) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={getItemStyle(item.id)}
-                                onPress={() => handleItemPress(item.id)}
-                                activeOpacity={0.8}
-                                disabled={matchedPairs.includes(item.pairId)}
-                            >
-                                <Text style={[
-                                    styles.gameButtonText,
-                                    selectedItems.includes(item.id) && styles.selectedButtonText,
-                                    matchedPairs.includes(item.pairId) && styles.matchedButtonText,
-                                    selectedItems.includes(item.id) && showMismatch && styles.mismatchButtonText
-                                ]}>
-                                    {item.text}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
+                            <View style={styles.column}>
+                                <Text style={styles.columnTitle}>Title</Text>
+                                {gameItems.filter(item => item.type === 'jobTitles').map((item) => (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        style={getItemStyle(item.id)}
+                                        onPress={() => handleItemPress(item.id)}
+                                        activeOpacity={0.8}
+                                        disabled={matchedPairs.includes(item.pairId)}
+                                    >
+                                        <Text style={[
+                                            styles.gameButtonText,
+                                            selectedItems.includes(item.id) && styles.selectedButtonText,
+                                            matchedPairs.includes(item.pairId) && styles.matchedButtonText,
+                                            selectedItems.includes(item.id) && showMismatch && styles.mismatchButtonText
+                                        ]}>
+                                            {item.text}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
                     </View>
                 </View>
             </ScrollView>
-
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                <ChevronLeft size={24} color="#647C90" />
-                <Text style={styles.backButtonText}>
-                    {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-                </Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -379,121 +419,156 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    topBackButton: {
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
         position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    scrollView: {
+        flex: 1,
+        marginTop: 100,
     },
     content: {
-        flex: 1,
+        paddingBottom: 30,
     },
-    introContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    headerRow: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        justifyContent: 'space-between',
     },
-    introIcon: {
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+    introCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 32,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 15,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 18,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         marginBottom: 40,
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
+    gameCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 28,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
     gameTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 10,
-        paddingHorizontal: 24,
+        fontWeight: '700',
     },
     gameInstructions: {
         fontFamily: 'Montserrat-Medium',
         fontSize: 14,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         marginBottom: 30,
-        paddingHorizontal: 24,
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
     },
     columnsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 10,
-        paddingHorizontal: 16,
+        gap: 16,
     },
     column: {
         flex: 1,
@@ -501,25 +576,27 @@ const styles = StyleSheet.create({
     columnTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 18,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 15,
+        fontWeight: '700',
     },
     gameButton: {
         width: '100%',
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 12,
-        padding: 12,
-        marginBottom: 10,
+        padding: 16,
+        marginBottom: 14,
         borderWidth: 2,
         borderColor: 'transparent',
-        minHeight: 80,
+        height: 120,
         justifyContent: 'center',
         alignItems: 'center',
+        minHeight: 120,
     },
     selectedButton: {
-        backgroundColor: 'rgba(90, 125, 123, 0.2)',
-        borderColor: '#5A7D7B',
+        backgroundColor: 'rgba(100, 124, 144, 0.2)',
+        borderColor: '#647C90',
     },
     matchedButton: {
         backgroundColor: 'rgba(90, 125, 123, 0.2)',
@@ -532,13 +609,13 @@ const styles = StyleSheet.create({
     },
     gameButtonText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 14,
+        fontSize: 12,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 18,
     },
     selectedButtonText: {
-        color: '#5A7D7B',
+        color: '#647C90',
         fontFamily: 'Montserrat-SemiBold',
     },
     matchedButtonText: {
@@ -547,28 +624,40 @@ const styles = StyleSheet.create({
     mismatchButtonText: {
         color: '#dc3545',
     },
-    reflectionContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    reflectionCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
-    reflectionIcon: {
+    reflectionIconContainer: {
+        marginBottom: 30,
+    },
+    reflectionIconGradient: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     reflectionTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 30,
+        fontWeight: '700',
     },
     reflectionText: {
         fontFamily: 'Montserrat-Regular',
@@ -579,27 +668,32 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     reflectionClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
         marginBottom: 40,
+        fontWeight: '600',
     },
     completeButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
+        fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
 });

@@ -28,7 +28,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
         {
             title: "People-Focused Role: Youth Counselor",
             icon: Heart,
-            color: "#5A7D7B"
+            color: "#928490"
         }
     ];
 
@@ -122,28 +122,42 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Palette size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Try It On</Text>
-
-                    <Text style={styles.introDescription}>
-                        Let's try on some new careers to see how they might feel in the real world. We'll show you a few scenarios and you'll choose what you'd do in each situation.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartTryItOn}>
-                        <View style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}>
-                            <Text style={styles.startButtonText}>Begin</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Try It On</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Palette size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Try It On</Text>
+
+                            <Text style={styles.introDescription}>
+                                Let's try on some new careers to see how they might feel in the real world. We'll show you a few scenarios and you'll choose what you'd do in each situation.
+                            </Text>
+
+                            <TouchableOpacity style={styles.startButton} onPress={handleStartTryItOn} activeOpacity={0.8}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Begin</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -153,26 +167,41 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     if (currentScreen === 1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.scenarioContainer}>
-                    <Text style={styles.alternativeTitle}>Your First Client Meeting ({getCurrentScenarioData().title})</Text>
-                    <Text style={styles.scenarioText}>
-                        The client asks you directly: <Text style={{ fontStyle: 'italic' }}>"What do you think of our brand colors?"</Text>
-                    </Text>
-                    <Text style={styles.scenarioText}>
-                        You weren't expecting to give an opinion.
-                    </Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                            <Text style={styles.continueButtonText}>What will you do?</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your First Client Meeting</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.scenarioCard}>
+                            <Text style={styles.scenarioTitle}>Your First Client Meeting</Text>
+                            <Text style={styles.scenarioSubtitle}>({getCurrentScenarioData().title})</Text>
+
+                            <Text style={styles.scenarioText}>
+                                The client asks you directly: <Text style={{ fontStyle: 'italic' }}>"What do you think of our brand colors?"</Text>
+                            </Text>
+                            <Text style={styles.scenarioText}>
+                                You weren't expecting to give an opinion.
+                            </Text>
+
+                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
+                                <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                    <Text style={styles.continueButtonText}>What will you do?</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Back to Intro</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -181,33 +210,48 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     if (currentScreen === 2) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.choicesScreenContainer}>
-                    <View style={styles.choicesContainer}>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(1)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                "I'm not sure, I'll need to think about it."
-                            </Text>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Options</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(2)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                "They're strong colors, but I'd love to explore a version that feels more modern."
-                            </Text>
-                        </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.choicesCard}>
+                            <Text style={styles.choicesTitle}>Here are your Options</Text>
+
+                            <View style={styles.choicesContainer}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        "I'm not sure, I'll need to think about it."
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        "They're strong colors, but I'd love to explore a version that feels more modern."
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -216,20 +260,35 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     if (currentScreen === 3) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.responseContainer}>
-                    <Text style={styles.responseText}>{getResponseText(3, selectedChoice!)}</Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                            <Text style={styles.continueButtonText}>Continue</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Status</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.responseCard}>
+                            <Text style={styles.responseTitle}>Here's where you're at</Text>
+
+                            <Text style={styles.responseText}>{getResponseText(3, selectedChoice!)}</Text>
+
+                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
+                                <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                    <Text style={styles.continueButtonText}>Continue</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -244,20 +303,33 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
 
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.scenarioContainer}>
-                    <Text style={styles.scenarioText}>{scenarioText}</Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                            <Text style={styles.continueButtonText}>What will you do?</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Next Challenge</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.scenarioCard}>
+                            <Text style={styles.scenarioText}>{scenarioText}</Text>
+
+                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
+                                <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                    <Text style={styles.continueButtonText}>What will you do?</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -280,29 +352,44 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
 
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.choicesScreenContainer}>
-                    <View style={styles.choicesContainer}>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(1)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>{choice1Text}</Text>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Options</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(2)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>{choice2Text}</Text>
-                        </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.choicesCard}>
+                            <Text style={styles.choicesTitle}>Here are your Options</Text>
+
+                            <View style={styles.choicesContainer}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>{choice1Text}</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>{choice2Text}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -321,23 +408,38 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
 
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.responseContainer}>
-                    <Text style={styles.responseText}>{getResponseText(5, selectedChoice!)}</Text>
-                    <Text style={styles.responseText}>{reflectionText}</Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleNextScenario}>
-                        <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                            <Text style={styles.continueButtonText}>
-                                {currentScenario < 2 ? "Next Scenario" : "Continue"}
-                            </Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Reflection</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.responseCard}>
+                            <Text style={styles.responseTitle}>Here's where you're at</Text>
+
+                            <Text style={styles.responseText}>{getResponseText(5, selectedChoice!)}</Text>
+                            <Text style={styles.responseText}>{reflectionText}</Text>
+
+                            <TouchableOpacity style={styles.continueButton} onPress={handleNextScenario} activeOpacity={0.8}>
+                                <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                    <Text style={styles.continueButtonText}>
+                                        {currentScenario < 2 ? "Next Scenario" : "Continue"}
+                                    </Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -346,26 +448,41 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     if (currentScreen === 7) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.scenarioContainer}>
-                    <Text style={styles.alternativeTitle}>"The Team Huddle" ({getCurrentScenarioData().title})</Text>
-                    <Text style={styles.scenarioText}>
-                        The manager says: "Let's go around—what are you working on today?"
-                    </Text>
-                    <Text style={styles.scenarioText}>
-                        It's your turn.
-                    </Text>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                            <Text style={styles.continueButtonText}>What will you say?</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>The Team Huddle</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.scenarioCard}>
+                            <Text style={styles.scenarioTitle}>"The Team Huddle"</Text>
+                            <Text style={styles.scenarioSubtitle}>({getCurrentScenarioData().title})</Text>
+
+                            <Text style={styles.scenarioText}>
+                                The manager says: "Let's go around—what are you working on today?"
+                            </Text>
+                            <Text style={styles.scenarioText}>
+                                It's your turn.
+                            </Text>
+
+                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
+                                <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                    <Text style={styles.continueButtonText}>What will you say?</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -373,33 +490,48 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     if (currentScreen === 8) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.choicesScreenContainer}>
-                    <View style={styles.choicesContainer}>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(1)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                "I'm just doing the tasks I was assigned."
-                            </Text>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Options</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoiceSelect(2)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceText}>
-                                "I'm updating the schedule for Project X and checking in with the design team this afternoon."
-                            </Text>
-                        </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.choicesCard}>
+                            <Text style={styles.choicesTitle}>Here are your Options</Text>
+
+                            <View style={styles.choicesContainer}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        "I'm just doing the tasks I was assigned."
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoiceSelect(2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceText}>
+                                        "I'm updating the schedule for Project X and checking in with the design team this afternoon."
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -410,23 +542,38 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
         if (currentScreen === 13) {
             return (
                 <View style={styles.container}>
-                    <ScrollView style={styles.content} contentContainerStyle={styles.scenarioContainer}>
-                        <Text style={styles.alternativeTitle}>"First Day With Clients" ({getCurrentScenarioData().title})</Text>
-                        <Text style={styles.scenarioText}>
-                            One teen immediately challenges you: <Text style={{ fontStyle: 'italic' }}>"Why should we listen to you?"</Text>
-                        </Text>
-
-                        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                            <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                                <Text style={styles.continueButtonText}>How do you respond?</Text>
-                                <ChevronRight size={16} color="#E2DED0" />
+                    {/* Sticky Header */}
+                    <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                        <View style={styles.headerRow}>
+                            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                <ArrowLeft size={28} color="#E2DED0" />
+                            </TouchableOpacity>
+                            <View style={styles.headerTitleContainer}>
+                                <Text style={styles.titleText}>First Day With Clients</Text>
                             </View>
-                        </TouchableOpacity>
+                            <View style={styles.backButton} />
+                        </View>
+                    </View>
+
+                    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                        <View style={styles.content}>
+                            <View style={styles.scenarioCard}>
+                                <Text style={styles.scenarioTitle}>"First Day With Clients"</Text>
+                                <Text style={styles.scenarioSubtitle}>({getCurrentScenarioData().title})</Text>
+
+                                <Text style={styles.scenarioText}>
+                                    One teen immediately challenges you: <Text style={{ fontStyle: 'italic' }}>"Why should we listen to you?"</Text>
+                                </Text>
+
+                                <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
+                                    <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                        <Text style={styles.continueButtonText}>How do you respond?</Text>
+                                        <ChevronRight size={16} color="#E2DED0" />
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </ScrollView>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ChevronLeft size={24} color="#647C90" />
-                        <Text style={styles.backButtonText}>Previous</Text>
-                    </TouchableOpacity>
                 </View>
             );
         }
@@ -434,33 +581,48 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
         if (currentScreen === 14) {
             return (
                 <View style={styles.container}>
-                    <ScrollView style={styles.content} contentContainerStyle={styles.choicesScreenContainer}>
-                        <View style={styles.choicesContainer}>
-                            <TouchableOpacity
-                                style={styles.choiceButton}
-                                onPress={() => handleChoiceSelect(1)}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.choiceText}>
-                                    Stay quiet and hope the group calms down.
-                                </Text>
+                    {/* Sticky Header */}
+                    <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                        <View style={styles.headerRow}>
+                            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                <ArrowLeft size={28} color="#E2DED0" />
                             </TouchableOpacity>
+                            <View style={styles.headerTitleContainer}>
+                                <Text style={styles.titleText}>Your Options</Text>
+                            </View>
+                            <View style={styles.backButton} />
+                        </View>
+                    </View>
 
-                            <TouchableOpacity
-                                style={styles.choiceButton}
-                                onPress={() => handleChoiceSelect(2)}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.choiceText}>
-                                    Acknowledge their feelings and explain you're here to support everyone, not to control them.
-                                </Text>
-                            </TouchableOpacity>
+                    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                        <View style={styles.content}>
+                            <View style={styles.choicesCard}>
+                                <Text style={styles.choicesTitle}>Here are your Options</Text>
+
+                                <View style={styles.choicesContainer}>
+                                    <TouchableOpacity
+                                        style={styles.choiceButton}
+                                        onPress={() => handleChoiceSelect(1)}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={styles.choiceText}>
+                                            Stay quiet and hope the group calms down.
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.choiceButton}
+                                        onPress={() => handleChoiceSelect(2)}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={styles.choiceText}>
+                                            Acknowledge their feelings and explain you're here to support everyone, not to control them.
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </View>
                     </ScrollView>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ChevronLeft size={24} color="#647C90" />
-                        <Text style={styles.backButtonText}>Previous</Text>
-                    </TouchableOpacity>
                 </View>
             );
         }
@@ -470,28 +632,47 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     if (currentScreen === 22) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.alternativeContainer}>
-                    <Text style={styles.alternativeTitle}>How did that feel?</Text>
-
-                    <Text style={styles.alternativeText}>
-                        You just "tried on" your first week in a new role. When you put yourself in those shoes, which one felt most aligned? Perhaps that's a good place to start as you dive deeper into your exploration.
-                    </Text>
-
-                    <Text style={styles.alternativeClosing}>
-                        Meet you here again tomorrow.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
-                        <View style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}>
-                            <Text style={styles.completeButtonText}>Mark as Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Final Reflection</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.alternativeCard}>
+                            <View style={styles.alternativeIconContainer}>
+                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Heart size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.alternativeTitle}>How did that feel?</Text>
+
+                            <Text style={styles.alternativeText}>
+                                You just "tried on" your first week in a new role. When you put yourself in those shoes, which one felt most aligned? Perhaps that's a good place to start as you dive deeper into your exploration.
+                            </Text>
+
+                            <Text style={styles.alternativeClosing}>
+                                Meet you here again tomorrow.
+                            </Text>
+
+                            <TouchableOpacity style={styles.completeButton} onPress={onComplete} activeOpacity={0.8}>
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark as Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -504,20 +685,35 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
             if (currentScreen === 9) {
                 return (
                     <View style={styles.container}>
-                        <ScrollView style={styles.content} contentContainerStyle={styles.responseContainer}>
-                            <Text style={styles.responseText}>{getResponseText(3, selectedChoice!)}</Text>
-
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                                <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
+                        {/* Sticky Header */}
+                        <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                            <View style={styles.headerRow}>
+                                <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                    <ArrowLeft size={28} color="#E2DED0" />
+                                </TouchableOpacity>
+                                <View style={styles.headerTitleContainer}>
+                                    <Text style={styles.titleText}>Your Status</Text>
                                 </View>
-                            </TouchableOpacity>
+                                <View style={styles.backButton} />
+                            </View>
+                        </View>
+
+                        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                            <View style={styles.content}>
+                                <View style={styles.responseCard}>
+                                    <Text style={styles.responseTitle}>Here's where you're at</Text>
+
+                                    <Text style={styles.responseText}>{getResponseText(3, selectedChoice!)}</Text>
+
+                                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
+                                        <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                            <Text style={styles.continueButtonText}>Continue</Text>
+                                            <ChevronRight size={16} color="#E2DED0" />
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </ScrollView>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ChevronLeft size={24} color="#647C90" />
-                            <Text style={styles.backButtonText}>Previous</Text>
-                        </TouchableOpacity>
                     </View>
                 );
             }
@@ -525,22 +721,35 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
             if (currentScreen === 10) {
                 return (
                     <View style={styles.container}>
-                        <ScrollView style={styles.content} contentContainerStyle={styles.scenarioContainer}>
-                            <Text style={styles.scenarioText}>
-                                Next, a teammate asks you to help track deadlines, but you're already at capacity.
-                            </Text>
-
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                                <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                                    <Text style={styles.continueButtonText}>What will you do?</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
+                        {/* Sticky Header */}
+                        <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                            <View style={styles.headerRow}>
+                                <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                    <ArrowLeft size={28} color="#E2DED0" />
+                                </TouchableOpacity>
+                                <View style={styles.headerTitleContainer}>
+                                    <Text style={styles.titleText}>Next Challenge</Text>
                                 </View>
-                            </TouchableOpacity>
+                                <View style={styles.backButton} />
+                            </View>
+                        </View>
+
+                        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                            <View style={styles.content}>
+                                <View style={styles.scenarioCard}>
+                                    <Text style={styles.scenarioText}>
+                                        Next, a teammate asks you to help track deadlines, but you're already at capacity.
+                                    </Text>
+
+                                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
+                                        <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                            <Text style={styles.continueButtonText}>What will you do?</Text>
+                                            <ChevronRight size={16} color="#E2DED0" />
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </ScrollView>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ChevronLeft size={24} color="#647C90" />
-                            <Text style={styles.backButtonText}>Previous</Text>
-                        </TouchableOpacity>
                     </View>
                 );
             }
@@ -548,33 +757,48 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
             if (currentScreen === 11) {
                 return (
                     <View style={styles.container}>
-                        <ScrollView style={styles.content} contentContainerStyle={styles.choicesScreenContainer}>
-                            <View style={styles.choicesContainer}>
-                                <TouchableOpacity
-                                    style={styles.choiceButton}
-                                    onPress={() => handleChoiceSelect(1)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.choiceText}>
-                                        Agree anyway. You don't want to let anyone down.
-                                    </Text>
+                        {/* Sticky Header */}
+                        <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                            <View style={styles.headerRow}>
+                                <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                    <ArrowLeft size={28} color="#E2DED0" />
                                 </TouchableOpacity>
+                                <View style={styles.headerTitleContainer}>
+                                    <Text style={styles.titleText}>Your Options</Text>
+                                </View>
+                                <View style={styles.backButton} />
+                            </View>
+                        </View>
 
-                                <TouchableOpacity
-                                    style={styles.choiceButton}
-                                    onPress={() => handleChoiceSelect(2)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.choiceText}>
-                                        Thank them, explain your current workload, and offer to revisit after finishing priority tasks.
-                                    </Text>
-                                </TouchableOpacity>
+                        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                            <View style={styles.content}>
+                                <View style={styles.choicesCard}>
+                                    <Text style={styles.choicesTitle}>Here are your Options</Text>
+
+                                    <View style={styles.choicesContainer}>
+                                        <TouchableOpacity
+                                            style={styles.choiceButton}
+                                            onPress={() => handleChoiceSelect(1)}
+                                            activeOpacity={0.8}
+                                        >
+                                            <Text style={styles.choiceText}>
+                                                Agree anyway. You don't want to let anyone down.
+                                            </Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={styles.choiceButton}
+                                            onPress={() => handleChoiceSelect(2)}
+                                            activeOpacity={0.8}
+                                        >
+                                            <Text style={styles.choiceText}>
+                                                Thank them, explain your current workload, and offer to revisit after finishing priority tasks.
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             </View>
                         </ScrollView>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ChevronLeft size={24} color="#647C90" />
-                            <Text style={styles.backButtonText}>Previous</Text>
-                        </TouchableOpacity>
                     </View>
                 );
             }
@@ -582,23 +806,38 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
             if (currentScreen === 12) {
                 return (
                     <View style={styles.container}>
-                        <ScrollView style={styles.content} contentContainerStyle={styles.responseContainer}>
-                            <Text style={styles.responseText}>{getResponseText(5, selectedChoice!)}</Text>
-                            <Text style={styles.responseText}>
-                                Corporate roles are often about communication and juggling tasks. Did this pace and structure feel like a fit for you?{"\n\n"}Try one more roleplay.
-                            </Text>
-
-                            <TouchableOpacity style={styles.continueButton} onPress={handleNextScenario}>
-                                <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                                    <Text style={styles.continueButtonText}>Next Scenario</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
+                        {/* Sticky Header */}
+                        <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                            <View style={styles.headerRow}>
+                                <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                    <ArrowLeft size={28} color="#E2DED0" />
+                                </TouchableOpacity>
+                                <View style={styles.headerTitleContainer}>
+                                    <Text style={styles.titleText}>Reflection</Text>
                                 </View>
-                            </TouchableOpacity>
+                                <View style={styles.backButton} />
+                            </View>
+                        </View>
+
+                        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                            <View style={styles.content}>
+                                <View style={styles.responseCard}>
+                                    <Text style={styles.responseTitle}>Here's where you're at</Text>
+
+                                    <Text style={styles.responseText}>{getResponseText(5, selectedChoice!)}</Text>
+                                    <Text style={styles.responseText}>
+                                        Corporate roles are often about communication and juggling tasks. Did this pace and structure feel like a fit for you?{"\n\n"}Try one more roleplay.
+                                    </Text>
+
+                                    <TouchableOpacity style={styles.continueButton} onPress={handleNextScenario} activeOpacity={0.8}>
+                                        <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                            <Text style={styles.continueButtonText}>Next Scenario</Text>
+                                            <ChevronRight size={16} color="#E2DED0" />
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </ScrollView>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ChevronLeft size={24} color="#647C90" />
-                            <Text style={styles.backButtonText}>Previous</Text>
-                        </TouchableOpacity>
                     </View>
                 );
             }
@@ -609,20 +848,35 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
             if (currentScreen === 15) {
                 return (
                     <View style={styles.container}>
-                        <ScrollView style={styles.content} contentContainerStyle={styles.responseContainer}>
-                            <Text style={styles.responseText}>{getResponseText(3, selectedChoice!)}</Text>
-
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                                <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
+                        {/* Sticky Header */}
+                        <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                            <View style={styles.headerRow}>
+                                <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                    <ArrowLeft size={28} color="#E2DED0" />
+                                </TouchableOpacity>
+                                <View style={styles.headerTitleContainer}>
+                                    <Text style={styles.titleText}>Your Status</Text>
                                 </View>
-                            </TouchableOpacity>
+                                <View style={styles.backButton} />
+                            </View>
+                        </View>
+
+                        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                            <View style={styles.content}>
+                                <View style={styles.responseCard}>
+                                    <Text style={styles.responseTitle}>Here's where you're at</Text>
+
+                                    <Text style={styles.responseText}>{getResponseText(3, selectedChoice!)}</Text>
+
+                                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
+                                        <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                            <Text style={styles.continueButtonText}>Continue</Text>
+                                            <ChevronRight size={16} color="#E2DED0" />
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </ScrollView>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ChevronLeft size={24} color="#647C90" />
-                            <Text style={styles.backButtonText}>Previous</Text>
-                        </TouchableOpacity>
                     </View>
                 );
             }
@@ -630,22 +884,35 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
             if (currentScreen === 16) {
                 return (
                     <View style={styles.container}>
-                        <ScrollView style={styles.content} contentContainerStyle={styles.scenarioContainer}>
-                            <Text style={styles.scenarioText}>
-                                Later, a teen confides something personal and emotional.
-                            </Text>
-
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                                <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                                    <Text style={styles.continueButtonText}>What will you do?</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
+                        {/* Sticky Header */}
+                        <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                            <View style={styles.headerRow}>
+                                <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                    <ArrowLeft size={28} color="#E2DED0" />
+                                </TouchableOpacity>
+                                <View style={styles.headerTitleContainer}>
+                                    <Text style={styles.titleText}>Next Challenge</Text>
                                 </View>
-                            </TouchableOpacity>
+                                <View style={styles.backButton} />
+                            </View>
+                        </View>
+
+                        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                            <View style={styles.content}>
+                                <View style={styles.scenarioCard}>
+                                    <Text style={styles.scenarioText}>
+                                        Later, a teen confides something personal and emotional.
+                                    </Text>
+
+                                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
+                                        <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                            <Text style={styles.continueButtonText}>What will you do?</Text>
+                                            <ChevronRight size={16} color="#E2DED0" />
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </ScrollView>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ChevronLeft size={24} color="#647C90" />
-                            <Text style={styles.backButtonText}>Previous</Text>
-                        </TouchableOpacity>
                     </View>
                 );
             }
@@ -653,33 +920,48 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
             if (currentScreen === 17) {
                 return (
                     <View style={styles.container}>
-                        <ScrollView style={styles.content} contentContainerStyle={styles.choicesScreenContainer}>
-                            <View style={styles.choicesContainer}>
-                                <TouchableOpacity
-                                    style={styles.choiceButton}
-                                    onPress={() => handleChoiceSelect(1)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.choiceText}>
-                                        Offer a quick solution and move on.
-                                    </Text>
+                        {/* Sticky Header */}
+                        <View style={[styles.stickyHeader, { backgroundColor: getCurrentScenarioData().color }]}>
+                            <View style={styles.headerRow}>
+                                <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                    <ArrowLeft size={28} color="#E2DED0" />
                                 </TouchableOpacity>
+                                <View style={styles.headerTitleContainer}>
+                                    <Text style={styles.titleText}>Your Options</Text>
+                                </View>
+                                <View style={styles.backButton} />
+                            </View>
+                        </View>
 
-                                <TouchableOpacity
-                                    style={styles.choiceButton}
-                                    onPress={() => handleChoiceSelect(2)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.choiceText}>
-                                        Listen actively, validate their feelings, and discuss next steps collaboratively.
-                                    </Text>
-                                </TouchableOpacity>
+                        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                            <View style={styles.content}>
+                                <View style={styles.choicesCard}>
+                                    <Text style={styles.choicesTitle}>Here are your Options</Text>
+
+                                    <View style={styles.choicesContainer}>
+                                        <TouchableOpacity
+                                            style={styles.choiceButton}
+                                            onPress={() => handleChoiceSelect(1)}
+                                            activeOpacity={0.8}
+                                        >
+                                            <Text style={styles.choiceText}>
+                                                Offer a quick solution and move on.
+                                            </Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={styles.choiceButton}
+                                            onPress={() => handleChoiceSelect(2)}
+                                            activeOpacity={0.8}
+                                        >
+                                            <Text style={styles.choiceText}>
+                                                Listen actively, validate their feelings, and discuss next steps collaboratively.
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             </View>
                         </ScrollView>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ChevronLeft size={24} color="#647C90" />
-                            <Text style={styles.backButtonText}>Previous</Text>
-                        </TouchableOpacity>
                     </View>
                 );
             }
@@ -687,23 +969,38 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
             if (currentScreen === 18) {
                 return (
                     <View style={styles.container}>
-                        <ScrollView style={styles.content} contentContainerStyle={styles.responseContainer}>
-                            <Text style={styles.responseText}>{getResponseText(5, selectedChoice!)}</Text>
-                            <Text style={styles.responseText}>
-                                Helping roles are about presence, patience, and balancing guidance with autonomy. How did it feel to step into this role? Did you notice yourself enjoying the interaction, or did it feel challenging?
-                            </Text>
-
-                            <TouchableOpacity style={styles.continueButton} onPress={() => setCurrentScreen(22)}>
-                                <View style={[styles.continueButtonGradient, { backgroundColor: getCurrentScenarioData().color }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
+                        {/* Sticky Header */}
+                        <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                            <View style={styles.headerRow}>
+                                <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                    <ArrowLeft size={28} color="#E2DED0" />
+                                </TouchableOpacity>
+                                <View style={styles.headerTitleContainer}>
+                                    <Text style={styles.titleText}>Reflection</Text>
                                 </View>
-                            </TouchableOpacity>
+                                <View style={styles.backButton} />
+                            </View>
+                        </View>
+
+                        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                            <View style={styles.content}>
+                                <View style={styles.responseCard}>
+                                    <Text style={styles.responseTitle}>Here's where you're at</Text>
+
+                                    <Text style={styles.responseText}>{getResponseText(5, selectedChoice!)}</Text>
+                                    <Text style={styles.responseText}>
+                                        Helping roles are about presence, patience, and balancing guidance with autonomy. How did it feel to step into this role? Did you notice yourself enjoying the interaction, or did it feel challenging?
+                                    </Text>
+
+                                    <TouchableOpacity style={styles.continueButton} onPress={() => setCurrentScreen(22)} activeOpacity={0.8}>
+                                        <View style={[styles.continueButtonContent, { backgroundColor: getCurrentScenarioData().color }]}>
+                                            <Text style={styles.continueButtonText}>Continue</Text>
+                                            <ChevronRight size={16} color="#E2DED0" />
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </ScrollView>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ChevronLeft size={24} color="#647C90" />
-                            <Text style={styles.backButtonText}>Previous</Text>
-                        </TouchableOpacity>
                     </View>
                 );
             }
@@ -718,69 +1015,134 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    topBackButton: {
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
         position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    scrollView: {
+        flex: 1,
+        marginTop: 100,
     },
     content: {
-        flex: 1,
+        paddingBottom: 30,
     },
-    introContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    headerRow: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        justifyContent: 'space-between',
     },
-    introIcon: {
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    introCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    scenarioContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 40,
+    scenarioCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    scenarioTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
+    },
+    scenarioSubtitle: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 24,
     },
     scenarioText: {
         fontFamily: 'Montserrat-Regular',
@@ -788,39 +1150,55 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 26,
-        marginBottom: 40,
-        whiteSpace: 'pre-line',
+        marginBottom: 32,
     },
     continueButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
-        alignSelf: 'center',
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
+    },
+    choicesCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    choicesTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 30,
+        fontWeight: '700',
     },
     choicesContainer: {
-        paddingHorizontal: 24,
-        gap: 15,
-    },
-    choicesScreenContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingVertical: 40,
+        gap: 16,
     },
     choiceButton: {
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 20,
         borderWidth: 2,
         borderColor: 'transparent',
@@ -829,14 +1207,29 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
-        lineHeight: 22,
+        lineHeight: 24,
         textAlign: 'center',
     },
-    responseContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+    responseCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    responseTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 25,
+        fontWeight: '700',
     },
     responseText: {
         fontFamily: 'Montserrat-Regular',
@@ -844,30 +1237,42 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
     },
-    alternativeContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    alternativeCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
-    alternativeIcon: {
+    alternativeIconContainer: {
+        marginBottom: 24,
+    },
+    alternativeIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     alternativeTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
+        fontSize: 24,
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 25,
+        fontWeight: '700',
     },
     alternativeText: {
         fontFamily: 'Montserrat-Regular',
@@ -877,33 +1282,33 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 20,
     },
+    alternativeClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
+        fontWeight: '600',
+    },
     completeButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
+        fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
+        fontWeight: '600',
     },
 });

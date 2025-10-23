@@ -1,10 +1,9 @@
-import { Brain, Rocket, DollarSign } from 'lucide-react-native';
+import { Rocket, DollarSign, Cloud } from 'lucide-react-native';
 
 export interface PathDay {
   day: number;
   title: string;
   content: string;
-  prompt: string;
   callout?: string;
   hasQuiz?: boolean;
   hasLeadershipExperience?: boolean;
@@ -69,7 +68,6 @@ export interface PathDay {
   hasTheTotalPackage?: boolean;
   hasInvestmentInvestigations?: boolean;
   hasLifestyleCreepRiskMeter?: boolean;
-  hasSavingsSprint?: boolean;
   hasCelebrateTheWins?: boolean;
 
 }
@@ -93,6 +91,7 @@ export interface Category {
   title: string;
   description: string;
   color: string;
+  icon: React.ReactNode;
   paths: Path[];
 }
 
@@ -100,15 +99,15 @@ export const categories: Category[] = [
   {
     id: 'mindset',
     title: 'Mindset & Wellness',
-    description: 'Develop the mental resilience and wellness practices for successful transition',
+    description: 'Mindset shifts and practical tools to support overall wellness during your transition',
     color: '#647C90',
-    icon: <Brain size={24} color='rgba(226, 222, 208, 0.9)' />,
+    icon: <Cloud size={24} color='rgba(226, 222, 208, 0.9)' />,
     paths: [
       {
         id: 'discover-dream-life',
-        title: 'Discover Your Dream Life',
+        title: 'Your Dream Life',
         subtitle: '', // We only use subheadings for "Coming Soon"
-        description: 'It\'s time to dream big. Each step in this path offers mindset shifts and thought-provoking exercises to help you discover what you want beyond dance and explore what it means to let go of your dream job to build your dream life.',
+        description: 'It’s time to dream big. Discover what you really want and explore life beyond dance.',
         duration: '7 days',
         totalDays: 7,
         days: [
@@ -120,13 +119,13 @@ export const categories: Category[] = [
           },
           {
             day: 2,
-            title: 'Permission to Want More',
+            title: 'Myth Buster',
             content: 'Today we explore what it means to give yourself full permission to want more than what feels "realistic" or "safe."',
             hasMythBuster: true,
           },
           {
             day: 3,
-            title: 'Beyond the Practical',
+            title: "What’s the alternative?",
             content: 'Let\'s walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you\'d be most likely to do in this scenario and we\'ll shed light on an alternative.',
             hasRoleplay: true,
           },
@@ -159,7 +158,7 @@ export const categories: Category[] = [
       {
         id: 'mindset-shift',
         title: 'Mindset Shift',
-        // subtitle: 'Coming Soon',
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Explore who you are beyond your dancer identity - comprehensive path coming soon',
         duration: '7 days',
         totalDays: 7,
@@ -211,7 +210,7 @@ export const categories: Category[] = [
       {
         id: 'work-life-balance',
         title: 'Work/Life Banlance',
-        // subtitle: 'Coming Soon',
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Let’s find out when your energy is at its peak and when it dips to help you plan your work, hobbies, and rest. ',
         duration: '7 days',
         totalDays: 7,

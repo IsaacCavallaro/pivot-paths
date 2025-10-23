@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ChevronRight, BookOpen, Users, Instagram, Youtube, Facebook, Linkedin, ArrowLeft, Heart, Star, Trophy } from 'lucide-react-native';
 import { categories } from '@/data/categories';
+import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+
+const { width } = Dimensions.get('window');
 
 export default function PathsScreen() {
   const router = useRouter();
@@ -28,10 +31,20 @@ export default function PathsScreen() {
     router.push('/(tabs)/');
   };
 
+  const scaleValues = categories.map(() => useSharedValue(1));
+
+  const handlePressIn = (index: number) => {
+    scaleValues[index].value = withTiming(0.95, { duration: 150, easing: Easing.out(Easing.ease) });
+  };
+
+  const handlePressOut = (index: number) => {
+    scaleValues[index].value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
+  };
+
   return (
     <View style={styles.container}>
       {/* Sticky Header */}
-      <View style={styles.stickyHeader}>
+      <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
             <ArrowLeft size={28} color="#E2DED0" />
@@ -47,39 +60,42 @@ export default function PathsScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Content */}
         <View style={styles.content}>
+
           {/* Categories Section */}
           <View style={styles.categoriesSection}>
-            {categories.map((category) => {
+            {categories.map((category, index) => {
               return (
-                <TouchableOpacity
+                <Animated.View
                   key={category.id}
-                  style={styles.categoryCard}
-                  onPress={() => handleCategoryPress(category.id)}
-                  activeOpacity={0.9}
+                  style={[
+                    styles.categoryCard,
+                    useAnimatedStyle(() => ({
+                      transform: [{ scale: scaleValues[index].value }],
+                    })),
+                  ]}
                 >
-                  <LinearGradient
-                    colors={['rgba(100, 124, 144, 0.1)', 'rgba(146, 132, 144, 0.1)']}
-                    style={styles.categoryGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                  <TouchableOpacity
+                    onPress={() => handleCategoryPress(category.id)}
+                    onPressIn={() => handlePressIn(index)}
+                    onPressOut={() => handlePressOut(index)}
+                    activeOpacity={0.8}
                   >
-                    <View style={styles.categoryContent}>
-                      <View style={styles.categoryIcon}>
-                        <Text style={styles.categoryEmoji}>{category.icon}</Text>
-                      </View>
-                      <View style={styles.categoryInfo}>
-                        <Text style={styles.categoryTitle}>{category.title}</Text>
-                        <Text style={styles.categoryDescription}>{category.description}</Text>
-                        <View style={styles.pathCountContainer}>
-                          <Text style={styles.pathCountText}>
-                            {category.paths.length} path{category.paths.length !== 1 ? 's' : ''} available
-                          </Text>
+                    <View style={[styles.categoryGradient, { backgroundColor: '#F5F5F5' }]}>
+                      <View style={styles.categoryIconContainer}>
+                        <View style={[styles.categoryIconGradient, { backgroundColor: '#647C90' }]}>
+                          <Text style={styles.categoryEmoji}>{category.icon}</Text>
                         </View>
                       </View>
-                      <ChevronRight size={24} color="#E2DED0" />
+                      <Text style={styles.categoryTitle}>{category.title}</Text>
+                      <Text style={styles.categoryDescription}>{category.description}</Text>
+                      <View style={styles.pathCountContainer}>
+                        <Text style={styles.pathCountText}>
+                          {category.paths.length} path{category.paths.length !== 1 ? 's' : ''} available
+                        </Text>
+                      </View>
                     </View>
-                  </LinearGradient>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </Animated.View>
               );
             })}
           </View>
@@ -97,6 +113,33 @@ export default function PathsScreen() {
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <View style={styles.footerLinks}>
+              <TouchableOpacity onPress={handleExternalLink}>
+                <Text style={styles.footerLink}>pivotfordancers.com</Text>
+              </TouchableOpacity>
+              <Text style={styles.footerSeparator}>|</Text>
+              <TouchableOpacity onPress={handleTermsPress}>
+                <Text style={styles.footerLink}>Terms & Conditions</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.socialIcons}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Instagram')}>
+                <Instagram size={24} color="#647C90" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('YouTube')}>
+                <Youtube size={24} color="#647C90" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Facebook')}>
+                <Facebook size={24} color="#647C90" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('LinkedIn')}>
+                <Linkedin size={24} color="#647C90" />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -109,22 +152,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2DED0',
   },
   stickyHeader: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 60,
-    paddingBottom: 30,
-    backgroundColor: '#647C90',
+    paddingBottom: 20,
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     zIndex: 1000,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   scrollView: {
     flex: 1,
-    marginTop: 80, // Height of the sticky header
+    marginTop: 100,
   },
   content: {
-    paddingTop: 80,
     paddingBottom: 30,
   },
   headerRow: {
@@ -133,7 +176,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backButton: {
-    width: 28, // Fixed width to match icon size
+    width: 28,
   },
   headerTitleContainer: {
     flex: 1,
@@ -145,128 +188,99 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     textAlign: 'center',
   },
-  subtitleText: {
+  categoriesSection: {
+    paddingHorizontal: 24,
+    paddingBottom: 30,
+    paddingTop: 50,
+  },
+  categoryCard: {
+    marginBottom: 24,
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  categoryGradient: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  categoryIconContainer: {
+    marginBottom: 20,
+  },
+  categoryIconGradient: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  categoryEmoji: {
+    fontSize: 28,
+  },
+  categoryTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 24,
+    color: '#647C90',
+    marginBottom: 12,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  categoryDescription: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
-    color: '#E2DED0',
+    color: '#928490',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 20,
   },
-  categoriesSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-  categoryCard: {
-    marginBottom: 15,
-    borderRadius: 16,
-    overflow: 'hidden',
-    elevation: 3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  categoryGradient: {
-    padding: 20,
-  },
-  categoryContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  categoryIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#928490',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  categoryEmoji: {
-    fontSize: 24,
-  },
-  categoryInfo: {
-    flex: 1,
-  },
-  categoryTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 18,
-    color: '#4E4F50',
-    marginBottom: 4,
-  },
-  categoryDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 14,
-    color: '#4E4F50',
-    lineHeight: 16,
-    marginBottom: 12,
-  },
   pathCountContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#647C90',
   },
   pathCountText: {
     fontFamily: 'Montserrat-Medium',
-    fontSize: 12,
-    color: '#647C90',
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#647C90',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  testimonialSection: {
-    marginHorizontal: 20,
-    marginBottom: 30,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  testimonialGradient: {
-    padding: 24,
-  },
-  testimonialContent: {
-    alignItems: 'center',
-  },
-  starsContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  testimonialText: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 12,
-    fontStyle: 'italic',
-  },
-  testimonialAuthor: {
-    fontFamily: 'Montserrat-SemiBold',
     fontSize: 14,
     color: '#647C90',
+    fontWeight: '500',
   },
   ctaSection: {
-    marginHorizontal: 20,
-    marginBottom: 30,
-    borderRadius: 16,
-    padding: 30,
+    marginHorizontal: 24,
+    marginBottom: 48,
+    borderRadius: 24,
+    padding: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
   ctaContent: {
     alignItems: 'center',
   },
   ctaTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 24,
+    fontSize: 28,
     color: '#E2DED0',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+    fontWeight: '700',
   },
   ctaSubtitle: {
     fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: 'rgba(226, 222, 208, 0.7)',
+    fontSize: 18,
+    color: 'rgba(226, 222, 208, 0.8)',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 28,
     marginBottom: 24,
   },
   ctaButton: {
@@ -281,67 +295,47 @@ const styles = StyleSheet.create({
   },
   ctaButtonText: {
     fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
+    fontSize: 18,
     color: '#E2DED0',
     marginRight: 8,
+    fontWeight: '600',
   },
   footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingHorizontal: 24,
+    paddingVertical: 40,
     alignItems: 'center',
+    backgroundColor: '#E2DED0',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
   },
   footerLinks: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 32,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   footerSeparator: {
     fontFamily: 'Montserrat-Regular',
-    fontSize: 14,
+    fontSize: 16,
     color: '#928490',
-    marginHorizontal: 12,
+    marginHorizontal: 16,
   },
   footerLink: {
     fontFamily: 'Montserrat-SemiBold',
-    fontSize: 14,
+    fontSize: 16,
     color: '#647C90',
     textDecorationLine: 'underline',
+    fontWeight: '600',
   },
   socialIcons: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 20,
-  },
-  socialIcon: {
-    padding: 8,
-  },
-  headerContent: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  decorativeRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
     gap: 16,
   },
-  decorativeBadge: {
-    backgroundColor: 'rgba(226, 222, 208, 0.1)',
-    borderRadius: 20,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(226, 222, 208, 0.2)',
-  },
-  heroImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 20,
+  socialIcon: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
   },
 });

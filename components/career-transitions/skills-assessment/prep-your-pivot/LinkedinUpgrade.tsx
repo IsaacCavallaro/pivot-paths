@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Linkedin, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 interface LinkedInScreen {
     id: number;
@@ -130,32 +132,47 @@ export default function LinkedInUpgrade({ onComplete, onBack }: LinkedInUpgradeP
     if (screenHistory.length === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Linkedin size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>LinkedIn Upgrade</Text>
-
-                    <Text style={styles.introDescription}>
-                        Most dancers aren't active on LinkedIn. But the truth is, this is the main platform where recruiters and employers are definitely hanging out.{"\n\n"}
-                        So, to kick off your pivot with an action plan you can do TODAY, let's go step by step through how to set up your LinkedIn for success.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStart}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Get started</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                                <ArrowLeft size={24} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backIconWrapper} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>LinkedIn Upgrade</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.introIcon}>
+                                <Linkedin size={32} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>LinkedIn Upgrade</Text>
+                            <Text style={styles.introDescription}>
+                                Most dancers aren't active on LinkedIn. But the truth is, this is the main platform where recruiters and employers are definitely hanging out.{"\n\n"}
+                                So, to kick off your pivot with an action plan you can do TODAY, let's go step by step through how to set up your LinkedIn for success.
+                            </Text>
+
+                            <TouchableOpacity style={styles.startButton} onPress={handleStart}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Get started</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -164,28 +181,39 @@ export default function LinkedInUpgrade({ onComplete, onBack }: LinkedInUpgradeP
     if (screenHistory[screenHistory.length - 1] === -1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <Linkedin size={40} color="#928490" />
-                    </View>
-                    <Text style={styles.introTitle}>And that's it!</Text>
-                    <Text style={styles.finalText}>
-                        With your LinkedIn profile finally up to scratch, you're ready to start applying to jobs right on the platform. Message your connections and start networking! We'll see you there.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backIconWrapper} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>LinkedIn Upgrade</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.finalIcon}>
+                                <Linkedin size={40} color="#928490" />
+                            </View>
+                            <Text style={styles.introTitle}>And that's it!</Text>
+                            <Text style={styles.finalText}>
+                                With your LinkedIn profile finally up to scratch, you're ready to start applying to jobs right on the platform. Message your connections and start networking! We'll see you there.
+                            </Text>
+
+                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -196,42 +224,49 @@ export default function LinkedInUpgrade({ onComplete, onBack }: LinkedInUpgradeP
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>
-                        {currentScreenIndex + 1} of {linkedInScreens.length} steps
-                    </Text>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                        <ChevronLeft size={24} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.headerTitle}>
+                            {currentScreenIndex + 1} of {linkedInScreens.length} steps
+                        </Text>
                     </View>
+                    <View style={styles.backIconWrapper} />
+                </View>
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${progress}%` }]} />
                 </View>
             </View>
 
-            <ScrollView style={styles.content} contentContainerStyle={styles.screenContainer}>
-                <Text style={styles.screenTitle}>{currentScreen.title}</Text>
+            <View style={styles.scrollContainer}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.card}>
+                        <Text style={styles.screenTitle}>{currentScreen.title}</Text>
 
-                <View style={styles.screenContentCard}>
-                    <Text style={styles.screenContentText}>{currentScreen.content}</Text>
-                </View>
+                        <View style={styles.screenContentCard}>
+                            <Text style={styles.screenContentText}>{currentScreen.content}</Text>
+                        </View>
 
-                <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                    <LinearGradient
-                        colors={['#928490', '#928490']}
-                        style={styles.continueButtonGradient}
-                    >
-                        <Text style={styles.continueButtonText}>
-                            {currentScreenIndex === linkedInScreens.length - 1 ? 'Complete' : 'Continue'}
-                        </Text>
-                        <ChevronRight size={16} color="#E2DED0" />
-                    </LinearGradient>
-                </TouchableOpacity>
-            </ScrollView>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                <ChevronLeft size={20} color="#647C90" />
-                <Text style={styles.backButtonText}>
-                    {screenHistory.length <= 1 ? 'Back to Intro' : 'Previous'}
-                </Text>
-            </TouchableOpacity>
+                        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                            <LinearGradient
+                                colors={['#928490', '#928490']}
+                                style={styles.continueButtonContent}
+                            >
+                                <Text style={styles.continueButtonText}>
+                                    {currentScreenIndex === linkedInScreens.length - 1 ? 'Complete' : 'Continue'}
+                                </Text>
+                                <ChevronRight size={16} color="#E2DED0" />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </View>
         </View>
     );
 }
@@ -239,30 +274,74 @@ export default function LinkedInUpgrade({ onComplete, onBack }: LinkedInUpgradeP
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#E2DED0',
+        backgroundColor: '#E2DED0'
     },
-    content: {
+    scrollContainer: {
         flex: 1,
     },
-    introContainer: {
+    scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 20,
+    },
+
+    stickyHeader: {
         paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backIconWrapper: {
+        width: 40,
+        alignItems: 'center'
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center'
+    },
+    headerTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 20,
+        color: '#E2DED0',
+    },
+
+    card: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 150,
     },
     introIcon: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(0, 119, 181, 0.1)',
+        backgroundColor: 'rgba(146,132,144,0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
@@ -275,16 +354,18 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 40,
     },
+
     startButton: {
         borderRadius: 12,
-        overflow: 'hidden',
+        overflow: 'hidden'
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -292,12 +373,7 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    screenContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     screenTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -306,7 +382,7 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     screenContentCard: {
-        backgroundColor: 'rgba(0, 119, 181, 0.1)',
+        backgroundColor: 'rgba(146,132,144,0.15)',
         borderRadius: 16,
         padding: 24,
         marginBottom: 40,
@@ -319,17 +395,18 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         lineHeight: 24,
     },
+
     continueButton: {
         borderRadius: 12,
-        overflow: 'hidden',
-        alignSelf: 'center',
+        overflow: 'hidden'
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
+        borderRadius: 12,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -337,18 +414,12 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     finalIcon: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(0, 119, 181, 0.1)',
+        backgroundColor: 'rgba(146,132,144,0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
@@ -363,14 +434,15 @@ const styles = StyleSheet.create({
     },
     completeButton: {
         borderRadius: 12,
-        overflow: 'hidden',
+        overflow: 'hidden'
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -378,48 +450,17 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
+
     progressBar: {
         width: '100%',
         height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
+        backgroundColor: 'rgba(255,255,255,0.3)',
         borderRadius: 3,
-        overflow: 'hidden',
+        marginTop: 12,
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#928490',
+        backgroundColor: '#E2DED0',
         borderRadius: 3,
-    },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
     },
 });

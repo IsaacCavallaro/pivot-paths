@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Sparkles, ArrowLeft, ChevronLeft } from 'lucide-react-native';
 
@@ -15,53 +15,20 @@ interface DecisionMakingProps {
     onBack?: () => void;
 }
 
+const { width, height } = Dimensions.get('window');
+
 const decisionTactics: DecisionTactic[] = [
-    {
-        id: 1,
-        option1: 'Break a problem down into smaller chunks',
-        option2: 'Brainstorm multiple potential solutions',
-        storyKey: 'novelProblem'
-    },
-    {
-        id: 2,
-        option1: 'Keep asking "Why?" to get to the root of an issue',
-        option2: 'Zoom out and imagine how your Ideal Self would decide',
-        storyKey: 'rootIssue'
-    },
-    {
-        id: 3,
-        option1: 'List the pros and cons',
-        option2: 'Talk it out with a trusted friend',
-        storyKey: 'analysis'
-    },
-    {
-        id: 4,
-        option1: 'Make the best choice you can and adjust later',
-        option2: 'Gather more info before acting',
-        storyKey: 'flexibleApproach'
-    },
-    {
-        id: 5,
-        option1: 'Note your gut instinct, but pause before acting',
-        option2: 'Research what\'s worked for others',
-        storyKey: 'balancedApproach'
-    },
-    {
-        id: 6,
-        option1: 'Start with the easiest task',
-        option2: 'Tackle the hardest task first',
-        storyKey: 'progress'
-    },
-    {
-        id: 7,
-        option1: 'Sleep on it and revisit tomorrow',
-        option2: 'Fail fast, learn from mistakes, and move forward',
-        storyKey: 'reflection'
-    }
+    { id: 1, option1: 'Break a problem down into smaller chunks', option2: 'Brainstorm multiple potential solutions', storyKey: 'novelProblem' },
+    { id: 2, option1: 'Keep asking "Why?" to get to the root of an issue', option2: 'Zoom out and imagine how your Ideal Self would decide', storyKey: 'rootIssue' },
+    { id: 3, option1: 'List the pros and cons', option2: 'Talk it out with a trusted friend', storyKey: 'analysis' },
+    { id: 4, option1: 'Make the best choice you can and adjust later', option2: 'Gather more info before acting', storyKey: 'flexibleApproach' },
+    { id: 5, option1: 'Note your gut instinct, but pause before acting', option2: 'Research what\'s worked for others', storyKey: 'balancedApproach' },
+    { id: 6, option1: 'Start with the easiest task', option2: 'Tackle the hardest task first', storyKey: 'progress' },
+    { id: 7, option1: 'Sleep on it and revisit tomorrow', option2: 'Fail fast, learn from mistakes, and move forward', storyKey: 'reflection' }
 ];
 
 export default function DecisionMaking({ onComplete, onBack }: DecisionMakingProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-7 = choices, 8-15 = story, 16 = result
+    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-7 = choices, 8 = result
     const [choices, setChoices] = useState<{ [key: string]: string }>({});
     const [randomizedTactics, setRandomizedTactics] = useState<DecisionTactic[]>([]);
 
@@ -92,21 +59,11 @@ export default function DecisionMaking({ onComplete, onBack }: DecisionMakingPro
     const handleChoice = (choiceKey: string, selectedOption: string) => {
         const newChoices = { ...choices, [choiceKey]: selectedOption };
         setChoices(newChoices);
-
         if (currentScreen < 7) {
             setCurrentScreen(currentScreen + 1);
         } else {
-            // Move to the first story screen
+            // Move directly to the result screen
             setCurrentScreen(8);
-        }
-    };
-
-    const handleContinueStory = () => {
-        if (currentScreen < 15) {
-            setCurrentScreen(currentScreen + 1);
-        } else {
-            // Move to the result screen
-            setCurrentScreen(16);
         }
     };
 
@@ -114,58 +71,47 @@ export default function DecisionMaking({ onComplete, onBack }: DecisionMakingPro
         onComplete();
     };
 
-    const getStoryText = (screenNumber: number) => {
-        switch (screenNumber) {
-            case 8:
-                return `You have a novel problem and tried ${choices.novelProblem?.toLowerCase()}. You instantly feel less overwhelmed. Sometimes, clarity comes just from starting somewhere.`;
-            case 9:
-                return `You ${choices.rootIssue?.toLowerCase()}, and suddenly the heart of the matter was obvious. Decisions can feel less scary when you dig a bit deeper.`;
-            case 10:
-                return `You ${choices.analysis?.toLowerCase()} and noticed that what feels the best in the moment might not always produce the outcome you want in the long run.`;
-            case 11:
-                return `You ${choices.flexibleApproach?.toLowerCase()}, proving to yourself that there isn't one perfect way to make a decision. There are many "right" answers.`;
-            case 12:
-                return `You ${choices.balancedApproach?.toLowerCase()}, balancing intuition and wisdom, and honoring the fact that we don't know all the answers.`;
-            case 13:
-                return `You ${choices.progress?.toLowerCase()} and finally made progress. Inertia is powerful and following through on a decision is half the battle.`;
-            case 14:
-                return `You ${choices.reflection?.toLowerCase()} and realized that different decisions call for different strategies. There's freedom in accepting that there are no rules when it comes to building your life on your terms.`;
-            default:
-                return "";
-        }
-    };
-
     // Intro Screen
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Sparkles size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Decision-Making Practice</Text>
-
-                    <Text style={styles.introDescription}>
-                        As dancers, you know how to follow directions. But now, you're the choreographer of your choices.
-                        {'\n\n'}
-                        Beware: This isn't about making the perfect decision (no such thing), but about learning different ways to problem solve. Because the truth is, by following the dance path, there's a chance you've never really made a decision for yourself that wasn't based on the path laid out for you.
-                        {'\n\n'}
-                        Swipe through and pick a decision-making tactic that makes the most sense to you. There's no right or wrong!
-                    </Text>
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartPractice}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Start practicing</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Decision-Making Practice</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Sparkles size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+                            <Text style={styles.introTitle}>Decision-Making Practice</Text>
+                            <Text style={styles.introDescription}>
+                                As dancers, you know how to follow directions. But now, you're the choreographer of your choices.
+                                {'\n\n'}
+                                Beware: This isn't about making the perfect decision (no such thing), but about learning different ways to problem solve. Because the truth is, by following the dance path, there's a chance you've never really made a decision for yourself that wasn't based on the path laid out for you.
+                                {'\n\n'}
+                                Swipe through and pick a decision-making tactic that makes the most sense to you. There's no right or wrong!
+                            </Text>
+                            <TouchableOpacity style={styles.startButton} onPress={handleStartPractice} activeOpacity={0.8}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Start practicing</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -175,105 +121,97 @@ export default function DecisionMaking({ onComplete, onBack }: DecisionMakingPro
     if (currentScreen >= 1 && currentScreen <= 7) {
         const choiceIndex = currentScreen - 1;
         const currentTactic = randomizedTactics[choiceIndex];
-
         if (!currentTactic) return null;
 
         return (
             <View style={styles.container}>
-                <View style={styles.choiceHeader}>
-                    <Text style={styles.choiceProgress}>
-                        {currentScreen} of 7
-                    </Text>
+                {/* Sticky Header with Progress */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.progressText}>{currentScreen} of 7</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
                     <View style={styles.progressBar}>
                         <View style={[styles.progressFill, { width: `${(currentScreen / 7) * 100}%` }]} />
                     </View>
                 </View>
 
-                <ScrollView style={styles.content} contentContainerStyle={styles.choiceContainer}>
-                    <View style={styles.choiceButtons}>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoice(currentTactic.storyKey, currentTactic.option1)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceButtonText}>{currentTactic.option1}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoice(currentTactic.storyKey, currentTactic.option2)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceButtonText}>{currentTactic.option2}</Text>
-                        </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.choiceCard}>
+                            <View style={styles.choiceButtons}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoice(currentTactic.storyKey, currentTactic.option1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonText}>{currentTactic.option1}</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoice(currentTactic.storyKey, currentTactic.option2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonText}>{currentTactic.option2}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
-
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>
-                        {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-                    </Text>
-                </TouchableOpacity>
             </View>
         );
     }
 
-    // Story Screens (8-15)
-    if (currentScreen >= 8 && currentScreen <= 15) {
-        const storyText = getStoryText(currentScreen);
-        const isFinalStory = currentScreen === 15;
-
+    // Result Screen (8)
+    if (currentScreen === 8) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.storyContainer}>
-                    <Text style={styles.storyText}>{storyText}</Text>
+                <View style={styles.storyBackground}>
+                    <View style={styles.storyBackgroundPattern} />
+                </View>
 
-                    <Text style={styles.alternativeClosing}>
-                        {isFinalStory ? '→ swipe to screen 16' : `→ swipe to screen ${currentScreen + 1}`}
-                    </Text>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Decision-Making</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
 
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinueStory}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.continueButtonText}>
-                                {isFinalStory ? 'See results' : 'Continue'}
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.storyCard}>
+                            <View style={styles.finalHeader}>
+                                <Sparkles size={24} color="#928490" />
+                                <Text style={styles.finalHeading}>Decision-Making is a Skill</Text>
+                                <Sparkles size={24} color="#928490" />
+                            </View>
+                            <View style={styles.storyTextContainer}>
+                                <Text style={styles.storyText}>
+                                    And it's a skill that many dancers haven't mastered. As you embark on the challenge of deciding which path to take post-dance, refer to these tactics to help you move more towards the life you really want.
+                                    {'\n\n'}
+                                    The more you practice, the more you'll trust yourself to choose (and to adjust when needed).
+                                </Text>
+                            </View>
+                            <Text style={styles.alternativeClosing}>
+                                See you for more tomorrow
                             </Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                            <TouchableOpacity style={styles.continueButton} onPress={handleComplete} activeOpacity={0.8}>
+                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.continueButtonText}>Mark as Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
-            </View>
-        );
-    }
-
-    // Result Screen (16)
-    if (currentScreen === 16) {
-        return (
-            <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Sparkles size={32} color="#928490" />
                     </View>
-
-                    <Text style={styles.introTitle}>Decision-Making is a Skill</Text>
-
-                    <Text style={styles.introDescription}>
-                        And it's a skill that many dancers haven't mastered. As you embark on the challenge of deciding which path to take post-dance, refer to these tactics to help you move more towards the life you really want.
-                        {'\n\n'}
-                        The more you practice, the more you'll trust yourself to choose (and to adjust when needed).
-                        {'\n\n'}
-                        See you tomorrow!
-                    </Text>
-                    <TouchableOpacity style={styles.startButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Mark as Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </View>
-                    </TouchableOpacity>
                 </ScrollView>
             </View>
         );
@@ -287,98 +225,158 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    alternativeClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 40,
-    },
-    topBackButton: {
+    storyBackground: {
         position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 0,
     },
-    content: {
+    storyBackgroundPattern: {
         flex: 1,
+        opacity: 0.03,
+        backgroundColor: '#928490',
+        transform: [{ rotate: '45deg' }, { scale: 1.5 }],
     },
-    introContainer: {
-        flexGrow: 1,
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    scrollView: {
+        flex: 1,
+        marginTop: 100,
+        zIndex: 1,
+    },
+    centeredContent: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        minHeight: height - 200,
+        paddingBottom: 30,
     },
-    introIcon: {
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+    introCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 60,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 32,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
+        fontStyle: 'italic',
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    choiceHeader: {
-        padding: 20,
-        paddingTop: 60,
-        alignItems: 'center',
-    },
-    choiceProgress: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '80%',
-        height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
-    },
-    choiceContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
+    choiceCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
     choiceButtons: {
         gap: 20,
@@ -398,48 +396,73 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
     },
-    storyContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+    storyCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+    },
+    storyTextContainer: {
+        width: '100%',
+        marginBottom: 32,
     },
     storyText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
-        lineHeight: 26,
-        marginBottom: 40,
+        lineHeight: 28,
     },
     continueButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
-        alignSelf: 'center',
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
+        minWidth: width * 0.5,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    backButton: {
+    alternativeClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
+        marginTop: 5,
+        fontWeight: '600',
+    },
+    finalHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
+        justifyContent: 'center',
+        marginBottom: 30,
+        gap: 12,
     },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
+    finalHeading: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
         color: '#647C90',
-        marginLeft: 8,
+        textAlign: 'center',
+        fontWeight: '700',
     },
 });

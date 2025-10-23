@@ -1,11 +1,12 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useCallback, useState, useEffect } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, ArrowLeft, Clock, Calendar } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getCategoryById } from '@/data/categories';
-import { Image } from 'react-native';
+import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+
+const { width } = Dimensions.get('window');
 
 export default function CategoryScreen() {
   const router = useRouter();
@@ -42,6 +43,17 @@ export default function CategoryScreen() {
     router.push('/(tabs)/paths');
   };
 
+  // Animation setup for path cards
+  const scaleValues = category?.paths.map(() => useSharedValue(1)) || [];
+
+  const handlePressIn = (index: number) => {
+    scaleValues[index].value = withTiming(0.95, { duration: 150, easing: Easing.out(Easing.ease) });
+  };
+
+  const handlePressOut = (index: number) => {
+    scaleValues[index].value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
+  };
+
   if (!category) {
     return (
       <View style={styles.container}>
@@ -59,104 +71,114 @@ export default function CategoryScreen() {
     return Math.round((pathProgress / totalDays) * 100);
   };
 
-  const renderHeader = () => (
-    <LinearGradient
-      colors={[category.color, `${category.color}CC`]}
-      style={styles.header}
-    >
-      <View style={styles.headerRow}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <ArrowLeft size={28} color="#E2DED0" />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={styles.categoryTitle}>{category.title}</Text>
-        </View>
-        {/* Empty view to balance the flex row */}
-        <View style={styles.backButton} />
-      </View>
-    </LinearGradient>
-  );
-
-  const renderPaths = () => (
-    <View style={styles.pathsContainer}>
-      {category.paths.map((path) => {
-        const progressPercentage = getPathProgress(path.id);
-        const isCompleted = progressPercentage >= 100;
-        const hasProgress = progressPercentage > 0;
-
-        return (
-          <TouchableOpacity
-            key={path.id}
-            style={styles.pathCard}
-            onPress={() => handlePathPress(path.id)}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={['rgba(146, 132, 144, 0.1)', 'rgba(116, 108, 112, 0.05)']}
-              style={styles.pathGradient}
-            >
-              <View style={styles.pathContent}>
-                <View style={styles.pathHeader}>
-                  <View style={styles.pathInfo}>
-                    <Text style={styles.pathTitle}>{path.title}</Text>
-                    <Text style={styles.pathSubtitle}>{path.subtitle}</Text>
-                    <Text style={styles.pathDescription}>{path.description}</Text>
-                  </View>
-
-                  <View style={styles.pathMeta}>
-                    {isCompleted && (
-                      <View style={styles.completedBadge}>
-                        <Text style={styles.completedBadgeText}>✓</Text>
-                      </View>
-                    )}
-                    {!isCompleted && (
-                      <ChevronRight size={20} color="#647C90" />
-                    )}
-                  </View>
-                </View>
-
-                <View style={styles.pathFooter}>
-                  <View style={styles.pathStats}>
-                    <View style={styles.statItem}>
-                      <Clock size={16} color="#928490" />
-                      <Text style={styles.statText}>{path.duration}</Text>
-                    </View>
-                  </View>
-
-                  {hasProgress && (
-                    <View style={styles.progressContainer}>
-                      <View style={styles.progressBar}>
-                        <View
-                          style={[
-                            styles.progressFill,
-                            {
-                              width: `${progressPercentage}%`,
-                              backgroundColor: category.color
-                            }
-                          ]}
-                        />
-                      </View>
-                      <Text style={styles.progressText}>{progressPercentage}% complete</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-
   return (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      stickyHeaderIndices={[0]}
-    >
-      {renderHeader()}
-      {renderPaths()}
-    </ScrollView>
+    <View style={styles.container}>
+      {/* Sticky Header */}
+      <View style={[styles.stickyHeader, { backgroundColor: category.color }]}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+            <ArrowLeft size={28} color="#E2DED0" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.titleText}>{category.title}</Text>
+          </View>
+          {/* Empty view to balance the flex row */}
+          <View style={styles.backButtonPlaceholder} />
+        </View>
+      </View>
+
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Paths List */}
+          <View style={styles.pathsContainer}>
+            {category.paths.map((path, index) => {
+              const progressPercentage = getPathProgress(path.id);
+              const isCompleted = progressPercentage >= 100;
+              const hasProgress = progressPercentage > 0;
+
+              return (
+                <Animated.View
+                  key={path.id}
+                  style={[
+                    styles.pathCard,
+                    useAnimatedStyle(() => ({
+                      transform: [{ scale: scaleValues[index].value }],
+                    })),
+                  ]}
+                >
+                  <TouchableOpacity
+                    onPress={() => handlePathPress(path.id)}
+                    onPressIn={() => handlePressIn(index)}
+                    onPressOut={() => handlePressOut(index)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.pathContentContainer, { backgroundColor: '#F5F5F5' }]}>
+                      <View style={styles.pathHeader}>
+                        <View style={styles.pathIconContainer}>
+                          <View style={[styles.pathIconGradient, { backgroundColor: category.color }]}>
+                            <Clock size={24} color="#E2DED0" />
+                          </View>
+                        </View>
+                        <View style={styles.pathInfo}>
+                          <Text style={styles.pathTitle}>{path.title}</Text>
+                          <Text style={styles.pathSubtitle}>{path.subtitle}</Text>
+                          <Text style={styles.pathDescription}>{path.description}</Text>
+                          <View style={styles.pathMeta}>
+                            <View style={styles.durationBadge}>
+                              <Text style={styles.durationText}>{path.duration}</Text>
+                            </View>
+                            {hasProgress && (
+                              <View style={styles.progressBadge}>
+                                <Text style={styles.progressBadgeText}>{progressPercentage}% complete</Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+                        <View style={styles.chevronIcon}>
+                          <ChevronRight size={20} color="#647C90" />
+                        </View>
+                      </View>
+
+                      {/* Progress Bar */}
+                      {hasProgress && (
+                        <View style={styles.progressContainer}>
+                          <View style={styles.progressBar}>
+                            <View
+                              style={[
+                                styles.progressFill,
+                                {
+                                  width: `${progressPercentage}%`,
+                                  backgroundColor: category.color
+                                }
+                              ]}
+                            />
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                </Animated.View>
+              );
+            })}
+          </View>
+
+          {/* CTA Section */}
+          <View style={[styles.ctaContainer, { backgroundColor: category.color }]}>
+            <View style={styles.ctaContent}>
+              <Text style={styles.ctaTitle}>Ready to Begin?</Text>
+              <Text style={styles.ctaSubtitle}>
+                Start your journey today and take the first step towards your new career path
+              </Text>
+              <TouchableOpacity style={styles.ctaButton}>
+                <Text style={styles.ctaButtonText}>Start Learning</Text>
+                <ChevronRight size={16} color="#E2DED0" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -172,11 +194,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 100,
   },
-  header: {
-    paddingHorizontal: 20,
+  stickyHeader: {
+    paddingHorizontal: 24,
     paddingTop: 60,
+    paddingBottom: 20,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  scrollView: {
+    flex: 1,
+    marginTop: 100,
+  },
+  content: {
     paddingBottom: 30,
-    backgroundColor: '#647C90',
   },
   headerRow: {
     flexDirection: 'row',
@@ -184,66 +219,56 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backButton: {
-    alignSelf: 'flex-start',
+    width: 28,
   },
-  headerContent: {
+  backButtonPlaceholder: {
+    width: 28,
+  },
+  headerTitleContainer: {
+    flex: 1,
     alignItems: 'center',
   },
-  categoryIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(226, 222, 208, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  categoryEmoji: {
-    fontSize: 30,
-  },
-  categoryTitle: {
+  titleText: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 25,
     color: '#E2DED0',
     textAlign: 'center',
   },
-  categoryDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: 'rgba(226, 222, 208, 0.9)',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
   pathsContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-  },
-  sectionTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 22,
-    color: '#4E4F50',
-    marginBottom: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 30,
+    paddingTop: 50,
   },
   pathCard: {
-    marginBottom: 15,
-    borderRadius: 12,
+    marginBottom: 24,
+    borderRadius: 24,
     overflow: 'hidden',
-    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 12,
+    elevation: 5,
   },
-  pathGradient: {
-    padding: 16,
-  },
-  pathContent: {
-    // No specific styles needed
+  pathContentContainer: {
+    padding: 24,
   },
   pathHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 15,
+  },
+  pathIconContainer: {
+    marginRight: 16,
+  },
+  pathIconGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   pathInfo: {
     flex: 1,
@@ -251,8 +276,10 @@ const styles = StyleSheet.create({
   pathTitle: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 18,
-    color: '#4E4F50',
-    marginBottom: 4,
+    color: '#647C90',
+    marginBottom: 8,
+    lineHeight: 24,
+    fontWeight: '700',
   },
   pathSubtitle: {
     fontFamily: 'Montserrat-SemiBold',
@@ -263,91 +290,118 @@ const styles = StyleSheet.create({
   pathDescription: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 14,
-    color: '#746C70',
+    color: '#928490',
     lineHeight: 20,
+    marginBottom: 16,
   },
   pathMeta: {
-    alignItems: 'center',
-    marginLeft: 10,
-  },
-  completedBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#928490',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  completedBadgeText: {
-    fontSize: 14,
-    color: '#E2DED0',
-  },
-  pathFooter: {
-    // No specific styles needed
-  },
-  pathStats: {
-    flexDirection: 'row',
-    marginBottom: 10,
-  },
-  statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 20,
+    gap: 12,
   },
-  statText: {
+  durationBadge: {
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#647C90',
+  },
+  durationText: {
     fontFamily: 'Montserrat-Medium',
     fontSize: 12,
-    color: '#928490',
-    marginLeft: 6,
+    color: '#647C90',
+    fontWeight: '500',
+  },
+  progressBadge: {
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#647C90',
+  },
+  progressBadgeText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 12,
+    color: '#647C90',
+    fontWeight: '500',
+  },
+  completedBadge: {
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#647C90',
+  },
+  completedBadgeText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 12,
+    color: '#647C90',
+    fontWeight: '500',
+  },
+  chevronIcon: {
+    marginLeft: 12,
+    justifyContent: 'center',
+    minHeight: 56,
   },
   progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginTop: 16,
   },
   progressBar: {
-    flex: 1,
     height: 4,
     backgroundColor: 'rgba(146, 132, 144, 0.2)',
     borderRadius: 2,
-    marginRight: 10,
   },
   progressFill: {
     height: '100%',
     borderRadius: 2,
   },
-  progressText: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 12,
-    color: '#746C70',
-  },
   ctaContainer: {
-    marginHorizontal: 20,
-    marginBottom: 30,
-    borderRadius: 12,
-    overflow: 'hidden',
+    marginHorizontal: 24,
+    marginBottom: 48,
+    borderRadius: 24,
+    padding: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
-  ctaGradient: {
-    padding: 20,
+  ctaContent: {
     alignItems: 'center',
   },
   ctaTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 18,
-    color: '#4E4F50',
-    marginBottom: 10,
-  },
-  ctaText: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 14,
-    color: '#746C70',
+    fontSize: 28,
+    color: '#E2DED0',
     textAlign: 'center',
-    lineHeight: 20,
+    marginBottom: 16,
+    fontWeight: '700',
   },
-  heroImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 20,
+  ctaSubtitle: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 18,
+    color: 'rgba(226, 222, 208, 0.8)',
+    textAlign: 'center',
+    lineHeight: 28,
+    marginBottom: 24,
   },
-});
+  ctaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#647C90',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  ctaButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
+  },
+}); 

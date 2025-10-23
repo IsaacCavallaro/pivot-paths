@@ -116,32 +116,48 @@ export default function LettingGoOfValidation({ onComplete, onBack }: LettingGoO
     if (screenHistory.length === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Heart size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Letting Go of Validation</Text>
-
-                    <Text style={styles.introDescription}>
-                        As dancers, we're used to applause, casting lists, and approval from teachers and directors. But what happens when those voices go quiet?
-
-                        Let's practice rewriting validation so it comes from you.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Swipe to begin</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Letting Go of Validation</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Heart size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Letting Go of Validation</Text>
+
+                            <Text style={styles.introDescription}>
+                                As dancers, we're used to applause, casting lists, and approval from teachers and directors. But what happens when those voices go quiet?
+
+                                Let's practice rewriting validation so it comes from you.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.startButton}
+                                onPress={handleStartGame}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Let's Start</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -152,34 +168,55 @@ export default function LettingGoOfValidation({ onComplete, onBack }: LettingGoO
     if (currentScreen.pairIndex === -1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <Heart size={40} color="#928490" />
-                    </View>
-                    <Text style={styles.introTitle}>Internal vs External Validation</Text>
-                    <Text style={styles.finalText}>
-                        Validation feels different when it comes from within. Practice these reframes out loud, and notice how it shifts your energy.
-
-                        When you validate yourself, external praise becomes extra, not essential.
-                    </Text>
-
-                    <Text style={styles.finalClosing}>
-                        See you tomorrow for the next step.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Reflection</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.reflectionCard}>
+                            <View style={styles.reflectionIconContainer}>
+                                <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Heart size={40} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.reflectionTitle}>Internal vs External Validation</Text>
+
+                            <Text style={styles.reflectionText}>
+                                Validation feels different when it comes from within. Practice these reframes out loud, and notice how it shifts your energy.
+                            </Text>
+
+                            <Text style={styles.reflectionText}>
+                                When you validate yourself, external praise becomes extra, not essential.
+                            </Text>
+
+                            <Text style={styles.reflectionClosing}>
+                                See you tomorrow for the next step.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.completeButton}
+                                onPress={handleComplete}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -194,78 +231,98 @@ export default function LettingGoOfValidation({ onComplete, onBack }: LettingGoO
         // Show old belief
         return (
             <View style={styles.container}>
-                <View style={styles.header}>
-                    <View style={styles.progressContainer}>
-                        <Text style={styles.progressText}>
-                            {currentPairIndex + 1} of {validationPairs.length}
-                        </Text>
-                        <View style={styles.progressBar}>
-                            <View style={[styles.progressFill, { width: `${beliefProgress}%` }]} />
+                {/* Sticky Header with Progress */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.progressText}>
+                                {currentPairIndex + 1} of {validationPairs.length}
+                            </Text>
                         </View>
+                        <View style={styles.backButton} />
+                    </View>
+                    <View style={styles.progressBar}>
+                        <View style={[styles.progressFill, { width: `${beliefProgress}%` }]} />
                     </View>
                 </View>
 
-                <ScrollView style={styles.content} contentContainerStyle={styles.beliefContainer}>
-                    <Text style={styles.beliefLabel}>What I used to believe:</Text>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.beliefCard}>
+                            <Text style={styles.beliefLabel}>What I used to believe:</Text>
 
-                    <View style={styles.oldBeliefCard}>
-                        <Text style={styles.oldBeliefText}>"{currentPair.oldBelief}"</Text>
+                            <View style={styles.oldBeliefCard}>
+                                <Text style={styles.oldBeliefText}>"{currentPair.oldBelief}"</Text>
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <LinearGradient
+                                    colors={['#928490', '#746C70']}
+                                    style={styles.continueButtonGradient}
+                                >
+                                    <Text style={styles.continueButtonText}>See the alternative</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <LinearGradient
-                            colors={['#928490', '#746C70']}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>See the alternative</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>
-                        {screenHistory.length <= 1 ? 'Back to Intro' : 'Previous'}
-                    </Text>
-                </TouchableOpacity>
             </View>
         );
     } else {
         // Show new belief
         return (
             <View style={styles.container}>
-                <View style={styles.header}>
-                    <View style={styles.progressContainer}>
-                        <Text style={styles.progressText}>
-                            {currentPairIndex + 1} of {validationPairs.length}
-                        </Text>
-                        <View style={styles.progressBar}>
-                            <View style={[styles.progressFill, { width: `${beliefProgress}%` }]} />
+                {/* Sticky Header with Progress */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.progressText}>
+                                {currentPairIndex + 1} of {validationPairs.length}
+                            </Text>
                         </View>
+                        <View style={styles.backButton} />
+                    </View>
+                    <View style={styles.progressBar}>
+                        <View style={[styles.progressFill, { width: `${beliefProgress}%` }]} />
                     </View>
                 </View>
 
-                <ScrollView style={styles.content} contentContainerStyle={styles.beliefContainer}>
-                    <Text style={styles.beliefLabel}>What I can say instead:</Text>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.beliefCard}>
+                            <Text style={styles.beliefLabel}>What I can say instead:</Text>
 
-                    <View style={styles.newBeliefCard}>
-                        <Text style={styles.newBeliefText}>"{currentPair.newBelief}"</Text>
+                            <View style={styles.newBeliefCard}>
+                                <Text style={styles.newBeliefText}>"{currentPair.newBelief}"</Text>
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <LinearGradient
+                                    colors={['#5A7D7B', '#647C90']}
+                                    style={styles.continueButtonGradient}
+                                >
+                                    <Text style={styles.continueButtonText}>{currentPair.buttonText}</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <LinearGradient
-                            colors={['#5A7D7B', '#647C90']}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>{currentPair.buttonText}</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -276,69 +333,145 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    content: {
-        flex: 1,
-    },
-    introContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+    stickyHeader: {
         paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
     },
-    introIcon: {
+    scrollView: {
+        flex: 1,
+        marginTop: 100,
+    },
+    content: {
+        paddingBottom: 30,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+    introCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 32,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: 15,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#746C70',
+        fontSize: 18,
+        color: '#928490',
         textAlign: 'center',
-        lineHeight: 24,
         marginBottom: 40,
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    beliefContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+    beliefCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
     beliefLabel: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
+        fontSize: 24,
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 30,
+        fontWeight: '700',
     },
     oldBeliefCard: {
         backgroundColor: 'rgba(146, 132, 144, 0.15)',
@@ -347,6 +480,7 @@ const styles = StyleSheet.create({
         marginBottom: 40,
         borderLeftWidth: 4,
         borderLeftColor: '#928490',
+        width: '100%',
     },
     oldBeliefText: {
         fontFamily: 'Montserrat-Regular',
@@ -363,6 +497,7 @@ const styles = StyleSheet.create({
         marginBottom: 40,
         borderLeftWidth: 4,
         borderLeftColor: '#928490',
+        width: '100%',
     },
     newBeliefText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -373,40 +508,60 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
     },
     continueButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
-        alignSelf: 'center',
     },
     continueButtonGradient: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 30,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
+        fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    reflectionCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
-    finalIcon: {
+    reflectionIconContainer: {
+        marginBottom: 30,
+    },
+    reflectionIconGradient: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
-    finalText: {
+    reflectionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 30,
+        fontWeight: '700',
+    },
+    reflectionText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
@@ -414,72 +569,33 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 20,
     },
-    finalClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
+    reflectionClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
         marginBottom: 40,
+        fontWeight: '600',
     },
     completeButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
+        fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
-    },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        fontWeight: '600',
     },
 });

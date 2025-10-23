@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, ChevronLeft, DollarSign, ArrowLeft } from 'lucide-react-native';
 
@@ -20,6 +20,8 @@ interface FinancialResult {
     description: string;
     color: string;
 }
+
+const { width, height } = Dimensions.get('window');
 
 const quizQuestions: QuizQuestion[] = [
     {
@@ -328,30 +330,46 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <DollarSign size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Your Starting Line</Text>
-
-                    <Text style={styles.introDescription}>
-                        Before you can move forward with money, it helps to know where you're standing. Answer these 10 quick questions to uncover your money starting line. No shame, just awareness. Let's go.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartQuiz}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Start Quiz</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Starting Line</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <DollarSign size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Your Starting Line</Text>
+
+                            <Text style={styles.introDescription}>
+                                Before you can move forward with money, it helps to know where you're standing. Answer these 10 quick questions to uncover your money starting line. No shame, just awareness. Let's go.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.startButton}
+                                onPress={handleStartQuiz}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Start Quiz</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -361,32 +379,62 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
     if (currentScreen === 12) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <Image
-                            source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                            style={styles.heroImage}
-                        />
-                    </View>
-
-                    <Text style={styles.finalTitle}>Your Starting Line</Text>
-
-                    <Text style={styles.finalDescription}>
-                        Knowing where you're starting is half the battle, the other half is your mindset.
-                    </Text>
-
-                    <Text style={styles.finalDescription}>
-                        Now that you know where you are and hopefully, where you could be, you can start to take action (perhaps on one of our other Finance Paths!).
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark as Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Starting Line</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.finalCard}>
+                            <View style={styles.finalIconContainer}>
+                                <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Image
+                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                        style={styles.heroImage}
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.finalHeader}>
+                                <DollarSign size={24} color="#928490" />
+                                <Text style={styles.finalHeading}>Your Starting Line</Text>
+                                <DollarSign size={24} color="#928490" />
+                            </View>
+
+                            <View style={styles.finalTextContainer}>
+                                <Text style={styles.finalText}>
+                                    Knowing where you're starting is half the battle, the other half is your mindset.
+                                </Text>
+                                <Text style={styles.finalText}>
+                                    Now that you know where you are and hopefully, where you could be, you can start to take action (perhaps on one of our other Finance Paths!).
+                                </Text>
+                            </View>
+
+                            <Text style={styles.alternativeClosing}>
+                                See you again tomorrow.
+                            </Text>
+
+                            <View style={styles.finalButtonContainer}>
+                                <TouchableOpacity
+                                    style={styles.continueButton}
+                                    onPress={handleComplete}
+                                    activeOpacity={0.8}
+                                >
+                                    <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                        <Text style={styles.continueButtonText}>Mark As Complete</Text>
+                                        <ChevronRight size={16} color="#E2DED0" />
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -396,25 +444,44 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
     if (currentScreen === 11 && result) {
         return (
             <View style={styles.container}>
-                <LinearGradient
-                    colors={[result.color, `${result.color}CC`]}
-                    style={styles.resultHeader}
-                >
-                    <Text style={styles.resultTitle}>{result.title}</Text>
-                </LinearGradient>
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Starting Line</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
 
-                <ScrollView style={styles.resultContent} contentContainerStyle={styles.resultContentContainer}>
-                    <Text style={styles.resultDescription}>{result.description}</Text>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.resultCard}>
+                            <View style={styles.resultIconContainer}>
+                                <View style={[styles.resultIconGradient, { backgroundColor: '#928490' }]}>
+                                    <DollarSign size={40} color="#E2DED0" />
+                                </View>
+                            </View>
 
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinueToFinal}>
-                        <LinearGradient
-                            colors={[result.color, `${result.color}DD`]}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>Continue</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
+                            <Text style={styles.resultTitle}>{result.title}</Text>
+
+                            <View style={styles.resultTextContainer}>
+                                <Text style={styles.resultText}>{result.description}</Text>
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinueToFinal}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.continueButtonText}>Continue</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -426,42 +493,44 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>
-                        Question {currentScreen} of 10
-                    </Text>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            {/* Sticky Header with Progress */}
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                        <ArrowLeft size={28} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.progressText}>Question {currentScreen} of 10</Text>
                     </View>
+                    <View style={styles.backButton} />
+                </View>
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${progress}%` }]} />
                 </View>
             </View>
 
-            <ScrollView style={styles.content} contentContainerStyle={styles.questionContainer}>
-                <Text style={styles.questionText}>{question.question}</Text>
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.centeredContent}>
+                    <View style={styles.choiceCard}>
+                        <Text style={styles.questionText}>{question.question}</Text>
 
-                <View style={styles.optionsContainer}>
-                    {question.options.map((option) => (
-                        <TouchableOpacity
-                            key={option.id}
-                            style={styles.optionButton}
-                            onPress={() => handleAnswer(option.type)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.optionText}>
-                                {option.emoji ? `${option.emoji} ` : ''}{option.text}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                        <View style={styles.choiceButtons}>
+                            {question.options.map((option) => (
+                                <TouchableOpacity
+                                    key={option.id}
+                                    style={styles.choiceButton}
+                                    onPress={() => handleAnswer(option.type)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonText}>
+                                        {option.emoji ? `${option.emoji} ` : ''}{option.text}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
                 </View>
             </ScrollView>
-
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                <ChevronLeft size={24} color="#647C90" />
-                <Text style={styles.backButtonText}>
-                    {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-                </Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -471,94 +540,143 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    topBackButton: {
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
         position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
     },
-    content: {
+    scrollView: {
         flex: 1,
+        marginTop: 100,
+        zIndex: 1,
     },
-    introContainer: {
-        flexGrow: 1,
+    centeredContent: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        minHeight: height - 200,
+        paddingBottom: 30,
     },
-    introIcon: {
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+    introCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
+        fontSize: 32,
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
+        fontStyle: 'italic',
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
-    },
-    questionContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 40,
+    choiceCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
     questionText: {
         fontFamily: 'Merriweather-Bold',
@@ -568,139 +686,161 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         textAlign: 'center',
     },
-    optionsContainer: {
+    choiceButtons: {
         gap: 15,
     },
-    optionButton: {
+    choiceButton: {
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 20,
         borderWidth: 2,
         borderColor: 'transparent',
     },
-    optionText: {
+    choiceButtonText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
         lineHeight: 22,
         textAlign: 'center',
     },
-    backButton: {
-        flexDirection: 'row',
+    resultCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
+    resultIconContainer: {
+        marginBottom: 24,
     },
-    resultHeader: {
-        paddingTop: 60,
-        padding: 30,
+    resultIconGradient: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     resultTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#E2DED0',
+        fontSize: 28,
+        color: '#4E4F50',
         textAlign: 'center',
+        marginBottom: 20,
+        fontWeight: '700',
     },
-    resultContent: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        marginHorizontal: 10,
+    resultTextContainer: {
+        width: '100%',
+        marginBottom: 32,
     },
-    resultContentContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 30,
-    },
-    resultDescription: {
+    resultText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
-        lineHeight: 24,
-        marginBottom: 30,
         textAlign: 'center',
+        lineHeight: 24,
     },
     continueButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
-        marginBottom: 30,
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
+        minWidth: width * 0.5,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    finalCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
-    finalIcon: {
+    finalIconContainer: {
+        marginBottom: 30,
+    },
+    finalIconGradient: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
-    finalTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    finalDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
-    },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        marginTop: 20,
-    },
-    completeButtonGradient: {
+    finalHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
+        marginBottom: 30,
+        gap: 12,
     },
-    completeButtonText: {
+    finalHeading: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        fontWeight: '700',
+    },
+    finalTextContainer: {
+        width: '100%',
+        marginBottom: 40,
+    },
+    finalText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 18,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 28,
+        marginBottom: 20,
+    },
+    alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
+        marginTop: 20,
+        fontWeight: '600',
+    },
+    finalButtonContainer: {
+        width: '100%',
+        alignItems: 'center',
+        marginTop: 20,
     },
     heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        marginBottom: 20,
-        borderColor: 'black',
-        borderWidth: 1,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
     },
 });

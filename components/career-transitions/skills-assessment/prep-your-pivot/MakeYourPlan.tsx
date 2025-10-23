@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Target, ArrowLeft, ChevronLeft } from 'lucide-react-native';
 
@@ -15,6 +15,7 @@ interface MakeYourPlanProps {
     onBack?: () => void;
 }
 
+const { width, height } = Dimensions.get('window');
 const planChoices: PlanChoice[] = [
     {
         id: 1,
@@ -152,30 +153,46 @@ export default function MakeYourPlan({ onComplete, onBack }: MakeYourPlanProps) 
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Target size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Make a Plan</Text>
-
-                    <Text style={styles.introDescription}>
-                        Choose the answer that best describes your situation to help you create your career game plan. But there's no right or wrong! It's just your starting point and we'll build from there.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Let's plan</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Make a Plan</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Target size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Make a Plan</Text>
+
+                            <Text style={styles.introDescription}>
+                                Choose the answer that best describes your situation to help you create your career game plan. But there's no right or wrong! It's just your starting point and we'll build from there.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.startButton}
+                                onPress={handleStartGame}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Let's plan</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -190,41 +207,45 @@ export default function MakeYourPlan({ onComplete, onBack }: MakeYourPlanProps) 
 
         return (
             <View style={styles.container}>
-                <View style={styles.choiceHeader}>
-                    <Text style={styles.choiceProgress}>
-                        {currentScreen} of 10
-                    </Text>
+                {/* Sticky Header with Progress */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.progressText}>{currentScreen} of 10</Text>
+                        </View>
+                        <View style={styles.backButton} />
+                    </View>
                     <View style={styles.progressBar}>
                         <View style={[styles.progressFill, { width: `${(currentScreen / 10) * 100}%` }]} />
                     </View>
                 </View>
 
-                <ScrollView style={styles.content} contentContainerStyle={styles.choiceContainer}>
-                    <View style={styles.choiceButtons}>
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoice(currentChoice.storyKey, currentChoice.option1)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceButtonText}>{currentChoice.option1}</Text>
-                        </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.choiceCard}>
+                            <View style={styles.choiceButtons}>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoice(currentChoice.storyKey, currentChoice.option1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonText}>{currentChoice.option1}</Text>
+                                </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.choiceButton}
-                            onPress={() => handleChoice(currentChoice.storyKey, currentChoice.option2)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceButtonText}>{currentChoice.option2}</Text>
-                        </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.choiceButton}
+                                    onPress={() => handleChoice(currentChoice.storyKey, currentChoice.option2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonText}>{currentChoice.option2}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
-
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>
-                        {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-                    </Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -237,44 +258,72 @@ export default function MakeYourPlan({ onComplete, onBack }: MakeYourPlanProps) 
 
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.storyContainer}>
-                    {isFinal && (
-                        <Text style={styles.finalHeading}>Start Your Pivot</Text>
-                    )}
+                <View style={styles.storyBackground}>
+                    <View style={styles.storyBackgroundPattern} />
+                </View>
 
-                    {isTitle ? (
-                        <Text style={styles.storyTitle}>{storyText}</Text>
-                    ) : (
-                        <Text style={styles.storyText}>{storyText}</Text>
-                    )}
-
-                    {isFinal && (
-                        <Text style={styles.alternativeClosing}>
-                            Ready to dive deeper into your career change?
-                        </Text>
-                    )}
-
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinueStory}>
-                        <View
-                            style={[styles.continueButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.continueButtonText}>
-                                {isFinal ? 'Learn more' : 'Continue'}
-                            </Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Game Plan</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
 
-                    {isFinal && (
-                        <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
-                            <View
-                                style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.storyCard}>
+                            {isFinal && (
+                                <View style={styles.finalHeader}>
+                                    <Target size={24} color="#928490" />
+                                    <Text style={styles.finalHeading}>Start Your Pivot</Text>
+                                    <Target size={24} color="#928490" />
+                                </View>
+                            )}
+
+                            {isTitle ? (
+                                <View style={styles.storyTitleContainer}>
+                                    <Text style={styles.storyTitle}>{storyText}</Text>
+                                    <View style={styles.titleUnderline} />
+                                </View>
+                            ) : (
+                                <View style={styles.storyTextContainer}>
+                                    <Text style={styles.storyText}>{storyText}</Text>
+                                </View>
+                            )}
+
+                            {isFinal && (
+                                <Text style={styles.alternativeClosing}>
+                                    Ready to dive deeper into your career change?
+                                </Text>
+                            )}
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinueStory}
+                                activeOpacity={0.8}
                             >
-                                <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                <ChevronRight size={16} color="#E2DED0" />
-                            </View>
-                        </TouchableOpacity>
-                    )}
+                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.continueButtonText}>
+                                        {isFinal ? 'Learn more' : 'Continue'}
+                                    </Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+
+                            {isFinal && (
+                                <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
+                                    <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                        <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                        <ChevronRight size={16} color="#E2DED0" />
+                                    </View>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -288,99 +337,157 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    alternativeClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    topBackButton: {
+    storyBackground: {
         position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 0,
     },
-    content: {
+    storyBackgroundPattern: {
         flex: 1,
+        opacity: 0.03,
+        backgroundColor: '#928490',
+        transform: [{ rotate: '45deg' }, { scale: 1.5 }],
     },
-    introContainer: {
-        flexGrow: 1,
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    scrollView: {
+        flex: 1,
+        marginTop: 100,
+        zIndex: 1,
+    },
+    centeredContent: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        minHeight: height - 200,
+        paddingBottom: 30,
     },
-    introIcon: {
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+    introCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 32,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
         fontStyle: 'italic',
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    choiceHeader: {
-        padding: 20,
-        paddingTop: 60,
-        alignItems: 'center',
-    },
-    choiceProgress: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '80%',
-        height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
-    },
-    choiceContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
+    choiceCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
     choiceButtons: {
         gap: 20,
@@ -400,95 +507,116 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
     },
-    storyContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+    storyCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+    },
+    storyTitleContainer: {
+        alignItems: 'center',
+        marginBottom: 40,
     },
     storyTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
+        fontSize: 32,
+        color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
+        lineHeight: 38,
+        fontWeight: '700',
+    },
+    titleUnderline: {
+        height: 4,
+        width: 60,
+        backgroundColor: '#928490',
+        borderRadius: 2,
+        marginTop: 16,
+        opacity: 0.6,
+    },
+    storyTextContainer: {
+        width: '100%',
+        marginBottom: 32,
     },
     storyText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
-        lineHeight: 26,
-        marginBottom: 40,
+        lineHeight: 28,
     },
     continueButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
-        alignSelf: 'center',
-        marginBottom: 20,
+        marginBottom: 12,
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
+        minWidth: width * 0.5,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
-    },
-    secondaryButton: {
-        alignSelf: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-    },
-    secondaryButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#647C90',
-        textAlign: 'center',
-        textDecorationLine: 'underline',
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    finalHeading: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 20,
-        width: '100%',
+        fontWeight: '600',
     },
     completeButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
-        alignSelf: 'center',
-        width: 'auto',
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 24,
+        paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
+        minWidth: width * 0.5,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
+    },
+    alternativeClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
+        marginTop: 20,
+        fontWeight: '600',
+    },
+    finalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 30,
+        gap: 12,
+    },
+    finalHeading: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        fontWeight: '700',
     },
 });

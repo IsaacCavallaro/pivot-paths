@@ -144,32 +144,48 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
     if (screenHistory.length === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Target size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Meet Your Must-Haves</Text>
-
-                    <Text style={styles.introDescription}>
-                        This is a game of instincts. We're going to uncover what you truly value by having you choose between common spending categories. Your choices will help us build a personalized snapshot of your financial priorities. Don't overthink it!
-                        {"\n\n"}
-                        There's no right or wrong. Let's see what you build.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Begin Choosing</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Meet Your Must-Haves</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Target size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Meet Your Must-Haves</Text>
+
+                            <Text style={styles.introDescription}>
+                                This is a game of instincts. We're going to uncover what you truly value by having you choose between common spending categories. Your choices will help us build a personalized snapshot of your financial priorities. Don't overthink it!
+                                {"\n\n"}
+                                There's no right or wrong. Let's see what you build.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.startButton}
+                                onPress={handleStartGame}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Begin Choosing</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -180,26 +196,43 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
     if (currentScreen.pairIndex === -1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.overviewContainer}>
-                    <View style={styles.overviewIcon}>
-                        <Target size={40} color="#928490" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Explore Your Spending Values</Text>
+                        </View>
+                        <View style={styles.backButton} />
                     </View>
-                    <Text style={styles.introTitle}>Explore Your Spending Values</Text>
+                </View>
 
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <LinearGradient
-                            colors={['#928490', '#746C70']}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>See Your Results</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.overviewCard}>
+                            <View style={styles.overviewIconContainer}>
+                                <View style={[styles.overviewIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Target size={40} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.overviewTitle}>Explore Your Spending Values</Text>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={handleContinue}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.continueButtonText}>See Your Results</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -222,25 +255,41 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
         if (currentResultIndex < personalizedResults.length) {
             return (
                 <View style={styles.container}>
-                    <ScrollView style={styles.content} contentContainerStyle={styles.resultContainer}>
-                        <Text style={styles.resultText}>{personalizedResults[currentResultIndex]}</Text>
+                    {/* Sticky Header */}
+                    <View style={[styles.stickyHeader, { backgroundColor: '#5A7D7B' }]}>
+                        <View style={styles.headerRow}>
+                            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                                <ArrowLeft size={28} color="#E2DED0" />
+                            </TouchableOpacity>
+                            <View style={styles.headerTitleContainer}>
+                                <Text style={styles.titleText}>Your Results</Text>
+                            </View>
+                            <View style={styles.backButton} />
+                        </View>
+                    </View>
 
-                        <TouchableOpacity style={styles.continueButton} onPress={handleNextResult}>
-                            <LinearGradient
-                                colors={['#5A7D7B', '#647C90']}
-                                style={styles.continueButtonGradient}
-                            >
-                                <Text style={styles.continueButtonText}>
-                                    {currentResultIndex < personalizedResults.length - 1 ? 'Continue' : 'See Summary'}
-                                </Text>
-                                <ChevronRight size={16} color="#E2DED0" />
-                            </LinearGradient>
-                        </TouchableOpacity>
+                    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                        <View style={styles.content}>
+                            <View style={styles.resultCard}>
+                                <Text style={styles.resultTitle}>Here's what your choices reveal</Text>
+
+                                <Text style={styles.resultText}>{personalizedResults[currentResultIndex]}</Text>
+
+                                <TouchableOpacity
+                                    style={styles.continueButton}
+                                    onPress={handleNextResult}
+                                    activeOpacity={0.8}
+                                >
+                                    <View style={[styles.continueButtonContent, { backgroundColor: '#5A7D7B' }]}>
+                                        <Text style={styles.continueButtonText}>
+                                            {currentResultIndex < personalizedResults.length - 1 ? 'Continue' : 'See Summary'}
+                                        </Text>
+                                        <ChevronRight size={16} color="#E2DED0" />
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </ScrollView>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ChevronLeft size={20} color="#647C90" />
-                        <Text style={styles.backButtonText}>Previous</Text>
-                    </TouchableOpacity>
                 </View>
             );
         }
@@ -250,33 +299,51 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
     if (screenHistory[screenHistory.length - 1].pairIndex === -3) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <Target size={40} color="#928490" />
-                    </View>
-                    <Text style={styles.introTitle}>Your Budget Shows Your Values</Text>
-
-                    <Text style={styles.finalText}>
-                        How does this financial portrait feel? Use this as a starting point to craft a budget that truly reflects your values. A budget that fuels what you love and cuts what you don't.
-                        {"\n\n"}
-                        The goal isn't restriction, it's alignment.
-                        {"\n\n"}
-                        Let's keep going tomorrow.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Values</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.finalCard}>
+                            <View style={styles.finalIconContainer}>
+                                <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Target size={40} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.finalTitle}>Your Budget Shows Your Values</Text>
+
+                            <Text style={styles.finalText}>
+                                How does this financial portrait feel? Use this as a starting point to craft a budget that truly reflects your values. A budget that fuels what you love and cuts what you don't.
+                                {"\n\n"}
+                                The goal isn't restriction, it's alignment.
+                                {"\n\n"}
+                                Let's keep going tomorrow.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.completeButton}
+                                onPress={handleComplete}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -287,7 +354,19 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            {/* Sticky Header */}
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                        <ArrowLeft size={28} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.titleText}>Make Your Choice</Text>
+                    </View>
+                    <View style={styles.backButton} />
+                </View>
+
+                {/* Progress Bar */}
                 <View style={styles.progressContainer}>
                     <Text style={styles.progressText}>
                         {currentPairIndex + 1} of {choicePairs.length} choices
@@ -298,31 +377,31 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
                 </View>
             </View>
 
-            <ScrollView style={styles.content} contentContainerStyle={styles.choiceContainer}>
-                <Text style={styles.choicePrompt}>Which would you choose?</Text>
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.content}>
+                    <View style={styles.choiceCard}>
+                        <Text style={styles.choiceTitle}>Which would you choose?</Text>
 
-                <View style={styles.choicesRow}>
-                    <TouchableOpacity
-                        style={styles.choiceButton}
-                        onPress={() => handleChoiceSelect(1)}
-                    >
-                        <Text style={styles.choiceText}>{currentPair.option1}</Text>
-                    </TouchableOpacity>
+                        <View style={styles.choicesContainer}>
+                            <TouchableOpacity
+                                style={styles.choiceButton}
+                                onPress={() => handleChoiceSelect(1)}
+                                activeOpacity={0.8}
+                            >
+                                <Text style={styles.choiceText}>{currentPair.option1}</Text>
+                            </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.choiceButton}
-                        onPress={() => handleChoiceSelect(2)}
-                    >
-                        <Text style={styles.choiceText}>{currentPair.option2}</Text>
-                    </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.choiceButton}
+                                onPress={() => handleChoiceSelect(2)}
+                                activeOpacity={0.8}
+                            >
+                                <Text style={styles.choiceText}>{currentPair.option2}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
             </ScrollView>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                <ChevronLeft size={24} color="#647C90" />
-                <Text style={styles.backButtonText}>
-                    {screenHistory.length <= 1 ? 'Back to Intro' : 'Previous'}
-                </Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -332,196 +411,43 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    scrollView: {
+        flex: 1,
+        marginTop: 140,
+    },
     content: {
-        flex: 1,
+        paddingBottom: 30,
     },
-    introContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    introIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#746C70',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 40,
-    },
-    startButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    startButtonGradient: {
+    headerRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-    choiceContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    choicePrompt: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 40,
-    },
-    choicesRow: {
-        flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 16,
-    },
-    choiceButton: {
-        flex: 1,
-        backgroundColor: 'rgba(146, 132, 144, 0.15)',
-        borderRadius: 16,
-        padding: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 120,
-        borderWidth: 2,
-        borderColor: 'transparent',
-    },
-    choiceText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-    },
-    overviewContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    overviewIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    resultContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    resultText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 26,
-        marginBottom: 40,
-    },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    finalIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 40,
-    },
-    continueButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        alignSelf: 'center',
-    },
-    continueButtonGradient: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    completeButtonGradient: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
+        marginBottom: 15,
     },
     backButton: {
-        flexDirection: 'row',
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
         alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
     },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    header: {
-        padding: 20,
-        paddingTop: 60,
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
     },
     progressContainer: {
         alignItems: 'center',
@@ -529,26 +455,277 @@ const styles = StyleSheet.create({
     progressText: {
         fontFamily: 'Montserrat-Medium',
         fontSize: 14,
-        color: '#647C90',
+        color: '#E2DED0',
         marginBottom: 10,
     },
     progressBar: {
         width: '100%',
         height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
         borderRadius: 3,
         overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#928490',
+        backgroundColor: '#E2DED0',
         borderRadius: 3,
     },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+    // Intro Screen Styles
+    introCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+    },
+    introTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 20,
+        fontWeight: '700',
+    },
+    introDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#928490',
+        textAlign: 'center',
+        lineHeight: 24,
+        marginBottom: 32,
+    },
+    startButton: {
+        borderRadius: 30,
+        overflow: 'hidden',
+    },
+    startButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
+    },
+    startButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#E2DED0',
+        marginRight: 8,
+        fontWeight: '600',
+    },
+    // Choice Screen Styles
+    choiceCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    choiceTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 30,
+        fontWeight: '700',
+    },
+    choicesContainer: {
+        gap: 16,
+    },
+    choiceButton: {
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        borderWidth: 2,
+        borderColor: 'transparent',
+        minHeight: 120,
+        justifyContent: 'center',
+    },
+    choiceText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 16,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 22,
+    },
+    // Overview Screen Styles
+    overviewCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    overviewIconContainer: {
+        marginBottom: 24,
+    },
+    overviewIconGradient: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+    },
+    overviewTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
+        fontWeight: '700',
+    },
+    // Result Screen Styles
+    resultCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    resultTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 25,
+        fontWeight: '700',
+    },
+    resultText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 18,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 26,
+        marginBottom: 32,
+    },
+    // Final Screen Styles
+    finalCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    finalIconContainer: {
+        marginBottom: 24,
+    },
+    finalIconGradient: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+    },
+    finalTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 20,
+        fontWeight: '700',
+    },
+    finalText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 24,
+        marginBottom: 32,
+    },
+    // Common Button Styles
+    continueButton: {
+        borderRadius: 30,
+        overflow: 'hidden',
+    },
+    continueButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+        paddingVertical: 14,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
+    },
+    continueButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 16,
+        color: '#E2DED0',
+        marginRight: 8,
+        fontWeight: '600',
+    },
+    completeButton: {
+        borderRadius: 30,
+        overflow: 'hidden',
+    },
+    completeButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
+    },
+    completeButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#E2DED0',
+        marginRight: 8,
+        fontWeight: '600',
     },
 });

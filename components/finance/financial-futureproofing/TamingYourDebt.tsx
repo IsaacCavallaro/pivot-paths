@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, TrendingDown, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 interface DebtMethod {
     id: number;
@@ -128,37 +130,55 @@ export default function TamingYourDebt({ onComplete, onBack }: TamingYourDebtPro
         setShowHowToExecute(prevScreen.showHowTo);
     };
 
+    // Calculate progress for method screens
+    const methodProgress = ((currentMethodIndex + 1) / debtMethods.length) * 100;
+
     // Intro Screen
     if (screenHistory.length === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <TrendingDown size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Taming Your Debt</Text>
-
-                    <Text style={styles.introDescription}>
-                        Debt can feel like a weight holding you back. But think of it like a complex dance routine: it can be mastered one step at a time with a clear plan.
-                        {"\n\n"}
-                        You're not alone in this. Let's choose a strategy and build your payoff plan.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStart}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Explore Strategies</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                                <ArrowLeft size={24} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backIconWrapper} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Taming Your Debt</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.introIcon}>
+                                <TrendingDown size={32} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>Taming Your Debt</Text>
+                            <Text style={styles.introDescription}>
+                                Debt can feel like a weight holding you back. But think of it like a complex dance routine: it can be mastered one step at a time with a clear plan.
+                                {"\n\n"}
+                                You're not alone in this. Let's choose a strategy and build your payoff plan.
+                            </Text>
+
+                            <TouchableOpacity style={styles.startButton} onPress={handleStart}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Explore Strategies</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -168,40 +188,54 @@ export default function TamingYourDebt({ onComplete, onBack }: TamingYourDebtPro
     if (currentScreen.methodIndex === -1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.choiceContainer}>
-                    <Text style={styles.choiceTitle}>Choose Your Fighter</Text>
-                    <Text style={styles.choiceDescription}>
-                        Reflect for a moment. Which strategy resonates with you?
-                        {"\n\n"}
-                        • The Momentum Builder (Snowball)
-                        {"\n"}
-                        • The Interest Slayer (Avalanche)
-                        {"\n\n"}
-                        There is no wrong answer. The best strategy is the one you will actually stick with. Your willpower is your most valuable asset here.
-                    </Text>
-
-                    <View style={styles.methodButtonsContainer}>
-                        <TouchableOpacity
-                            style={styles.methodButton}
-                            onPress={() => handleMethodSelect(1)}
-                        >
-                            <Text style={styles.methodButtonText}>Snowball Method</Text>
-                            <Text style={styles.methodButtonSubtext}>Momentum Builder</Text>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
                         </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.methodButton}
-                            onPress={() => handleMethodSelect(2)}
-                        >
-                            <Text style={styles.methodButtonText}>Avalanche Method</Text>
-                            <Text style={styles.methodButtonSubtext}>Interest Slayer</Text>
-                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Choose Your Fighter</Text>
+                        </View>
+                        <View style={styles.backIconWrapper} />
                     </View>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <Text style={styles.choiceDescription}>
+                                Reflect for a moment. Which strategy resonates with you?
+                                {"\n\n"}
+                                • The Momentum Builder (Snowball)
+                                {"\n"}
+                                • The Interest Slayer (Avalanche)
+                                {"\n\n"}
+                                There is no wrong answer. The best strategy is the one you will actually stick with. Your willpower is your most valuable asset here.
+                            </Text>
+
+                            <View style={styles.methodButtonsContainer}>
+                                <TouchableOpacity
+                                    style={styles.methodButton}
+                                    onPress={() => handleMethodSelect(1)}
+                                >
+                                    <Text style={styles.methodButtonText}>Snowball Method</Text>
+                                    <Text style={styles.methodButtonSubtext}>Momentum Builder</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.methodButton}
+                                    onPress={() => handleMethodSelect(2)}
+                                >
+                                    <Text style={styles.methodButtonText}>Avalanche Method</Text>
+                                    <Text style={styles.methodButtonSubtext}>Interest Slayer</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -212,44 +246,57 @@ export default function TamingYourDebt({ onComplete, onBack }: TamingYourDebtPro
 
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.assignmentContainer}>
-                    <View style={styles.assignmentIcon}>
-                        <TrendingDown size={40} color="#928490" />
-                    </View>
-                    <Text style={styles.assignmentTitle}>Your Debt-Taming Assignment</Text>
-                    <Text style={styles.assignmentSubtitle}>
-                        Your strategic plan is ready. Now it's time to execute.
-                    </Text>
-
-                    <Text style={styles.assignmentText}>
-                        Do this today:
-                        {"\n\n"}
-                        1. Gather Your Intel: Open a note on your phone. List every debt you have with its balance, interest rate, and minimum payment.
-                        {"\n"}
-                        2. Choose Your Strategy: Based on your list and your personality, pick {selectedMethodData?.title.replace("Method", "").trim()} or the other method. Reorder your list accordingly.
-                        {"\n"}
-                        3. Schedule Your Attack: Pick a date each month to make your extra payment. Set a calendar reminder.
-                        {"\n"}
-                        4. Automate the Minimums: Ensure all minimum payments are on auto-pay to avoid late fees.
-                        {"\n\n"}
-                        You've got this. This is the first step toward true financial freedom.
-                        {"\n\n"}
-                        See you tomorrow.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Assignment</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.assignmentIcon}>
+                                <TrendingDown size={40} color="#928490" />
+                            </View>
+                            <Text style={styles.assignmentTitle}>Your Debt-Taming Assignment</Text>
+                            <Text style={styles.assignmentSubtitle}>
+                                Your strategic plan is ready. Now it's time to execute.
+                            </Text>
+
+                            <Text style={styles.assignmentText}>
+                                Do this today:
+                                {"\n\n"}
+                                1. Gather Your Intel: Open a note on your phone. List every debt you have with its balance, interest rate, and minimum payment.
+                                {"\n"}
+                                2. Choose Your Strategy: Based on your list and your personality, pick {selectedMethodData?.title.replace("Method", "").trim()} or the other method. Reorder your list accordingly.
+                                {"\n"}
+                                3. Schedule Your Attack: Pick a date each month to make your extra payment. Set a calendar reminder.
+                                {"\n"}
+                                4. Automate the Minimums: Ensure all minimum payments are on auto-pay to avoid late fees.
+                                {"\n\n"}
+                                You've got this. This is the first step toward true financial freedom.
+                                {"\n\n"}
+                                See you tomorrow.
+                            </Text>
+
+                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -257,114 +304,127 @@ export default function TamingYourDebt({ onComplete, onBack }: TamingYourDebtPro
     // Method Screens
     const currentMethod = debtMethods[currentMethodIndex];
 
-    // Calculate progress for method screens
-    const methodProgress = ((currentMethodIndex + 1) / debtMethods.length) * 100;
-
     if (!showHowToExecute) {
         // Show method overview
         return (
             <View style={styles.container}>
-                <View style={styles.header}>
-                    <View style={styles.progressContainer}>
-                        <Text style={styles.progressText}>
-                            Method {currentMethodIndex + 1} of {debtMethods.length}
-                        </Text>
-                        <View style={styles.progressBar}>
-                            <View style={[styles.progressFill, { width: `${methodProgress}%` }]} />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>
+                                Method {currentMethodIndex + 1} of {debtMethods.length}
+                            </Text>
                         </View>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                    <View style={styles.progressBar}>
+                        <View style={[styles.progressFill, { width: `${methodProgress}%` }]} />
                     </View>
                 </View>
 
-                <ScrollView style={styles.content} contentContainerStyle={styles.methodContainer}>
-                    <Text style={styles.methodTitle}>{currentMethod.title}</Text>
-                    <Text style={styles.methodDescription}>{currentMethod.description}</Text>
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <Text style={styles.methodTitle}>{currentMethod.title}</Text>
+                            <Text style={styles.methodDescription}>{currentMethod.description}</Text>
 
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>The Strategy:</Text>
-                        <Text style={styles.sectionContent}>{currentMethod.strategy}</Text>
-                    </View>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>The Strategy:</Text>
+                                <Text style={styles.sectionContent}>{currentMethod.strategy}</Text>
+                            </View>
 
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>The Why:</Text>
-                        <Text style={styles.sectionContent}>{currentMethod.why}</Text>
-                    </View>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>The Why:</Text>
+                                <Text style={styles.sectionContent}>{currentMethod.why}</Text>
+                            </View>
 
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>The Result:</Text>
-                        <Text style={styles.sectionContent}>{currentMethod.result}</Text>
-                    </View>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>The Result:</Text>
+                                <Text style={styles.sectionContent}>{currentMethod.result}</Text>
+                            </View>
 
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Best for:</Text>
-                        <Text style={styles.sectionContent}>{currentMethod.bestFor}</Text>
-                    </View>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Best for:</Text>
+                                <Text style={styles.sectionContent}>{currentMethod.bestFor}</Text>
+                            </View>
 
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <LinearGradient
-                            colors={['#928490', '#746C70']}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>How to execute</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={24} color="#647C90" />
-                    <Text style={styles.backButtonText}>
-                        {screenHistory.length <= 1 ? 'Back to Intro' : 'Previous'}
-                    </Text>
-                </TouchableOpacity>
+                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                                <LinearGradient
+                                    colors={['#928490', '#746C70']}
+                                    style={styles.continueButtonContent}
+                                >
+                                    <Text style={styles.continueButtonText}>How to execute</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     } else {
         // Show how to execute
         return (
             <View style={styles.container}>
-                <View style={styles.header}>
-                    <View style={styles.progressContainer}>
-                        <Text style={styles.progressText}>
-                            Method {currentMethodIndex + 1} of {debtMethods.length}
-                        </Text>
-                        <View style={styles.progressBar}>
-                            <View style={[styles.progressFill, { width: `${methodProgress}%` }]} />
+                <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>
+                                Method {currentMethodIndex + 1} of {debtMethods.length}
+                            </Text>
                         </View>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                    <View style={styles.progressBar}>
+                        <View style={[styles.progressFill, { width: `${methodProgress}%` }]} />
                     </View>
                 </View>
 
-                <ScrollView style={styles.content} contentContainerStyle={styles.executeContainer}>
-                    <Text style={styles.executeTitle}>How to Execute {currentMethod.title}</Text>
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <Text style={styles.executeTitle}>How to Execute {currentMethod.title}</Text>
 
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Do this:</Text>
-                        {currentMethod.steps.map((step, index) => (
-                            <Text key={index} style={styles.stepText}>
-                                {index + 1}. {step}
-                            </Text>
-                        ))}
-                    </View>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Do this:</Text>
+                                {currentMethod.steps.map((step, index) => (
+                                    <Text key={index} style={styles.stepText}>
+                                        {index + 1}. {step}
+                                    </Text>
+                                ))}
+                            </View>
 
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Pro Tip:</Text>
-                        <Text style={styles.proTipText}>{currentMethod.proTip}</Text>
-                    </View>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Pro Tip:</Text>
+                                <Text style={styles.proTipText}>{currentMethod.proTip}</Text>
+                            </View>
 
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <LinearGradient
-                            colors={['#5A7D7B', '#647C90']}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>
-                                {currentMethodIndex < debtMethods.length - 1 ? 'Next Method' : 'Choose Strategy'}
-                            </Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                                <LinearGradient
+                                    colors={['#5A7D7B', '#647C90']}
+                                    style={styles.continueButtonContent}
+                                >
+                                    <Text style={styles.continueButtonText}>
+                                        {currentMethodIndex < debtMethods.length - 1 ? 'Next Method' : 'Choose Strategy'}
+                                    </Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -373,30 +433,65 @@ export default function TamingYourDebt({ onComplete, onBack }: TamingYourDebtPro
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#E2DED0',
+        backgroundColor: '#E2DED0'
     },
-    content: {
+    scrollContainer: {
         flex: 1,
     },
-    introContainer: {
+    scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 20,
+    },
+
+    stickyHeader: {
         paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backIconWrapper: { width: 40, alignItems: 'center' },
+    headerTitleContainer: { flex: 1, alignItems: 'center' },
+    headerTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 20,
+        color: '#E2DED0',
+    },
+
+    card: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 150,
     },
     introIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        width: 80, height: 80, borderRadius: 40,
+        backgroundColor: 'rgba(146,132,144,0.1)',
+        justifyContent: 'center', alignItems: 'center',
         marginBottom: 30,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
@@ -409,16 +504,15 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 40,
     },
-    startButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    startButtonGradient: {
+
+    startButton: { borderRadius: 12, overflow: 'hidden' },
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -426,16 +520,7 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    methodContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    executeContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     methodTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -460,6 +545,7 @@ const styles = StyleSheet.create({
     },
     section: {
         marginBottom: 30,
+        width: '100%',
     },
     sectionTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -486,18 +572,14 @@ const styles = StyleSheet.create({
         color: '#647C90',
         lineHeight: 22,
     },
-    continueButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        alignSelf: 'center',
-        marginTop: 20,
-    },
-    continueButtonGradient: {
+    continueButton: { borderRadius: 12, overflow: 'hidden' },
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
+        borderRadius: 12,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -505,18 +587,7 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    choiceContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    choiceTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 20,
-    },
+
     choiceDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
@@ -528,6 +599,7 @@ const styles = StyleSheet.create({
     methodButtonsContainer: {
         gap: 20,
         marginBottom: 40,
+        width: '100%',
     },
     methodButton: {
         backgroundColor: 'rgba(146, 132, 144, 0.15)',
@@ -550,20 +622,12 @@ const styles = StyleSheet.create({
         color: '#647C90',
         textAlign: 'center',
     },
-    assignmentContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     assignmentIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 100, height: 100, borderRadius: 50,
         backgroundColor: 'rgba(90, 125, 123, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: 'center', alignItems: 'center',
         marginBottom: 30,
-        alignSelf: 'center',
     },
     assignmentTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -587,17 +651,14 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 40,
     },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        alignSelf: 'center',
-    },
-    completeButtonGradient: {
+    completeButton: { borderRadius: 12, overflow: 'hidden' },
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -605,48 +666,17 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
+
     progressBar: {
         width: '100%',
         height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
+        backgroundColor: 'rgba(255,255,255,0.3)',
         borderRadius: 3,
-        overflow: 'hidden',
+        marginTop: 12,
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#928490',
+        backgroundColor: '#E2DED0',
         borderRadius: 3,
-    },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
     },
 });

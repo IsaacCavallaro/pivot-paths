@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Dimensions } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
@@ -8,6 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Trophy, Heart, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Target } from 'lucide-react-native';
 import { Image } from 'react-native';
 import { categories } from '@/data/categories';
+
+const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -135,13 +137,15 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       {/* Sticky Header */}
-      <View style={styles.stickyHeader}>
+      <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={handleBackPress}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
             <ArrowLeft size={28} color="#E2DED0" />
           </TouchableOpacity>
-          <Text style={styles.titleText}>Progress</Text>
-          <View style={{ width: 28 }} />
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.titleText}>Progress</Text>
+          </View>
+          <View style={styles.backButtonPlaceholder} />
         </View>
       </View>
 
@@ -153,33 +157,37 @@ export default function ProfileScreen() {
               <Text style={styles.sectionTitle}>Paths in Progress</Text>
               {getInProgressPaths().map((pathData) => (
                 <View key={`${pathData.categoryId}_${pathData.pathId}`} style={styles.pathProgressCard}>
-                  <View style={styles.pathProgressHeader}>
-                    <View style={[styles.pathProgressIcon, { backgroundColor: pathData.categoryColor }]}>
-                      <Text style={styles.pathProgressIconText}>
-                        {categories.find(c => c.id === pathData.categoryId)?.icon}
+                  <View style={[styles.pathProgressContent, { backgroundColor: '#F5F5F5' }]}>
+                    <View style={styles.pathProgressHeader}>
+                      <View style={styles.pathIconContainer}>
+                        <View style={[styles.pathIconGradient, { backgroundColor: pathData.categoryColor }]}>
+                          <Text style={styles.pathProgressIconText}>
+                            {categories.find(c => c.id === pathData.categoryId)?.icon}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.pathProgressInfo}>
+                        <Text style={styles.pathProgressTitle}>{pathData.pathTitle}</Text>
+                        <Text style={styles.pathProgressSubtitle}>{pathData.pathSubtitle}</Text>
+                        <Text style={styles.pathProgressCategory}>{pathData.categoryTitle}</Text>
+                      </View>
+                      <View style={styles.pathProgressStats}>
+                        <Text style={styles.pathProgressPercentage}>{pathData.percentage}%</Text>
+                      </View>
+                    </View>
+                    <View style={styles.pathProgressBarContainer}>
+                      <View style={styles.pathProgressBar}>
+                        <View
+                          style={[
+                            styles.pathProgressFill,
+                            { width: `${pathData.percentage}%`, backgroundColor: pathData.categoryColor }
+                          ]}
+                        />
+                      </View>
+                      <Text style={styles.pathProgressDays}>
+                        {pathData.completed}/{pathData.total} days
                       </Text>
                     </View>
-                    <View style={styles.pathProgressInfo}>
-                      <Text style={styles.pathProgressTitle}>{pathData.pathTitle}</Text>
-                      <Text style={styles.pathProgressSubtitle}>{pathData.pathSubtitle}</Text>
-                      <Text style={styles.pathProgressCategory}>{pathData.categoryTitle}</Text>
-                    </View>
-                    <View style={styles.pathProgressStats}>
-                      <Text style={styles.pathProgressPercentage}>{pathData.percentage}%</Text>
-                    </View>
-                  </View>
-                  <View style={styles.pathProgressBarContainer}>
-                    <View style={styles.pathProgressBar}>
-                      <View
-                        style={[
-                          styles.pathProgressFill,
-                          { width: `${pathData.percentage}%`, backgroundColor: pathData.categoryColor }
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.pathProgressDays}>
-                      {pathData.completed}/{pathData.total} days
-                    </Text>
                   </View>
                 </View>
               ))}
@@ -192,24 +200,28 @@ export default function ProfileScreen() {
               <Text style={styles.sectionTitle}>Completed Paths</Text>
               {getCompletedPaths().map((pathData) => (
                 <View key={`completed_${pathData.categoryId}_${pathData.pathId}`} style={styles.completedPathCard}>
-                  <View style={styles.completedPathHeader}>
-                    <View style={[styles.pathProgressIcon, { backgroundColor: pathData.categoryColor }]}>
-                      <Text style={styles.pathProgressIconText}>
-                        {categories.find(c => c.id === pathData.categoryId)?.icon}
-                      </Text>
+                  <View style={[styles.completedPathContent, { backgroundColor: '#F5F5F5' }]}>
+                    <View style={styles.completedPathHeader}>
+                      <View style={styles.pathIconContainer}>
+                        <View style={[styles.pathIconGradient, { backgroundColor: pathData.categoryColor }]}>
+                          <Text style={styles.pathProgressIconText}>
+                            {categories.find(c => c.id === pathData.categoryId)?.icon}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.pathProgressInfo}>
+                        <Text style={styles.pathProgressTitle}>{pathData.pathTitle}</Text>
+                        <Text style={styles.pathProgressSubtitle}>{pathData.pathSubtitle}</Text>
+                        <Text style={styles.pathProgressCategory}>{pathData.categoryTitle}</Text>
+                      </View>
+                      <View style={styles.completedBadge}>
+                        <Text style={styles.completedBadgeText}>✓</Text>
+                      </View>
                     </View>
-                    <View style={styles.pathProgressInfo}>
-                      <Text style={styles.pathProgressTitle}>{pathData.pathTitle}</Text>
-                      <Text style={styles.pathProgressSubtitle}>{pathData.pathSubtitle}</Text>
-                      <Text style={styles.pathProgressCategory}>{pathData.categoryTitle}</Text>
-                    </View>
-                    <View style={styles.completedBadge}>
-                      <Text style={styles.completedBadgeText}>✓</Text>
-                    </View>
+                    <Text style={styles.completedPathText}>
+                      Completed all {pathData.total} days
+                    </Text>
                   </View>
-                  <Text style={styles.completedPathText}>
-                    Completed all {pathData.total} days
-                  </Text>
                 </View>
               ))}
             </View>
@@ -218,29 +230,36 @@ export default function ProfileScreen() {
           {/* Empty State */}
           {getAllPathsWithProgress().length === 0 && (
             <View style={styles.emptyStateContainer}>
-              <Text style={styles.emptyStateText}>
-                You haven't started any paths.
-              </Text>
-              <TouchableOpacity style={styles.startJourneyButton} onPress={() => router.push('/(tabs)/paths')}>
-                <View
-                  style={[styles.startJourneyButtonGradient, { backgroundColor: '#928490' }]}
-                >
-                  <Text style={styles.startJourneyButtonText}>Start Your Journey</Text>
+              <View style={[styles.emptyStateCard, { backgroundColor: '#F5F5F5' }]}>
+                <View style={styles.emptyStateIcon}>
+                  <Target size={48} color="#647C90" />
                 </View>
-              </TouchableOpacity>
+                <Text style={styles.emptyStateTitle}>Your Journey Awaits</Text>
+                <Text style={styles.emptyStateText}>
+                  You haven't started any paths yet. Begin your transformation journey today.
+                </Text>
+                <TouchableOpacity
+                  style={styles.startJourneyButton}
+                  onPress={() => router.push('/(tabs)/paths')}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.startJourneyButtonContent, { backgroundColor: '#647C90' }]}>
+                    <Text style={styles.startJourneyButtonText}>Start Your Journey</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
           {/* Achievements */}
           <View style={styles.achievementsContainer}>
-            <Text style={styles.sectionTitle}>Achievements</Text>
             <View style={styles.achievementsList}>
               {getTotalDaysCompleted() >= 1 ? (
                 <>
                   {getTotalDaysCompleted() >= 1 && (
-                    <View style={styles.achievementCard}>
-                      <View style={styles.achievementIcon}>
-                        <Trophy size={16} color="#E2DED0" />
+                    <View style={[styles.achievementCard, { backgroundColor: '#F5F5F5' }]}>
+                      <View style={[styles.achievementIcon, { backgroundColor: '#647C90' }]}>
+                        <Trophy size={20} color="#E2DED0" />
                       </View>
                       <View style={styles.achievementInfo}>
                         <Text style={styles.achievementTitle}>First Step</Text>
@@ -249,9 +268,9 @@ export default function ProfileScreen() {
                     </View>
                   )}
                   {getTotalDaysCompleted() >= 7 && (
-                    <View style={styles.achievementCard}>
-                      <View style={styles.achievementIcon}>
-                        <Target size={16} color="#E2DED0" />
+                    <View style={[styles.achievementCard, { backgroundColor: '#F5F5F5' }]}>
+                      <View style={[styles.achievementIcon, { backgroundColor: '#647C90' }]}>
+                        <Target size={20} color="#E2DED0" />
                       </View>
                       <View style={styles.achievementInfo}>
                         <Text style={styles.achievementTitle}>Week Warrior</Text>
@@ -260,9 +279,9 @@ export default function ProfileScreen() {
                     </View>
                   )}
                   {getTotalDaysCompleted() >= 14 && (
-                    <View style={styles.achievementCard}>
-                      <View style={styles.achievementIcon}>
-                        <Star size={16} color="#E2DED0" />
+                    <View style={[styles.achievementCard, { backgroundColor: '#F5F5F5' }]}>
+                      <View style={[styles.achievementIcon, { backgroundColor: '#647C90' }]}>
+                        <Star size={20} color="#E2DED0" />
                       </View>
                       <View style={styles.achievementInfo}>
                         <Text style={styles.achievementTitle}>Path Completer</Text>
@@ -271,9 +290,9 @@ export default function ProfileScreen() {
                     </View>
                   )}
                   {getTotalDaysCompleted() >= 30 && (
-                    <View style={styles.achievementCard}>
-                      <View style={styles.achievementIcon}>
-                        <Trophy size={16} color="#E2DED0" />
+                    <View style={[styles.achievementCard, { backgroundColor: '#F5F5F5' }]}>
+                      <View style={[styles.achievementIcon, { backgroundColor: '#647C90' }]}>
+                        <Trophy size={20} color="#E2DED0" />
                       </View>
                       <View style={styles.achievementInfo}>
                         <Text style={styles.achievementTitle}>Transformation Master</Text>
@@ -282,9 +301,9 @@ export default function ProfileScreen() {
                     </View>
                   )}
                   {getCompletedPaths().length >= 1 && (
-                    <View style={styles.achievementCard}>
-                      <View style={styles.achievementIcon}>
-                        <Trophy size={16} color="#E2DED0" />
+                    <View style={[styles.achievementCard, { backgroundColor: '#F5F5F5' }]}>
+                      <View style={[styles.achievementIcon, { backgroundColor: '#647C90' }]}>
+                        <Trophy size={20} color="#E2DED0" />
                       </View>
                       <View style={styles.achievementInfo}>
                         <Text style={styles.achievementTitle}>Path Pioneer</Text>
@@ -293,9 +312,9 @@ export default function ProfileScreen() {
                     </View>
                   )}
                   {getCompletedPaths().length >= 3 && (
-                    <View style={styles.achievementCard}>
-                      <View style={styles.achievementIcon}>
-                        <Star size={16} color="#E2DED0" />
+                    <View style={[styles.achievementCard, { backgroundColor: '#F5F5F5' }]}>
+                      <View style={[styles.achievementIcon, { backgroundColor: '#647C90' }]}>
+                        <Star size={20} color="#E2DED0" />
                       </View>
                       <View style={styles.achievementInfo}>
                         <Text style={styles.achievementTitle}>Journey Master</Text>
@@ -306,14 +325,9 @@ export default function ProfileScreen() {
                 </>
               ) : (
                 <View style={styles.emptyAchievementsContainer}>
-                  <LinearGradient
-                    colors={['rgba(100, 124, 144, 0.1)', 'rgba(146, 132, 144, 0.1)']}
-                    style={styles.emptyAchievementsCard}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
+                  <View style={[styles.emptyAchievementsCard, { backgroundColor: '#F5F5F5' }]}>
                     <View style={styles.emptyAchievementsIcon}>
-                      <Trophy size={32} color="#647C90" />
+                      <Trophy size={48} color="#647C90" />
                     </View>
                     <Text style={styles.emptyAchievementsTitle}>Your Achievements Await</Text>
                     <Text style={styles.emptyAchievementsText}>
@@ -324,16 +338,47 @@ export default function ProfileScreen() {
                         <Text style={styles.progressPillText}>0/1 day completed</Text>
                       </View>
                     </View>
-                  </LinearGradient>
+                  </View>
                 </View>
               )}
             </View>
           </View>
 
           {/* Reset Progress Button */}
-          <TouchableOpacity style={styles.resetButton} onPress={resetProgress}>
+          <TouchableOpacity
+            style={[styles.resetButton, { backgroundColor: '#F5F5F5' }]}
+            onPress={resetProgress}
+            activeOpacity={0.8}
+          >
             <Text style={styles.resetButtonText}>Reset Progress</Text>
           </TouchableOpacity>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <View style={styles.footerLinks}>
+              <TouchableOpacity onPress={() => console.log('Opening pivotfordancers.com')}>
+                <Text style={styles.footerLink}>pivotfordancers.com</Text>
+              </TouchableOpacity>
+              <Text style={styles.footerSeparator}>|</Text>
+              <TouchableOpacity onPress={() => console.log('Opening terms & conditions')}>
+                <Text style={styles.footerLink}>Terms & Conditions</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.socialIcons}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Instagram')}>
+                <Instagram size={24} color="#647C90" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('YouTube')}>
+                <Youtube size={24} color="#647C90" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Facebook')}>
+                <Facebook size={24} color="#647C90" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('LinkedIn')}>
+                <Linkedin size={24} color="#647C90" />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </ScrollView>
 
@@ -345,16 +390,16 @@ export default function ProfileScreen() {
         onRequestClose={cancelReset}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+          <View style={[styles.modalContainer, { backgroundColor: '#F5F5F5' }]}>
             <Text style={styles.modalTitle}>Reset All Progress</Text>
             <Text style={styles.modalMessage}>
               This will reset your progress on all paths to 0. You will lose all completed days, reflections, and achievements. This action cannot be undone.
             </Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelButton} onPress={cancelReset}>
+              <TouchableOpacity style={[styles.cancelButton, { backgroundColor: 'rgba(146, 132, 144, 0.2)' }]} onPress={cancelReset}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmButton} onPress={confirmReset}>
+              <TouchableOpacity style={[styles.confirmButton, { backgroundColor: '#647C90' }]} onPress={confirmReset}>
                 <Text style={styles.confirmButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
@@ -371,22 +416,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2DED0',
   },
   stickyHeader: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 60,
-    paddingBottom: 30,
-    backgroundColor: '#647C90',
+    paddingBottom: 20,
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     zIndex: 1000,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   scrollView: {
     flex: 1,
-    marginTop: 80, // Height of the sticky header
+    marginTop: 100,
   },
   content: {
-    paddingTop: 80,
     paddingBottom: 30,
   },
   headerRow: {
@@ -395,26 +440,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 20,
+    width: 28,
   },
-  headerContent: {
-    alignItems: 'center',
+  backButtonPlaceholder: {
+    width: 28,
   },
-  titleContainer: {
-    flexDirection: 'row',
+  headerTitleContainer: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  titleBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(226, 222, 208, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 12,
   },
   titleText: {
     fontFamily: 'Merriweather-Bold',
@@ -422,99 +455,119 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     textAlign: 'center',
   },
-  subtitleText: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
+  heroSection: {
+    paddingTop: 20,
+    paddingBottom: 40,
+    paddingHorizontal: 24,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    marginBottom: 24,
+  },
+  heroContent: {
+    alignItems: 'center',
+  },
+  heroImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 20,
+    borderWidth: 4,
+    borderColor: 'rgba(226, 222, 208, 0.3)',
+  },
+  heroTextContainer: {
+    alignItems: 'center',
+  },
+  heroTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 32,
     color: '#E2DED0',
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 20,
+    marginBottom: 8,
+    fontWeight: '700',
   },
-  decorativeRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  decorativeBadge: {
-    backgroundColor: 'rgba(226, 222, 208, 0.1)',
-    borderRadius: 20,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(226, 222, 208, 0.2)',
+  heroSubtitle: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: 'rgba(226, 222, 208, 0.9)',
+    textAlign: 'center',
   },
   pathsProgressContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     marginBottom: 30,
+    paddingTop: 50,
   },
   sectionTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 20,
-    color: '#4E4F50',
-    marginBottom: 15,
+    fontSize: 24,
+    color: '#647C90',
+    marginBottom: 20,
+    fontWeight: '700',
   },
   pathProgressCard: {
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    marginBottom: 24,
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  pathProgressContent: {
+    padding: 24,
   },
   pathProgressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  pathProgressIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  pathIconContainer: {
+    marginRight: 16,
+  },
+  pathIconGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   pathProgressIconText: {
-    fontSize: 20,
+    fontSize: 24,
   },
   pathProgressInfo: {
     flex: 1,
   },
   pathProgressTitle: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
-    color: '#4E4F50',
-    marginBottom: 2,
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 18,
+    color: '#647C90',
+    marginBottom: 4,
+    fontWeight: '700',
   },
   pathProgressSubtitle: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 14,
-    color: '#746C70',
-    marginBottom: 2,
+    color: '#928490',
+    marginBottom: 4,
   },
   pathProgressCategory: {
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: 'Montserrat-Medium',
     fontSize: 12,
-    color: '#928490',
+    color: '#647C90',
+    fontWeight: '500',
   },
   pathProgressStats: {
     alignItems: 'flex-end',
   },
   pathProgressPercentage: {
     fontFamily: 'Montserrat-Bold',
-    fontSize: 18,
-    color: '#4E4F50',
-  },
-  completedBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#928490',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  completedBadgeText: {
-    fontSize: 12,
-    color: '#E2DED0',
+    fontSize: 20,
+    color: '#647C90',
+    fontWeight: '700',
   },
   pathProgressBarContainer: {
     flexDirection: 'row',
@@ -526,7 +579,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(146, 132, 144, 0.2)',
     borderRadius: 3,
     overflow: 'hidden',
-    marginRight: 10,
+    marginRight: 12,
   },
   pathProgressFill: {
     height: '100%',
@@ -535,129 +588,183 @@ const styles = StyleSheet.create({
   pathProgressDays: {
     fontFamily: 'Montserrat-Medium',
     fontSize: 12,
-    color: '#746C70',
+    color: '#647C90',
+    fontWeight: '500',
   },
   completedPathsContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+    marginTop: 30,
     marginBottom: 30,
   },
   completedPathCard: {
-    backgroundColor: 'rgba(90, 125, 123, 0.1)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(90, 125, 123, 0.2)',
+    marginBottom: 24,
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  completedPathContent: {
+    padding: 24,
   },
   completedPathHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  completedBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#647C90',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  completedBadgeText: {
+    fontSize: 12,
+    color: '#E2DED0',
+    fontWeight: 'bold',
   },
   completedPathText: {
     fontFamily: 'Montserrat-Medium',
-    fontSize: 12,
-    color: '#928490',
+    fontSize: 14,
+    color: '#647C90',
     textAlign: 'center',
+    fontWeight: '500',
   },
   emptyStateContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 40,
+    paddingHorizontal: 24,
+    paddingBottom: 30,
+    paddingTop: 50,
+  },
+  emptyStateCard: {
+    borderRadius: 24,
+    padding: 32,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+  },
+  emptyStateIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(100, 124, 144, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  emptyStateTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 24,
+    color: '#647C90',
+    marginBottom: 12,
+    textAlign: 'center',
+    fontWeight: '700',
   },
   emptyStateText: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
-    color: '#746C70',
+    color: '#928490',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   startJourneyButton: {
-    borderRadius: 12,
+    borderRadius: 24,
     overflow: 'hidden',
   },
-  startJourneyButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
+  startJourneyButtonContent: {
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 24,
   },
   startJourneyButtonText: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 16,
     color: '#E2DED0',
+    fontWeight: '600',
   },
   achievementsContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     marginBottom: 30,
   },
   achievementsList: {
     // No specific styles needed
   },
   achievementCard: {
-    backgroundColor: 'rgba(100, 124, 144, 0.1)',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   achievementIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#647C90',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   achievementInfo: {
     flex: 1,
   },
   achievementTitle: {
     fontFamily: 'Montserrat-SemiBold',
-    fontSize: 14,
-    color: '#4E4F50',
-    marginBottom: 2,
+    fontSize: 16,
+    color: '#647C90',
+    marginBottom: 4,
+    fontWeight: '600',
   },
   achievementDescription: {
     fontFamily: 'Montserrat-Regular',
-    fontSize: 12,
-    color: '#746C70',
+    fontSize: 14,
+    color: '#928490',
   },
   emptyAchievementsContainer: {
     marginTop: 10,
   },
   emptyAchievementsCard: {
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 24,
+    padding: 32,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
   emptyAchievementsIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: 'rgba(100, 124, 144, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   emptyAchievementsTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 18,
-    color: '#4E4F50',
-    marginBottom: 8,
+    fontSize: 20,
+    color: '#647C90',
+    marginBottom: 12,
     textAlign: 'center',
+    fontWeight: '700',
   },
   emptyAchievementsText: {
     fontFamily: 'Montserrat-Regular',
-    fontSize: 14,
-    color: '#746C70',
+    fontSize: 16,
+    color: '#928490',
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 16,
+    lineHeight: 24,
+    marginBottom: 20,
   },
   achievementProgress: {
     width: '100%',
@@ -666,79 +773,87 @@ const styles = StyleSheet.create({
   progressPill: {
     backgroundColor: 'rgba(100, 124, 144, 0.2)',
     borderRadius: 20,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
   },
   progressPillText: {
     fontFamily: 'Montserrat-Medium',
-    fontSize: 12,
+    fontSize: 14,
     color: '#647C90',
+    fontWeight: '500',
   },
   resetButton: {
-    marginHorizontal: 20,
-    marginBottom: 30,
-    backgroundColor: 'rgba(146, 132, 144, 0.2)',
-    borderRadius: 12,
-    padding: 16,
+    marginHorizontal: 24,
+    marginBottom: 48,
+    borderRadius: 24,
+    padding: 20,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   resetButtonText: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 14,
-    color: '#746C70',
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 16,
+    color: '#647C90',
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   modalContainer: {
-    backgroundColor: '#E2DED0',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 24,
+    padding: 32,
     width: '100%',
     maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
   },
   modalTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 20,
-    color: '#4E4F50',
+    fontSize: 24,
+    color: '#647C90',
     textAlign: 'center',
     marginBottom: 16,
+    fontWeight: '700',
   },
   modalMessage: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
-    color: '#746C70',
+    color: '#928490',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 24,
   },
   modalButtons: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 16,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: 'rgba(146, 132, 144, 0.2)',
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 20,
+    padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelButtonText: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 16,
-    color: '#746C70',
+    color: '#647C90',
     textAlign: 'center',
+    fontWeight: '600',
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#928490',
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 20,
+    padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -747,19 +862,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#E2DED0',
     textAlign: 'center',
+    fontWeight: '600',
+  },
+  footer: {
+    paddingHorizontal: 24,
+    paddingVertical: 40,
+    alignItems: 'center',
+    backgroundColor: '#E2DED0',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+  },
+  footerLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 32,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  footerSeparator: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#928490',
+    marginHorizontal: 16,
+  },
+  footerLink: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 16,
+    color: '#647C90',
+    textDecorationLine: 'underline',
+    fontWeight: '600',
   },
   socialIcons: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 20,
+    gap: 16,
   },
   socialIcon: {
-    padding: 8,
-  },
-  heroImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 20,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
   },
 });

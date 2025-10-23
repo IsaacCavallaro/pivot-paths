@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Briefcase, ArrowLeft, ChevronLeft, DollarSign, Clock, Home, GraduationCap } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 interface BenefitOption {
     id: number;
@@ -93,35 +95,51 @@ export default function TheTotalPackage({ onComplete, onBack }: TheTotalPackageP
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Briefcase size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>The Total Package</Text>
-
-                    <Text style={styles.introDescription}>
-                        Your salary is just one part of your compensation. The full package includes benefits that can be even more valuable than a slight pay raise.
-                    </Text>
-
-                    <Text style={styles.introSubtext}>
-                        If an employer can't meet your salary request, you can often negotiate for other perks that provide financial security, flexibility, and peace of mind. Let's explore your options.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={() => navigateTo(1)}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Explore Benefits</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                                <ArrowLeft size={24} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backIconWrapper} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>The Total Package</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.introIcon}>
+                                <Briefcase size={32} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>The Total Package</Text>
+
+                            <Text style={styles.introDescription}>
+                                Your salary is just one part of your compensation. The full package includes benefits that can be even more valuable than a slight pay raise.
+                            </Text>
+
+                            <Text style={styles.introSubtext}>
+                                If an employer can't meet your salary request, you can often negotiate for other perks that provide financial security, flexibility, and peace of mind. Let's explore your options.
+                            </Text>
+
+                            <TouchableOpacity style={styles.startButton} onPress={() => navigateTo(1)}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Explore Benefits</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -129,63 +147,73 @@ export default function TheTotalPackage({ onComplete, onBack }: TheTotalPackageP
     // Benefit Detail Screens (1-4)
     if (currentScreen >= 1 && currentScreen <= 4) {
         const benefit = benefitOptions[currentScreen - 1];
+        const progressPercentage = ((currentScreen) / benefitOptions.length) * 100;
 
         return (
             <View style={styles.container}>
-                <View style={styles.header}>
-                    <View style={styles.progressContainer}>
-                        <Text style={styles.progressText}>
-                            {currentScreen} of {benefitOptions.length} benefits
-                        </Text>
-                        <View style={styles.progressBar}>
-                            <View style={[styles.progressFill, { width: `${(currentScreen / benefitOptions.length) * 100}%` }]} />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>
+                                {currentScreen} of {benefitOptions.length}
+                            </Text>
                         </View>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                    <View style={styles.progressBar}>
+                        <View style={[styles.progressFill, { width: `${progressPercentage}%` }]} />
                     </View>
                 </View>
 
-                <ScrollView style={styles.content} contentContainerStyle={styles.benefitContainer}>
-                    <Text style={styles.benefitTitle}>{benefit.title}</Text>
-                    <Text style={styles.benefitDescription}>{benefit.description}</Text>
-
-                    <View style={styles.infoCard}>
-                        <Text style={styles.infoLabel}>What it is:</Text>
-                        <Text style={styles.infoText}>{benefit.whatItIs}</Text>
-
-                        <Text style={styles.infoLabel}>Why it's valuable:</Text>
-                        <Text style={styles.infoText}>{benefit.whyValuable}</Text>
-
-                        <Text style={styles.infoLabel}>How to ask:</Text>
-                        <Text style={styles.infoText}>{benefit.howToAsk}</Text>
-
-                        <Text style={styles.infoLabel}>Best for:</Text>
-                        <Text style={styles.infoText}>{benefit.bestFor}</Text>
-                    </View>
-
-                    <TouchableOpacity
-                        style={styles.continueButton}
-                        onPress={() => {
-                            if (currentScreen < 4) {
-                                navigateTo(currentScreen + 1);
-                            } else {
-                                navigateTo(5); // Go to game plan after last benefit
-                            }
-                        }}
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
                     >
-                        <LinearGradient
-                            colors={['#928490', '#746C70']}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>
-                                {currentScreen < 4 ? 'Next Benefit' : 'See Game Plan'}
-                            </Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.card}>
+                            <Text style={styles.benefitTitle}>{benefit.title}</Text>
+                            <Text style={styles.benefitDescription}>{benefit.description}</Text>
+
+                            <View style={styles.infoCard}>
+                                <Text style={styles.infoLabel}>What it is:</Text>
+                                <Text style={styles.infoText}>{benefit.whatItIs}</Text>
+
+                                <Text style={styles.infoLabel}>Why it's valuable:</Text>
+                                <Text style={styles.infoText}>{benefit.whyValuable}</Text>
+
+                                <Text style={styles.infoLabel}>How to ask:</Text>
+                                <Text style={styles.infoText}>{benefit.howToAsk}</Text>
+
+                                <Text style={styles.infoLabel}>Best for:</Text>
+                                <Text style={styles.infoText}>{benefit.bestFor}</Text>
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={() => {
+                                    if (currentScreen < 4) {
+                                        navigateTo(currentScreen + 1);
+                                    } else {
+                                        navigateTo(5); // Go to game plan after last benefit
+                                    }
+                                }}
+                            >
+                                <LinearGradient
+                                    colors={['#928490', '#746C70']}
+                                    style={styles.continueButtonContent}
+                                >
+                                    <Text style={styles.continueButtonText}>
+                                        {currentScreen < 4 ? 'Next Benefit' : 'See Game Plan'}
+                                    </Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -194,64 +222,79 @@ export default function TheTotalPackage({ onComplete, onBack }: TheTotalPackageP
     if (currentScreen === 5) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.gamePlanContainer}>
-                    <Text style={styles.gamePlanTitle}>Your Negotiation Game Plan</Text>
-
-                    <View style={styles.stepsContainer}>
-                        <View style={styles.stepRow}>
-                            <View style={styles.stepNumber}>
-                                <Text style={styles.stepNumberText}>1</Text>
-                            </View>
-                            <Text style={styles.stepText}>
-                                <Text style={styles.stepBold}>Prioritize:</Text> If the salary isn't flexible, which one or two of these benefits would have the biggest impact on your life? Don't try to negotiate all of them!
-                            </Text>
+                <View style={[styles.stickyHeader, { backgroundColor: '#5A7D7B' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Game Plan</Text>
                         </View>
-
-                        <View style={styles.stepRow}>
-                            <View style={styles.stepNumber}>
-                                <Text style={styles.stepNumberText}>2</Text>
-                            </View>
-                            <Text style={styles.stepText}>
-                                <Text style={styles.stepBold}>Do Your Homework:</Text> Know the standard for the industry and role.
-                            </Text>
-                        </View>
-
-                        <View style={styles.stepRow}>
-                            <View style={styles.stepNumber}>
-                                <Text style={styles.stepNumberText}>3</Text>
-                            </View>
-                            <Text style={styles.stepText}>
-                                <Text style={styles.stepBold}>Frame it Collaboratively:</Text> Use phrases like, "I'm really excited about this role. If the salary is firm at $X, would you be open to discussing a more flexible work arrangement / additional week of PTO to help make it work?"
-                            </Text>
-                        </View>
-
-                        <View style={styles.stepRow}>
-                            <View style={styles.stepNumber}>
-                                <Text style={styles.stepNumberText}>4</Text>
-                            </View>
-                            <Text style={styles.stepText}>
-                                <Text style={styles.stepBold}>Get it in Writing:</Text> Any negotiated benefit must be documented in your official offer letter.
-                            </Text>
-                        </View>
+                        <View style={styles.backIconWrapper} />
                     </View>
+                </View>
 
-                    <TouchableOpacity
-                        style={styles.continueButton}
-                        onPress={() => navigateTo(6)}
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
                     >
-                        <LinearGradient
-                            colors={['#5A7D7B', '#647C90']}
-                            style={styles.continueButtonGradient}
-                        >
-                            <Text style={styles.continueButtonText}>Continue</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.card}>
+                            <Text style={styles.gamePlanTitle}>Your Negotiation Game Plan</Text>
+
+                            <View style={styles.stepsContainer}>
+                                <View style={styles.stepRow}>
+                                    <View style={styles.stepNumber}>
+                                        <Text style={styles.stepNumberText}>1</Text>
+                                    </View>
+                                    <Text style={styles.stepText}>
+                                        <Text style={styles.stepBold}>Prioritize:</Text> If the salary isn't flexible, which one or two of these benefits would have the biggest impact on your life? Don't try to negotiate all of them!
+                                    </Text>
+                                </View>
+
+                                <View style={styles.stepRow}>
+                                    <View style={styles.stepNumber}>
+                                        <Text style={styles.stepNumberText}>2</Text>
+                                    </View>
+                                    <Text style={styles.stepText}>
+                                        <Text style={styles.stepBold}>Do Your Homework:</Text> Know the standard for the industry and role.
+                                    </Text>
+                                </View>
+
+                                <View style={styles.stepRow}>
+                                    <View style={styles.stepNumber}>
+                                        <Text style={styles.stepNumberText}>3</Text>
+                                    </View>
+                                    <Text style={styles.stepText}>
+                                        <Text style={styles.stepBold}>Frame it Collaboratively:</Text> Use phrases like, "I'm really excited about this role. If the salary is firm at $X, would you be open to discussing a more flexible work arrangement / additional week of PTO to help make it work?"
+                                    </Text>
+                                </View>
+
+                                <View style={styles.stepRow}>
+                                    <View style={styles.stepNumber}>
+                                        <Text style={styles.stepNumberText}>4</Text>
+                                    </View>
+                                    <Text style={styles.stepText}>
+                                        <Text style={styles.stepBold}>Get it in Writing:</Text> Any negotiated benefit must be documented in your official offer letter.
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={() => navigateTo(6)}
+                            >
+                                <LinearGradient
+                                    colors={['#5A7D7B', '#647C90']}
+                                    style={styles.continueButtonContent}
+                                >
+                                    <Text style={styles.continueButtonText}>Continue</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -260,36 +303,49 @@ export default function TheTotalPackage({ onComplete, onBack }: TheTotalPackageP
     if (currentScreen === 6) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <Briefcase size={40} color="#928490" />
-                    </View>
-
-                    <Text style={styles.finalText}>
-                        Remember, negotiation is a conversation. You're not being demanding, you're being strategic. A good employer will respect you for it.
-                    </Text>
-
-                    <Text style={styles.finalText}>
-                        These benefits build the foundation for a sustainable and fulfilling career.
-                    </Text>
-
-                    <Text style={styles.finalClosing}>
-                        See you again tomorrow.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark as complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#5A7D7B' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                            <ChevronLeft size={24} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Complete</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.finalIcon}>
+                                <Briefcase size={40} color="#5A7D7B" />
+                            </View>
+
+                            <Text style={styles.finalText}>
+                                Remember, negotiation is a conversation. You're not being demanding, you're being strategic. A good employer will respect you for it.
+                            </Text>
+
+                            <Text style={styles.finalText}>
+                                These benefits build the foundation for a sustainable and fulfilling career.
+                            </Text>
+
+                            <Text style={styles.finalClosing}>
+                                See you again tomorrow.
+                            </Text>
+
+                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#5A7D7B' }]}>
+                                    <Text style={styles.completeButtonText}>Mark as complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -302,16 +358,76 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    content: {
+    scrollContainer: {
         flex: 1,
     },
-    introContainer: {
+    scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingVertical: 20,
     },
+
+    // Header Styles
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backIconWrapper: {
+        width: 40,
+        alignItems: 'center'
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center'
+    },
+    headerTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 20,
+        color: '#E2DED0',
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(255,255,255,0.3)',
+        borderRadius: 3,
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+
+    // Card Layout
+    card: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 150,
+    },
+
+    // Intro Screen Styles
     introIcon: {
         width: 80,
         height: 80,
@@ -323,7 +439,7 @@ const styles = StyleSheet.create({
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
@@ -344,56 +460,11 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 40,
     },
-    startButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    startButtonGradient: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
-    },
-    benefitContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 20,
-    },
+
+    // Benefit Screen Styles
     benefitTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
+        fontSize: 24,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 10,
@@ -408,8 +479,11 @@ const styles = StyleSheet.create({
     infoCard: {
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 16,
-        padding: 20,
+        padding: 24,
         marginBottom: 30,
+        borderLeftWidth: 4,
+        borderLeftColor: '#928490',
+        width: '100%',
     },
     infoLabel: {
         fontFamily: 'Montserrat-SemiBold',
@@ -424,39 +498,18 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         lineHeight: 22,
     },
-    continueButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        alignSelf: 'center',
-        marginTop: 10,
-    },
-    continueButtonGradient: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-    gamePlanContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
+    // Game Plan Styles
     gamePlanTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
+        fontSize: 24,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 30,
     },
     stepsContainer: {
         marginBottom: 30,
+        width: '100%',
     },
     stepRow: {
         flexDirection: 'row',
@@ -467,7 +520,7 @@ const styles = StyleSheet.create({
         width: 30,
         height: 30,
         borderRadius: 15,
-        backgroundColor: '#928490',
+        backgroundColor: '#5A7D7B',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 15,
@@ -488,13 +541,8 @@ const styles = StyleSheet.create({
     stepBold: {
         fontFamily: 'Montserrat-SemiBold',
     },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
+    // Final Screen Styles
     finalIcon: {
         width: 100,
         height: 100,
@@ -519,40 +567,62 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 40,
     },
-    completeButton: {
+
+    // Button Styles
+    startButton: {
         borderRadius: 12,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
+    },
+    startButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#E2DED0',
+        marginRight: 8,
+    },
+
+    continueButton: {
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    continueButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+        paddingVertical: 14,
+        borderRadius: 12,
+    },
+    continueButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 16,
+        color: '#E2DED0',
+        marginRight: 8,
+    },
+
+    completeButton: {
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    completeButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 12,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
     },
 });

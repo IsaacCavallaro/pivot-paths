@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, PanGestureHandler, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, ArrowLeft, ChevronLeft, Play } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 interface ActionCard {
     id: number;
@@ -126,56 +128,51 @@ export default function JustStart({ onComplete, onBack }: JustStartProps) {
         setCurrentCardIndex(prevScreen.cardIndex);
     };
 
-    const handleSwipeNext = () => {
-        if (currentCardIndex < actionCards.length - 1) {
-            const newCardIndex = currentCardIndex + 1;
-            setCurrentCardIndex(newCardIndex);
-            setScreenHistory([...screenHistory, { cardIndex: newCardIndex }]);
-        } else {
-            // Go to final screen
-            setScreenHistory([...screenHistory, { cardIndex: -1 }]);
-        }
-    };
-
-    const handleSwipePrevious = () => {
-        if (currentCardIndex > 0) {
-            const newCardIndex = currentCardIndex - 1;
-            setCurrentCardIndex(newCardIndex);
-            // Update history to reflect going back
-            const newHistory = screenHistory.slice(0, -1);
-            setScreenHistory(newHistory);
-        }
-    };
-
     // Intro Screen
     if (screenHistory.length === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Play size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Just Start</Text>
-
-                    <Text style={styles.introDescription}>
-                        Swipe through each card and commit to doing it today. Even small actions count.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Get started</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                                <ArrowLeft size={24} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backIconWrapper} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Just Start</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.introIcon}>
+                                <Play size={32} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>Just Start</Text>
+
+                            <Text style={styles.introDescription}>
+                                Swipe through each card and commit to doing it today. Even small actions count.
+                            </Text>
+
+                            <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Get started</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -185,32 +182,43 @@ export default function JustStart({ onComplete, onBack }: JustStartProps) {
     if (currentScreen.cardIndex === -1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <Play size={40} color="#928490" />
-                    </View>
-                    <Text style={styles.introTitle}>The time is now</Text>
-                    <Text style={styles.finalText}>
-                        Stop waiting for tomorrow to make a change. Each small action builds momentum toward your pivot. Keep taking steps, even tiny ones, because progress compounds over time. It won't be perfect, it won't be linear, but it can be done.
-                    </Text>
-
-                    <Text style={styles.finalClosing}>
-                        This is your life. Start now.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark as complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backIconWrapper} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Just Start</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.finalIcon}>
+                                <Play size={40} color="#928490" />
+                            </View>
+                            <Text style={styles.introTitle}>The time is now</Text>
+                            <Text style={styles.finalText}>
+                                Stop waiting for tomorrow to make a change. Each small action builds momentum toward your pivot. Keep taking steps, even tiny ones, because progress compounds over time. It won't be perfect, it won't be linear, but it can be done.
+                            </Text>
+
+                            <Text style={styles.finalClosing}>
+                                This is your life. Start now.
+                            </Text>
+
+                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark as complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -224,59 +232,63 @@ export default function JustStart({ onComplete, onBack }: JustStartProps) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>
-                        {currentCardIndex + 1} of {actionCards.length} actions
-                    </Text>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${cardProgress}%` }]} />
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                        <ChevronLeft size={24} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.headerTitle}>
+                            {currentCardIndex + 1} of {actionCards.length}
+                        </Text>
                     </View>
+                    <View style={styles.backIconWrapper} />
+                </View>
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${cardProgress}%` }]} />
                 </View>
             </View>
 
-            <ScrollView style={styles.content} contentContainerStyle={styles.cardContainer}>
-                <View style={[styles.actionCard, isCompleted && styles.completedCard]}>
-                    <Text style={styles.actionText}>{currentCard.action}</Text>
-                </View>
+            <View style={styles.scrollContainer}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.card}>
+                        <View style={[styles.actionCard, isCompleted && styles.completedCard]}>
+                            <Text style={styles.actionText}>{currentCard.action}</Text>
+                        </View>
 
-                <View style={styles.navigationDots}>
-                    {actionCards.map((_, index) => (
-                        <View
-                            key={index}
-                            style={[
-                                styles.dot,
-                                index === currentCardIndex && styles.activeDot,
-                                completedCards.has(index) && styles.completedDot
-                            ]}
-                        />
-                    ))}
-                </View>
+                        <View style={styles.navigationDots}>
+                            {actionCards.map((_, index) => (
+                                <View
+                                    key={index}
+                                    style={[
+                                        styles.dot,
+                                        index === currentCardIndex && styles.activeDot,
+                                        completedCards.has(index) && styles.completedDot
+                                    ]}
+                                />
+                            ))}
+                        </View>
 
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                        style={[styles.actionButton, isCompleted && styles.completedButton]}
-                        onPress={handleCardComplete}
-                    >
-                        <LinearGradient
-                            colors={isCompleted ? ['#5A7D7B', '#647C90'] : ['#928490', '#746C70']}
-                            style={styles.actionButtonGradient}
+                        <TouchableOpacity
+                            style={[styles.actionButton, isCompleted && styles.completedButton]}
+                            onPress={handleCardComplete}
                         >
-                            <Text style={styles.actionButtonText}>
-                                {isCompleted ? '✓ ' + currentCard.buttonText : currentCard.buttonText}
-                            </Text>
-                            <ChevronRight size={16} color="#E2DED0" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </View>
-            </ScrollView>
-
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                <ChevronLeft size={20} color="#647C90" />
-                <Text style={styles.backButtonText}>
-                    {screenHistory.length <= 1 ? 'Back to Intro' : 'Previous'}
-                </Text>
-            </TouchableOpacity>
+                            <LinearGradient
+                                colors={isCompleted ? ['#5A7D7B', '#647C90'] : ['#928490', '#746C70']}
+                                style={styles.actionButtonContent}
+                            >
+                                <Text style={styles.actionButtonText}>
+                                    {isCompleted ? '✓ ' + currentCard.buttonText : currentCard.buttonText}
+                                </Text>
+                                <ChevronRight size={16} color="#E2DED0" />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </View>
         </View>
     );
 }
@@ -284,30 +296,74 @@ export default function JustStart({ onComplete, onBack }: JustStartProps) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#E2DED0',
+        backgroundColor: '#E2DED0'
     },
-    content: {
+    scrollContainer: {
         flex: 1,
     },
-    introContainer: {
+    scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 20,
+    },
+
+    stickyHeader: {
         paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backIconWrapper: {
+        width: 40,
+        alignItems: 'center'
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center'
+    },
+    headerTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 20,
+        color: '#E2DED0',
+    },
+
+    card: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 120,
     },
     introIcon: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        backgroundColor: 'rgba(146,132,144,0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
@@ -320,16 +376,18 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 40,
     },
+
     startButton: {
         borderRadius: 12,
-        overflow: 'hidden',
+        overflow: 'hidden'
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -337,30 +395,15 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    cardContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
-    swipeHint: {
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    swipeHintText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 12,
-        color: '#647C90',
-    },
+
     actionCard: {
         backgroundColor: 'rgba(146, 132, 144, 0.15)',
         borderRadius: 16,
-        padding: 32,
-        marginBottom: 30,
+        padding: 24,
+        marginBottom: 24,
         borderLeftWidth: 4,
         borderLeftColor: '#928490',
-        minHeight: 120,
-        justifyContent: 'center',
+        width: '100%',
     },
     completedCard: {
         backgroundColor: 'rgba(90, 125, 123, 0.15)',
@@ -373,11 +416,12 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 26,
     },
+
     navigationDots: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        marginBottom: 24,
         flexWrap: 'wrap',
     },
     dot: {
@@ -397,23 +441,21 @@ const styles = StyleSheet.create({
     completedDot: {
         backgroundColor: '#5A7D7B',
     },
-    buttonContainer: {
-        alignItems: 'center',
-    },
+
     actionButton: {
         borderRadius: 12,
         overflow: 'hidden',
-        marginBottom: 20,
     },
     completedButton: {
         opacity: 0.8,
     },
-    actionButtonGradient: {
+    actionButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
+        borderRadius: 12,
     },
     actionButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -421,33 +463,12 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    swipeButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        paddingHorizontal: 20,
-    },
-    swipeButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-    },
-    swipeButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-    },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     finalIcon: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
+        backgroundColor: 'rgba(100,124,144,0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
@@ -467,16 +488,18 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 40,
     },
+
     completeButton: {
         borderRadius: 12,
-        overflow: 'hidden',
+        overflow: 'hidden'
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -484,48 +507,17 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
+
     progressBar: {
         width: '100%',
         height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
+        backgroundColor: 'rgba(255,255,255,0.3)',
         borderRadius: 3,
-        overflow: 'hidden',
+        marginTop: 12,
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#928490',
+        backgroundColor: '#E2DED0',
         borderRadius: 3,
-    },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
     },
 });

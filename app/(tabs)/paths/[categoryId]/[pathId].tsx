@@ -1109,7 +1109,7 @@ export default function PathDetailScreen() {
   }
 
   if (showVoiceMessage) {
-    return <VoiceMessage onComplete={handleVoiceMessageComplete} />;
+    return <VoiceMessage onComplete={handleVoiceMessageComplete} onBack={() => setShowVoiceMessage(false)} />;
   }
 
   if (showYourFirstExperiment) {
@@ -1317,100 +1317,102 @@ export default function PathDetailScreen() {
   const progressPercentage = Math.round((progress / path.days.length) * 100);
 
   return (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      stickyHeaderIndices={[0]} // This makes the first child (header) sticky
-    >
-      {/* Header - This will now stick to the top when scrolling */}
-      <View style={styles.header}>
+    <View style={styles.container}>
+      {/* Sticky Header */}
+      <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
             <ArrowLeft size={28} color="#E2DED0" />
           </TouchableOpacity>
-          <View style={styles.headerContent}>
-            <Text style={styles.pathTitle}>{path.title}</Text>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.titleText}>{path.title}</Text>
           </View>
           {/* Empty view to balance the flex row */}
-          <View style={styles.backButton} />
+          <View style={styles.backButtonPlaceholder} />
         </View>
       </View>
 
-      {/* Vertical Timeline */}
-      <View style={styles.timelineContainer}>
-        <View style={styles.timeline}>
-          {path.days.map((day, index) => {
-            const dayNumber = index + 1;
-            const isCompleted = dayNumber <= progress;
-            const isAccessible = dayNumber <= progress + 1;
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Vertical Timeline */}
+          <View style={styles.timelineContainer}>
+            <View style={styles.timeline}>
+              {path.days.map((day, index) => {
+                const dayNumber = index + 1;
+                const isCompleted = dayNumber <= progress;
+                const isAccessible = dayNumber <= progress + 1;
 
-            return (
-              <View key={dayNumber} style={styles.timelineItem}>
-                <View style={styles.timelineConnector}>
-                  <View style={[
-                    styles.timelineNode,
-                    isCompleted && styles.completedNode,
-                    !isAccessible && styles.lockedNode,
-                  ]}>
-                    {isCompleted ? (
-                      <CheckCircle size={20} color="#E2DED0" />
-                    ) : (
-                      <Circle size={20} color={isAccessible ? "#647C90" : "#928490"} />
-                    )}
-                  </View>
-                  {index < path.days.length - 1 && (
-                    <View style={[
-                      styles.timelineLine,
-                      isCompleted && styles.completedLine,
-                    ]} />
-                  )}
-                </View>
-
-                <TouchableOpacity
-                  style={[
-                    styles.timelineContent,
-                    !isAccessible && styles.lockedContent,
-                  ]}
-                  onPress={() => handleDayPress(dayNumber)}
-                  disabled={!isAccessible}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.dayCard}>
-                    <Text style={[
-                      styles.dayNumber,
-                      isCompleted && styles.completedDayNumber,
-                      !isAccessible && styles.lockedDayNumber,
-                    ]}>
-                      Day {dayNumber}
-                    </Text>
-                    <Text style={[
-                      styles.dayTitle,
-                      isCompleted && styles.completedDayTitle,
-                      !isAccessible && styles.lockedDayTitle,
-                    ]}>
-                      {day.title}
-                    </Text>
-                    {isAccessible && (
-                      <View style={styles.dayAction}>
-                        <Text style={[
-                          styles.dayActionText,
-                          isCompleted && styles.completedActionText,
-                        ]}>
-                          {isCompleted ? 'Completed' : 'Start'}
-                        </Text>
-                        {!isCompleted && <ChevronRight size={16} color="#647C90" />}
+                return (
+                  <View key={dayNumber} style={styles.timelineItem}>
+                    <View style={styles.timelineConnector}>
+                      <View style={[
+                        styles.timelineNode,
+                        isCompleted && styles.completedNode,
+                        !isAccessible && styles.lockedNode,
+                      ]}>
+                        {isCompleted ? (
+                          <CheckCircle size={20} color="#E2DED0" />
+                        ) : (
+                          <Circle size={20} color={isAccessible ? "#647C90" : "#928490"} />
+                        )}
                       </View>
-                    )}
+                      {index < path.days.length - 1 && (
+                        <View style={[
+                          styles.timelineLine,
+                          isCompleted && styles.completedLine,
+                        ]} />
+                      )}
+                    </View>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.timelineContent,
+                        !isAccessible && styles.lockedContent,
+                      ]}
+                      onPress={() => handleDayPress(dayNumber)}
+                      disabled={!isAccessible}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.dayCard}>
+                        <Text style={[
+                          styles.dayNumber,
+                          isCompleted && styles.completedDayNumber,
+                          !isAccessible && styles.lockedDayNumber,
+                        ]}>
+                          Day {dayNumber}
+                        </Text>
+                        <Text style={[
+                          styles.dayTitle,
+                          isCompleted && styles.completedDayTitle,
+                          !isAccessible && styles.lockedDayTitle,
+                        ]}>
+                          {day.title}
+                        </Text>
+                        {isAccessible && (
+                          <View style={styles.dayAction}>
+                            <Text style={[
+                              styles.dayActionText,
+                              isCompleted && styles.completedActionText,
+                            ]}>
+                              {isCompleted ? 'Completed' : 'Start'}
+                            </Text>
+                            {!isCompleted && <ChevronRight size={16} color="#647C90" />}
+                          </View>
+                        )}
+                      </View>
+                    </TouchableOpacity>
                   </View>
-                </TouchableOpacity>
-              </View>
-            );
-          })}
+                );
+              })}
+            </View>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -1424,11 +1426,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 100,
   },
-  header: {
-    paddingHorizontal: 20,
+  stickyHeader: {
+    paddingHorizontal: 24,
     paddingTop: 60,
+    paddingBottom: 20,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  scrollView: {
+    flex: 1,
+    marginTop: 100,
+  },
+  content: {
     paddingBottom: 30,
-    backgroundColor: '#647C90',
   },
   headerRow: {
     flexDirection: 'row',
@@ -1436,71 +1451,32 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backButton: {
-    alignSelf: 'flex-start',
+    width: 28,
   },
-  headerContent: {
+  backButtonPlaceholder: {
+    width: 28,
+  },
+  headerTitleContainer: {
+    flex: 1,
     alignItems: 'center',
   },
-  pathTitle: {
+  titleText: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 24,
+    fontSize: 25,
     color: '#E2DED0',
     textAlign: 'center',
-    marginBottom: 6,
-  },
-  pathSubtitle: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
-    color: 'rgba(226, 222, 208, 0.8)',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  pathDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 14,
-    color: 'rgba(226, 222, 208, 0.7)',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  progressContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  progressBar: {
-    width: '80%',
-    height: 6,
-    backgroundColor: 'rgba(226, 222, 208, 0.3)',
-    borderRadius: 3,
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#E2DED0',
-    borderRadius: 3,
-  },
-  progressText: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 12,
-    color: 'rgba(226, 222, 208, 0.8)',
   },
   timelineContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-  },
-  timelineTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 22,
-    color: '#4E4F50',
-    marginBottom: 25,
-    textAlign: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 30,
+    paddingTop: 50,
   },
   timeline: {
     // No specific styles needed
   },
   timelineItem: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   timelineConnector: {
     alignItems: 'center',
@@ -1540,17 +1516,20 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   dayCard: {
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(146, 132, 144, 0.2)',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   dayNumber: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 14,
     color: '#647C90',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   completedDayNumber: {
     color: '#928490',
@@ -1560,10 +1539,11 @@ const styles = StyleSheet.create({
   },
   dayTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 16,
-    color: '#4E4F50',
-    marginBottom: 8,
-    lineHeight: 22,
+    fontSize: 18,
+    color: '#647C90',
+    marginBottom: 12,
+    lineHeight: 24,
+    fontWeight: '700',
   },
   completedDayTitle: {
     color: '#4E4F50',
@@ -1578,9 +1558,10 @@ const styles = StyleSheet.create({
   },
   dayActionText: {
     fontFamily: 'Montserrat-Medium',
-    fontSize: 12,
+    fontSize: 14,
     color: '#647C90',
-    marginRight: 4,
+    marginRight: 8,
+    fontWeight: '500',
   },
   completedActionText: {
     color: '#928490',

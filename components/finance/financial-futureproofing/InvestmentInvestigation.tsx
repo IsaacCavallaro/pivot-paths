@@ -171,32 +171,48 @@ export default function InvestmentInvestigation({ onComplete, onBack }: Investme
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <TrendingUp size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Your Investment Portfolio</Text>
-
-                    <Text style={styles.introDescription}>
-                        Building wealth means knowing both where to put your money (your accounts) and what to put in it (your investments).
-                        {"\n\n"}
-                        Match the term to what it actually means. This is the foundation of becoming a confident investor.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={() => setCurrentScreen(1)}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Start Matching</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Investment Investigation</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <TrendingUp size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.introTitle}>Investment Investigation</Text>
+
+                            <Text style={styles.introDescription}>
+                                Building wealth means knowing both where to put your money (your accounts) and what to put in it (your investments).
+                                {"\n\n"}
+                                Match the term to what it actually means. This is the foundation of becoming a confident investor.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.startButton}
+                                onPress={() => setCurrentScreen(1)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Start the game</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         );
@@ -206,34 +222,49 @@ export default function InvestmentInvestigation({ onComplete, onBack }: Investme
     if (currentScreen === 2) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.completionContainer}>
-                    <View style={styles.completionIcon}>
-                        <TrendingUp size={40} color="#5A7D7B" />
-                    </View>
-
-                    <Text style={styles.completionTitle}>You're Thinking Like an Investor!</Text>
-
-                    <Text style={styles.completionText}>
-                        This is not financial or investment advice. This game is simply an educational guide to basic definitions.
-                        {"\n\n"}
-                        The right choices for you depend on your personal financial situation, goals, and risk tolerance. We strongly encourage you to use these definitions as a starting point for your own research or to consult with a qualified financial advisor before making any investment decisions.
-                        {"\n\n"}
-                        See you tomorrow for more.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                {/* Sticky Header */}
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backButton} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Complete</Text>
                         </View>
-                    </TouchableOpacity>
+                        <View style={styles.backButton} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <View style={styles.reflectionCard}>
+                            <View style={styles.reflectionIconContainer}>
+                                <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
+                                    <TrendingUp size={40} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={styles.reflectionTitle}>You're Thinking Like an Investor!</Text>
+
+                            <Text style={styles.reflectionText}>
+                                This is not financial or investment advice. This game is simply an educational guide to basic definitions.
+                                {"\n\n"}
+                                The right choices for you depend on your personal financial situation, goals, and risk tolerance. We strongly encourage you to use these definitions as a starting point for your own research or to consult with a qualified financial advisor before making any investment decisions.
+                                {"\n\n"}
+                                See you tomorrow for more.
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.completeButton}
+                                onPress={handleComplete}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -241,76 +272,80 @@ export default function InvestmentInvestigation({ onComplete, onBack }: Investme
     // Game Screen
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>
-                        {matchedPairs.length}/{investmentPairs.length} pairs matched
-                    </Text>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${(matchedPairs.length / investmentPairs.length) * 100}%` }]} />
+            {/* Sticky Header with Progress */}
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                        <ArrowLeft size={28} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.progressText}>
+                            {matchedPairs.length}/{investmentPairs.length} pairs matched
+                        </Text>
                     </View>
+                    <View style={styles.backButton} />
+                </View>
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${(matchedPairs.length / investmentPairs.length) * 100}%` }]} />
                 </View>
             </View>
 
-            <ScrollView style={styles.content}>
-                <Text style={styles.gameTitle}>Investment Investigation</Text>
-                <Text style={styles.gameInstructions}>
-                    Tap to match investment terms with their definitions
-                </Text>
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.content}>
+                    <View style={styles.gameCard}>
+                        <Text style={styles.gameTitle}>Investment Investigation</Text>
+                        <Text style={styles.gameInstructions}>
+                            Tap to match investment terms with their definitions
+                        </Text>
 
-                <View style={styles.columnsContainer}>
-                    <View style={styles.column}>
-                        <Text style={styles.columnTitle}>The Term</Text>
-                        {gameItems.filter(item => item.type === 'term').map((item) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={getItemStyle(item.id)}
-                                onPress={() => handleItemPress(item.id)}
-                                activeOpacity={0.8}
-                                disabled={matchedPairs.includes(item.pairId)}
-                            >
-                                <Text style={[
-                                    styles.gameButtonText,
-                                    selectedItems.includes(item.id) && styles.selectedButtonText,
-                                    matchedPairs.includes(item.pairId) && styles.matchedButtonText,
-                                    selectedItems.includes(item.id) && showMismatch && styles.mismatchButtonText
-                                ]}>
-                                    {item.text}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                        <View style={styles.columnsContainer}>
+                            <View style={styles.column}>
+                                <Text style={styles.columnTitle}>The Term</Text>
+                                {gameItems.filter(item => item.type === 'term').map((item) => (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        style={getItemStyle(item.id)}
+                                        onPress={() => handleItemPress(item.id)}
+                                        activeOpacity={0.8}
+                                        disabled={matchedPairs.includes(item.pairId)}
+                                    >
+                                        <Text style={[
+                                            styles.gameButtonText,
+                                            selectedItems.includes(item.id) && styles.selectedButtonText,
+                                            matchedPairs.includes(item.pairId) && styles.matchedButtonText,
+                                            selectedItems.includes(item.id) && showMismatch && styles.mismatchButtonText
+                                        ]}>
+                                            {item.text}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
 
-                    <View style={styles.column}>
-                        <Text style={styles.columnTitle}>What It Means</Text>
-                        {gameItems.filter(item => item.type === 'definition').map((item) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={getItemStyle(item.id)}
-                                onPress={() => handleItemPress(item.id)}
-                                activeOpacity={0.8}
-                                disabled={matchedPairs.includes(item.pairId)}
-                            >
-                                <Text style={[
-                                    styles.gameButtonText,
-                                    selectedItems.includes(item.id) && styles.selectedButtonText,
-                                    matchedPairs.includes(item.pairId) && styles.matchedButtonText,
-                                    selectedItems.includes(item.id) && showMismatch && styles.mismatchButtonText
-                                ]}>
-                                    {item.text}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
+                            <View style={styles.column}>
+                                <Text style={styles.columnTitle}>What It Means</Text>
+                                {gameItems.filter(item => item.type === 'definition').map((item) => (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        style={getItemStyle(item.id)}
+                                        onPress={() => handleItemPress(item.id)}
+                                        activeOpacity={0.8}
+                                        disabled={matchedPairs.includes(item.pairId)}
+                                    >
+                                        <Text style={[
+                                            styles.gameButtonText,
+                                            selectedItems.includes(item.id) && styles.selectedButtonText,
+                                            matchedPairs.includes(item.pairId) && styles.matchedButtonText,
+                                            selectedItems.includes(item.id) && showMismatch && styles.mismatchButtonText
+                                        ]}>
+                                            {item.text}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
                     </View>
                 </View>
             </ScrollView>
-
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                <ChevronLeft size={24} color="#647C90" />
-                <Text style={styles.backButtonText}>
-                    {currentScreen === 1 ? 'Back to Intro' : 'Previous'}
-                </Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -320,122 +355,156 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    topBackButton: {
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 20,
         position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    scrollView: {
+        flex: 1,
+        marginTop: 100,
     },
     content: {
-        flex: 1,
+        paddingBottom: 30,
     },
-    introContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    headerRow: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        justifyContent: 'space-between',
     },
-    introIcon: {
+    backButton: {
+        width: 28,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    titleText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 25,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#E2DED0',
+        textAlign: 'center',
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+    introCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    introIconGradient: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 32,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 15,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#746C70',
+        fontSize: 18,
+        color: '#928490',
         textAlign: 'center',
-        lineHeight: 24,
         marginBottom: 40,
     },
     startButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
+    gameCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
     gameTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 10,
-        paddingHorizontal: 24,
+        fontWeight: '700',
     },
     gameInstructions: {
         fontFamily: 'Montserrat-Medium',
         fontSize: 14,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         marginBottom: 30,
-        paddingHorizontal: 24,
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
     },
     columnsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 10,
-        paddingHorizontal: 16,
+        gap: 16,
     },
     column: {
         flex: 1,
@@ -443,9 +512,10 @@ const styles = StyleSheet.create({
     columnTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 18,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 15,
+        fontWeight: '700',
     },
     gameButton: {
         width: '100%',
@@ -455,7 +525,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 2,
         borderColor: 'transparent',
-        minHeight: 80,
+        height: 200,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -489,52 +559,68 @@ const styles = StyleSheet.create({
     mismatchButtonText: {
         color: '#dc3545',
     },
-    completionContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
+    reflectionCard: {
+        marginHorizontal: 24,
+        marginTop: 50,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
     },
-    completionIcon: {
+    reflectionIconContainer: {
+        marginBottom: 30,
+    },
+    reflectionIconGradient: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
     },
-    completionTitle: {
+    reflectionTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
-        color: '#4E4F50',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 30,
+        fontWeight: '700',
     },
-    completionText: {
+    reflectionText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 20,
     },
     completeButton: {
-        borderRadius: 12,
+        borderRadius: 30,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
+        fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
 });

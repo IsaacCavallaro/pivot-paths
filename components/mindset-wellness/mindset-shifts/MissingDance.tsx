@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Heart, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 interface DanceTip {
     id: number;
@@ -117,31 +119,47 @@ export default function MissingDance({ onComplete, onBack }: MissingDanceProps) 
     if (screenHistory.length === 0) {
         return (
             <View style={styles.container}>
-                {onBack && (
-                    <TouchableOpacity style={styles.topBackButton} onPress={handleBack}>
-                        <ArrowLeft size={28} color="#647C90" />
-                    </TouchableOpacity>
-                )}
-                <ScrollView style={styles.content} contentContainerStyle={styles.introContainer}>
-                    <View style={styles.introIcon}>
-                        <Heart size={32} color="#928490" />
-                    </View>
-
-                    <Text style={styles.introTitle}>Missing dance?</Text>
-
-                    <Text style={styles.introDescription}>
-                        When you first step away from the stage, chances are, you're going to miss it. Tap through these easy ideas to tap back into your dancer side when you're feeling nostalgic.
-                    </Text>
-
-                    <TouchableOpacity style={styles.startButton} onPress={handleStart}>
-                        <View
-                            style={[styles.startButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.startButtonText}>Let's begin</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        {onBack ? (
+                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
+                                <ArrowLeft size={24} color="#E2DED0" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.backIconWrapper} />
+                        )}
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Missing Dance</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.introIcon}>
+                                <Heart size={32} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>Missing dance?</Text>
+
+                            <Text style={styles.introDescription}>
+                                When you first step away from the stage, chances are, you're going to miss it. Tap through these easy ideas to tap back into your dancer side when you're feeling nostalgic.
+                            </Text>
+
+                            <TouchableOpacity style={styles.startButton} onPress={handleStart}>
+                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.startButtonText}>Let's begin</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -151,32 +169,43 @@ export default function MissingDance({ onComplete, onBack }: MissingDanceProps) 
     if (currentScreen.tipIndex === -1) {
         return (
             <View style={styles.container}>
-                <ScrollView style={styles.content} contentContainerStyle={styles.finalContainer}>
-                    <View style={styles.finalIcon}>
-                        <Heart size={40} color="#928490" />
-                    </View>
-                    <Text style={styles.introTitle}>You'll always be a dancer</Text>
-                    <Text style={styles.finalText}>
-                        You don't need to abandon dance (even if it sometimes feels like it's abandoning you). You'll always be a dancer, and it's ok to prioritize those little things that help you feel like your dancer self again when you're missing the comforts of your first love.
-                    </Text>
-
-                    <Text style={styles.finalClosing}>
-                        See you tomorrow for your final step.
-                    </Text>
-
-                    <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                        <View
-                            style={[styles.completeButtonGradient, { backgroundColor: '#928490' }]}
-                        >
-                            <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            <ChevronRight size={16} color="#E2DED0" />
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.backIconWrapper} />
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.headerTitle}>Missing Dance</Text>
                         </View>
-                    </TouchableOpacity>
-                </ScrollView>
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <ChevronLeft size={20} color="#647C90" />
-                    <Text style={styles.backButtonText}>Previous</Text>
-                </TouchableOpacity>
+                        <View style={styles.backIconWrapper} />
+                    </View>
+                </View>
+
+                <View style={styles.scrollContainer}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.card}>
+                            <View style={styles.finalIcon}>
+                                <Heart size={40} color="#928490" />
+                            </View>
+                            <Text style={styles.introTitle}>You'll always be a dancer</Text>
+                            <Text style={styles.finalText}>
+                                You don't need to abandon dance (even if it sometimes feels like it's abandoning you). You'll always be a dancer, and it's ok to prioritize those little things that help you feel like your dancer self again when you're missing the comforts of your first love.
+                            </Text>
+
+                            <Text style={styles.finalClosing}>
+                                See you tomorrow for your final step.
+                            </Text>
+
+                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
+                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                                    <ChevronRight size={16} color="#E2DED0" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
         );
     }
@@ -189,40 +218,47 @@ export default function MissingDance({ onComplete, onBack }: MissingDanceProps) 
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>
-                        {currentTipIndex + 1} of {danceTips.length} tips
-                    </Text>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${tipProgress}%` }]} />
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
+                        <ChevronLeft size={24} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.headerTitle}>
+                            {currentTipIndex + 1} of {danceTips.length}
+                        </Text>
                     </View>
+                    <View style={styles.backIconWrapper} />
+                </View>
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${tipProgress}%` }]} />
                 </View>
             </View>
 
-            <ScrollView style={styles.content} contentContainerStyle={styles.tipContainer}>
-                <Text style={styles.tipTitle}>{currentTip.title}</Text>
+            <View style={styles.scrollContainer}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.card}>
+                        <Text style={styles.tipTitle}>{currentTip.title}</Text>
 
-                <View style={styles.tipCard}>
-                    <Text style={styles.tipText}>{currentTip.description}</Text>
-                </View>
+                        <View style={styles.tipCard}>
+                            <Text style={styles.tipText}>{currentTip.description}</Text>
+                        </View>
 
-                <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                    <LinearGradient
-                        colors={['#5A7D7B', '#647C90']}
-                        style={styles.continueButtonGradient}
-                    >
-                        <Text style={styles.continueButtonText}>{currentTip.buttonText}</Text>
-                        <ChevronRight size={16} color="#E2DED0" />
-                    </LinearGradient>
-                </TouchableOpacity>
-            </ScrollView>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                <ChevronLeft size={20} color="#647C90" />
-                <Text style={styles.backButtonText}>
-                    {screenHistory.length <= 1 ? 'Back to Intro' : 'Previous'}
-                </Text>
-            </TouchableOpacity>
+                        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                            <LinearGradient
+                                colors={['#5A7D7B', '#647C90']}
+                                style={styles.continueButtonContent}
+                            >
+                                <Text style={styles.continueButtonText}>{currentTip.buttonText}</Text>
+                                <ChevronRight size={16} color="#E2DED0" />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </View>
         </View>
     );
 }
@@ -232,15 +268,59 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E2DED0',
     },
-    content: {
+    scrollContainer: {
         flex: 1,
     },
-    introContainer: {
+    scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 20,
+    },
+
+    stickyHeader: {
         paddingHorizontal: 24,
-        paddingVertical: 40,
+        paddingTop: 60,
+        paddingBottom: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    backIconWrapper: {
+        width: 40,
+        alignItems: 'center'
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 20,
+        color: '#E2DED0',
+    },
+
+    card: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 120,
     },
     introIcon: {
         width: 80,
@@ -253,7 +333,7 @@ const styles = StyleSheet.create({
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
@@ -266,16 +346,18 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 40,
     },
+
     startButton: {
         borderRadius: 12,
         overflow: 'hidden',
     },
-    startButtonGradient: {
+    startButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -283,21 +365,16 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    tipContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     tipTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
+        fontSize: 20,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 30,
     },
     tipCard: {
-        backgroundColor: 'rgba(90, 125, 123, 0.15)',
+        backgroundColor: 'rgba(146, 132, 144, 0.15)',
         borderRadius: 16,
         padding: 24,
         marginBottom: 40,
@@ -306,22 +383,23 @@ const styles = StyleSheet.create({
     },
     tipText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
+        fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
-        lineHeight: 24,
+        lineHeight: 26,
     },
+
     continueButton: {
         borderRadius: 12,
         overflow: 'hidden',
-        alignSelf: 'center',
     },
-    continueButtonGradient: {
+    continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
+        borderRadius: 12,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -329,18 +407,12 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    finalContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 40,
-    },
+
     finalIcon: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
@@ -364,12 +436,13 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         overflow: 'hidden',
     },
-    completeButtonGradient: {
+    completeButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
+        borderRadius: 12,
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -377,48 +450,17 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
     },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        paddingTop: 10,
-    },
-    backButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
-    },
-    header: {
-        padding: 20,
-        paddingTop: 60,
-    },
-    progressContainer: {
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginBottom: 10,
-    },
+
     progressBar: {
         width: '100%',
         height: 6,
-        backgroundColor: 'rgba(100, 124, 144, 0.2)',
+        backgroundColor: 'rgba(255, 255, 255, 0.3)',
         borderRadius: 3,
-        overflow: 'hidden',
+        marginTop: 12,
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#928490',
+        backgroundColor: '#E2DED0',
         borderRadius: 3,
-    },
-    topBackButton: {
-        position: 'absolute',
-        top: 60,
-        left: 24,
-        zIndex: 1,
-        padding: 8,
     },
 });
