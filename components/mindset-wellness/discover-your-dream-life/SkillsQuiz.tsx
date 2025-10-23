@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, ChevronLeft, Sparkles, ArrowLeft } from 'lucide-react-native';
+import { ChevronRight, ArrowLeft } from 'lucide-react-native';
 
 interface QuizQuestion {
   id: number;
