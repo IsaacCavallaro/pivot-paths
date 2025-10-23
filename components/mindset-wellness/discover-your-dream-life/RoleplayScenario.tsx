@@ -99,7 +99,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
               <Text style={styles.introTitle}>What's the alternative?</Text>
 
               <Text style={styles.introDescription}>
-                Let's walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you'd be most likely to do in this scenario and we'll shed light on an alternative and show you that you have more options than you might think.
+                Let's walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you’d be most likely to do in this scenario and we’ll shed light on an alternative. You have more options than you might think.
               </Text>
 
               <TouchableOpacity
