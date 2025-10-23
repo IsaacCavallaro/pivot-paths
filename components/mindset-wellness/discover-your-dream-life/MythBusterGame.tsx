@@ -81,6 +81,13 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
   const goBack = () => {
     if (currentScreen === 1) {
       setCurrentScreen(0);
+    } else if (currentScreen === 2) {
+      // Reset game state when going back from reflection screen
+      setMatchedPairs([]);
+      setSelectedItems([]);
+      setCurrentPairIndex(0);
+      setShowMismatch(false);
+      setCurrentScreen(1);
     } else if (currentScreen > 1) {
       setCurrentScreen(currentScreen - 1);
     }
