@@ -414,7 +414,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               <Text style={styles.finalTitleBold}>The Expansive Dreamer</Text>
 
               <Text style={styles.finalDescription}>
-                The Expansive Dreamer is someone who allows their imagination to stretch wide and bold without apology. You've given yourself full permission to want more: more freedom, more fulfillment, more possibility. But this time, your dreams don't just live in your head... they're grounded in your values, your strengths, and your next steps.
+                The Expansive Dreamer is someone who allows their imagination to be bold <Text style={{ fontStyle: 'italic' }}>without apology</Text>.
               </Text>
 
               <Text style={styles.finalClosing}>
