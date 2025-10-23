@@ -110,10 +110,19 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
     };
 
     const goBack = () => {
-        if (currentScreen === 1) {
+        if (currentScreen === 0) {
+            handleBack();
+        } else if (currentScreen === 1) {
             setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        } else if (currentScreen > 1 && currentScreen <= 9) {
             setCurrentScreen(currentScreen - 1);
+        } else if (currentScreen >= 11 && currentScreen <= 21) {
+            if (currentScreen === 11) {
+                // Go back to last choice screen
+                setCurrentScreen(9);
+            } else {
+                setCurrentScreen(currentScreen - 1);
+            }
         }
     };
 
@@ -173,12 +182,9 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Expand Your Horizons</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -275,10 +281,9 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Expand Your Horizons</Text>
-                        </View>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
                         <View style={styles.backButton} />
                     </View>
                 </View>
