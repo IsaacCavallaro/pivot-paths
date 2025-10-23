@@ -8,7 +8,7 @@ interface QuizQuestion {
   question: string;
   options: {
     id: string;
-    text: string;
+    text: string | React.ReactElement;
     type: 'A' | 'B' | 'C';
   }[];
 }
@@ -16,7 +16,7 @@ interface QuizQuestion {
 interface DreamerResult {
   type: string;
   title: string;
-  description: string;
+  description: string | React.ReactElement;
   subtitle: string;
   color: string;
 }
