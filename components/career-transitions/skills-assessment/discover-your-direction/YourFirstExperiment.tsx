@@ -123,9 +123,6 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
                         ) : (
                             <View style={styles.backIconWrapper} />
                         )}
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Your First Experiment</Text>
-                        </View>
                         <View style={styles.backIconWrapper} />
                     </View>
                 </View>
@@ -167,9 +164,6 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
                         <View style={styles.backIconWrapper} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Your First Experiment</Text>
-                        </View>
                         <View style={styles.backIconWrapper} />
                     </View>
                 </View>
