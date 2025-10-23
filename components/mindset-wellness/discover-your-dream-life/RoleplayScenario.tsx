@@ -139,7 +139,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
               <Text style={styles.scenarioTitle}>Imagine This</Text>
 
               <Text style={styles.scenarioText}>
-                It's a year in the future and you just booked your next dance contract. You open the mail to discover one of your best childhood friends is getting married in the Bahamas in a few months and you're invited. What do you do?
+                It's a year in the future and you just booked your next dance contract. You open the mail to discover one of your best childhood friends is getting married in the Bahamas in a few months and you're invited.
               </Text>
 
               <TouchableOpacity
