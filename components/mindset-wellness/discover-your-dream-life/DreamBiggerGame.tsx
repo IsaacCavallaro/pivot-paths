@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Sparkles, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { ChevronRight, Sparkles, ArrowLeft } from 'lucide-react-native';
 
 interface DreamChoice {
   id: number;
@@ -171,9 +170,6 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Dream Bigger</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -277,10 +273,6 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
-            <View style={styles.backButton} />
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Your Dream Life</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
