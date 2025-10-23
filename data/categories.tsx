@@ -1,10 +1,9 @@
-import { Brain, Rocket, DollarSign, Cloud } from 'lucide-react-native';
+import { Rocket, DollarSign, Cloud } from 'lucide-react-native';
 
 export interface PathDay {
   day: number;
   title: string;
   content: string;
-  prompt: string;
   callout?: string;
   hasQuiz?: boolean;
   hasLeadershipExperience?: boolean;
@@ -92,6 +91,7 @@ export interface Category {
   title: string;
   description: string;
   color: string;
+  icon: React.ReactNode;
   paths: Path[];
 }
 
@@ -158,7 +158,7 @@ export const categories: Category[] = [
       {
         id: 'mindset-shift',
         title: 'Mindset Shift',
-        // subtitle: 'Coming Soon',
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Explore who you are beyond your dancer identity - comprehensive path coming soon',
         duration: '7 days',
         totalDays: 7,
@@ -210,7 +210,7 @@ export const categories: Category[] = [
       {
         id: 'work-life-balance',
         title: 'Work/Life Banlance',
-        // subtitle: 'Coming Soon',
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Let’s find out when your energy is at its peak and when it dips to help you plan your work, hobbies, and rest. ',
         duration: '7 days',
         totalDays: 7,
