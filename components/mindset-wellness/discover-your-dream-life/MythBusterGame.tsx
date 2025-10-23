@@ -279,6 +279,9 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
             <View style={styles.backButton} />
           </View>
         </View>
