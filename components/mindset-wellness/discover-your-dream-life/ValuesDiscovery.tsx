@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Compass, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { ChevronRight, Compass, ArrowLeft } from 'lucide-react-native';
 
 interface ValuesQuestion {
   id: number;
@@ -357,9 +356,6 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Values Discovery</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -403,10 +399,6 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
-            <View style={styles.backButton} />
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Your Values</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -464,10 +456,6 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <View style={styles.backButton} />
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Your Values</Text>
-            </View>
-            <View style={styles.backButton} />
           </View>
         </View>
 
@@ -521,7 +509,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
             <ArrowLeft size={28} color="#E2DED0" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
-            <Text style={styles.progressText}>Question {currentScreen} of 10</Text>
+            <Text style={styles.progressText}>{currentScreen} of 10</Text>
           </View>
           <View style={styles.backButton} />
         </View>
