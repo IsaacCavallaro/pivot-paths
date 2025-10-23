@@ -327,8 +327,14 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const goBack = () => {
     if (currentScreen === 1) {
       setCurrentScreen(0);
-    } else if (currentScreen > 1) {
+    } else if (currentScreen > 1 && currentScreen <= 10) {
       setCurrentScreen(currentScreen - 1);
+    } else if (currentScreen === 11) {
+      // Go back from result screen to last question
+      setCurrentScreen(10);
+    } else if (currentScreen === 12) {
+      // Go back from final screen to result screen
+      setCurrentScreen(11);
     }
   };
 
@@ -388,6 +394,9 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -437,6 +446,9 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: result.color }]}>
           <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
             <View style={styles.backButton} />
           </View>
         </View>

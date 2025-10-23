@@ -69,7 +69,6 @@ export interface PathDay {
   hasTheTotalPackage?: boolean;
   hasInvestmentInvestigations?: boolean;
   hasLifestyleCreepRiskMeter?: boolean;
-  hasSavingsSprint?: boolean;
   hasCelebrateTheWins?: boolean;
 
 }
@@ -106,7 +105,7 @@ export const categories: Category[] = [
     paths: [
       {
         id: 'discover-dream-life',
-        title: 'Discover Your Dream Life',
+        title: 'Your Dream Life',
         subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'It\'s time to dream big. Each step in this path offers mindset shifts and thought-provoking exercises to help you discover what you want beyond dance and explore what it means to let go of your dream job to build your dream life.',
         duration: '7 days',
