@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
 import { ChevronRight, Sparkles, ArrowLeft } from 'lucide-react-native';
 
 interface DreamChoice {
@@ -282,9 +282,16 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
             <View style={styles.storyCard}>
               {isFinal && (
                 <View style={styles.finalHeader}>
-                  <Sparkles size={24} color="#928490" />
                   <Text style={styles.finalHeading}>How does this make you feel?</Text>
-                  <Sparkles size={24} color="#928490" />
+                </View>
+              )}
+
+              {isFinal && (
+                <View style={styles.finalIconContainer}>
+                  <Image
+                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                    style={styles.heroImage}
+                  />
                 </View>
               )}
 
@@ -592,5 +599,15 @@ const styles = StyleSheet.create({
     color: '#647C90',
     textAlign: 'center',
     fontWeight: '700',
+  },
+  finalIconContainer: {
+    marginBottom: 30,
+  },
+  heroImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderColor: '#647C90',
+    borderWidth: 2,
   },
 });
