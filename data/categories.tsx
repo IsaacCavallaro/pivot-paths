@@ -270,7 +270,7 @@ export const categories: Category[] = [
     paths: [
       {
         id: 'skills-assessment',
-        title: 'Discover Your Direction',
+        title: 'Map Your Direction', // previously "discover your direction"
         subtitle: '',
         description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Each step in the path helps you explore career options you may have never considered and start taking action towards landing a job in the industry that’s works for you.',
         duration: '7 days',
