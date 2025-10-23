@@ -1,9 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, MessageCircle, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
+import { ChevronRight, MessageCircle, ArrowLeft } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface ScriptPair {
   id: number;
@@ -140,27 +139,24 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   if (screenHistory.length === 0) {
     return (
       <View style={styles.container}>
+        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
-            {onBack ? (
-              <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
-                <ArrowLeft size={24} color="#E2DED0" />
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.backIconWrapper} />
-            )}
-            <View style={styles.backIconWrapper} />
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
           </View>
         </View>
 
-        <View style={styles.scrollContainer}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.card}>
-              <View style={styles.introIcon}>
-                <MessageCircle size={32} color="#928490" />
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.centeredContent}>
+            <View style={styles.introCard}>
+              <View style={styles.introIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
               </View>
 
               <Text style={styles.introTitle}>Flip the Script</Text>
@@ -175,8 +171,8 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
                 </View>
               </TouchableOpacity>
             </View>
-          </ScrollView>
-        </View>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -186,72 +182,84 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   if (currentScreen.pairIndex === -1) {
     return (
       <View style={styles.container}>
+        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
-            <View style={styles.backIconWrapper} />
-            <View style={styles.backIconWrapper} />
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
           </View>
         </View>
 
-        <View style={styles.scrollContainer}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.card}>
-              <View style={styles.finalIcon}>
-                <MessageCircle size={40} color="#928490" />
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.centeredContent}>
+            <View style={styles.finalCard}>
+              <View style={styles.finalIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
               </View>
-              <Text style={styles.introTitle}>Own Your Story</Text>
-              <Text style={styles.finalText}>
-                Reframing the way you speak about your transition can do wonders for your mental health throughout the journey. Own your story!
-              </Text>
-              <Text style={styles.finalClosing}>
+
+              <View style={styles.finalHeader}>
+                <Text style={styles.finalHeading}>Own Your Story</Text>
+              </View>
+
+              <View style={styles.finalTextContainer}>
+                <Text style={styles.finalText}>
+                  Reframing the way you speak about your transition can do wonders for your mental health throughout the journey. Own your story!
+                </Text>
+              </View>
+
+              <Text style={styles.alternativeClosing}>
                 You're almost at the final step in this path. See you there.
               </Text>
 
-              <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                  <ChevronRight size={16} color="#E2DED0" />
-                </View>
-              </TouchableOpacity>
+              <View style={styles.finalButtonContainer}>
+                <TouchableOpacity
+                  style={styles.continueButton}
+                  onPress={handleComplete}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                    <Text style={styles.continueButtonText}>Mark As Complete</Text>
+                    <ChevronRight size={16} color="#E2DED0" />
+                  </View>
+                </TouchableOpacity>
+              </View>
             </View>
-          </ScrollView>
-        </View>
+          </View>
+        </ScrollView>
       </View>
     );
   }
 
   // Script Screens
   const currentPair = scriptPairs[currentPairIndex];
-  const scriptProgress = ((currentPairIndex + 1) / scriptPairs.length) * 100;
+  const progress = ((currentPairIndex + 1) / scriptPairs.length) * 100;
 
   return (
     <View style={styles.container}>
+      {/* Sticky Header with Progress */}
       <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
-            <ChevronLeft size={24} color="#E2DED0" />
+          <TouchableOpacity style={styles.backButton} onPress={goBack}>
+            <ArrowLeft size={28} color="#E2DED0" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>
-              {currentPairIndex + 1} of {scriptPairs.length}
-            </Text>
+            <Text style={styles.progressText}>{currentPairIndex + 1} of {scriptPairs.length}</Text>
           </View>
-          <View style={styles.backIconWrapper} />
+          <View style={styles.backButton} />
         </View>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${scriptProgress}%` }]} />
+          <View style={[styles.progressFill, { width: `${progress}%` }]} />
         </View>
       </View>
 
-      <View style={styles.scrollContainer}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.card}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={styles.centeredContent}>
+          <View style={styles.choiceCard}>
             <Text style={styles.scriptLabel}>
               {showNewScript ? 'What I could say instead:' : 'What I used to say:'}
             </Text>
@@ -262,20 +270,21 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
               </Text>
             </View>
 
-            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-              <LinearGradient
-                colors={showNewScript ? ['#647C90', '#647C90'] : ['#928490', '#746C70']}
-                style={styles.continueButtonContent}
-              >
+            <TouchableOpacity
+              style={styles.continueButton}
+              onPress={handleContinue}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
                 <Text style={styles.continueButtonText}>
                   {showNewScript ? currentPair.buttonText : 'See the alternative'}
                 </Text>
                 <ChevronRight size={16} color="#E2DED0" />
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -283,18 +292,8 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E2DED0'
+    backgroundColor: '#E2DED0',
   },
-  scrollContainer: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-
   stickyHeader: {
     paddingHorizontal: 24,
     paddingTop: 60,
@@ -307,69 +306,115 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
+  scrollView: {
+    flex: 1,
+    marginTop: 100,
+    zIndex: 1,
+  },
+  centeredContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: height - 200,
+    paddingBottom: 30,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  backIconWrapper: { width: 40, alignItems: 'center' },
-  headerTitleContainer: { flex: 1, alignItems: 'center' },
-  headerTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 20,
-    color: '#E2DED0',
+  backButton: {
+    width: 28,
   },
-
-  card: {
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  progressText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#E2DED0',
+    textAlign: 'center',
+  },
+  progressBar: {
+    width: '100%',
+    height: 6,
+    backgroundColor: 'rgba(226, 222, 208, 0.3)',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginTop: 12,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#E2DED0',
+    borderRadius: 3,
+  },
+  introCard: {
     width: width * 0.85,
     borderRadius: 24,
     backgroundColor: '#F5F5F5',
-    padding: 32,
+    padding: 40,
     alignItems: 'center',
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
     marginVertical: 20,
   },
-  introIcon: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: 'rgba(146,132,144,0.1)',
-    justifyContent: 'center', alignItems: 'center',
-    marginBottom: 30,
+  introIconContainer: {
+    marginBottom: 24,
   },
   introTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 28,
-    color: '#4E4F50',
+    fontSize: 32,
+    color: '#647C90',
     textAlign: 'center',
     marginBottom: 20,
+    fontWeight: '700',
   },
   introDescription: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
-    color: '#746C70',
+    color: '#928490',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 40,
+    marginBottom: 32,
   },
-
-  startButton: { borderRadius: 12, overflow: 'hidden' },
+  startButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
   startButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
   },
   startButtonText: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 18,
     color: '#E2DED0',
     marginRight: 8,
+    fontWeight: '600',
   },
-
+  choiceCard: {
+    width: width * 0.85,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginVertical: 20,
+  },
   scriptLabel: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 20,
@@ -384,6 +429,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     borderLeftWidth: 4,
     borderLeftColor: '#928490',
+    width: '100%',
   },
   oldScriptText: {
     fontFamily: 'Montserrat-Regular',
@@ -400,6 +446,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     borderLeftWidth: 4,
     borderLeftColor: '#647C90',
+    width: '100%',
   },
   newScriptText: {
     fontFamily: 'Montserrat-SemiBold',
@@ -409,28 +456,72 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     fontStyle: 'italic',
   },
-
-  continueButton: { borderRadius: 12, overflow: 'hidden' },
+  continueButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
   continueButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+    minWidth: width * 0.5,
   },
   continueButtonText: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 16,
     color: '#E2DED0',
     marginRight: 8,
+    fontWeight: '600',
   },
-
-  finalIcon: {
-    width: 100, height: 100, borderRadius: 50,
-    backgroundColor: 'rgba(100,124,144,0.1)',
-    justifyContent: 'center', alignItems: 'center',
+  finalCard: {
+    width: width * 0.85,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginVertical: 20,
+  },
+  finalIconContainer: {
     marginBottom: 30,
+  },
+  finalIconGradient: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  finalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 30,
+    gap: 12,
+  },
+  finalHeading: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 24,
+    color: '#647C90',
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  finalTextContainer: {
+    width: '100%',
+    marginBottom: 32,
   },
   finalText: {
     fontFamily: 'Montserrat-Regular',
@@ -438,41 +529,26 @@ const styles = StyleSheet.create({
     color: '#4E4F50',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 20,
   },
-  finalClosing: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 16,
+  alternativeClosing: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
     color: '#647C90',
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
+    marginTop: 20,
+    fontWeight: '600',
   },
-  completeButton: { borderRadius: 12, overflow: 'hidden' },
-  completeButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  completeButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
-    color: '#E2DED0',
-    marginRight: 8,
-  },
-
-  progressBar: {
+  finalButtonContainer: {
     width: '100%',
-    height: 6,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 3,
-    marginTop: 12,
+    alignItems: 'center',
+    marginTop: 20,
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#E2DED0',
-    borderRadius: 3,
+  heroImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderColor: '#647C90',
+    borderWidth: 2,
   },
 });
