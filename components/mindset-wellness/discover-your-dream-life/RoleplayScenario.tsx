@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Users, Heart, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { ChevronRight, Heart, ArrowLeft } from 'lucide-react-native';
 
 interface RoleplayScenarioProps {
   onComplete: () => void;
@@ -83,9 +82,6 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>What's the alternative?</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -133,9 +129,6 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Imagine This</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -176,9 +169,6 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Your Options</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -236,9 +226,6 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Your Status</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -277,9 +264,6 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Your Situation</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -318,9 +302,6 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>The Alternative</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
