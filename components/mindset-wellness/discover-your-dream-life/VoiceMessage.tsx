@@ -51,9 +51,6 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
             ) : (
               <View style={styles.backButton} />
             )}
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Visualize Your Dream</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
