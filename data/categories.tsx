@@ -125,7 +125,7 @@ export const categories: Category[] = [
           },
           {
             day: 3,
-            title: "What's The Alternative ",
+            title: "What’s the alternative?",
             content: 'Let\'s walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you\'d be most likely to do in this scenario and we\'ll shed light on an alternative.',
             hasRoleplay: true,
           },
