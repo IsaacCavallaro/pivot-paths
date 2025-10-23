@@ -343,6 +343,12 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
       setCurrentScreen(0);
     } else if (currentScreen > 1 && currentScreen <= 10) {
       setCurrentScreen(currentScreen - 1);
+    } else if (currentScreen === 11) {
+      // Go back from result screen to last question
+      setCurrentScreen(10);
+    } else if (currentScreen === 12) {
+      // Go back from final screen to result screen
+      setCurrentScreen(11);
     }
   };
 
@@ -400,6 +406,9 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -408,15 +417,14 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
           <View style={styles.centeredContent}>
             <View style={styles.finalCard}>
               <View style={styles.finalIconContainer}>
-                <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
-                  <Compass size={40} color="#E2DED0" />
-                </View>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
               </View>
 
               <View style={styles.finalHeader}>
-                <Compass size={24} color="#928490" />
                 <Text style={styles.finalHeading}>How does this make you feel?</Text>
-                <Compass size={24} color="#928490" />
               </View>
 
               <View style={styles.finalTextContainer}>
@@ -456,6 +464,9 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -463,12 +474,12 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.centeredContent}>
             <View style={styles.resultCard}>
-              <View style={styles.resultIconContainer}>
-                <View style={[styles.resultIconGradient, { backgroundColor: '#928490' }]}>
-                  <Compass size={40} color="#E2DED0" />
-                </View>
+              <View style={styles.finalIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
               </View>
-
               <Text style={styles.resultTitle}>{result.title}</Text>
 
               <View style={styles.resultTextContainer}>
