@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Zap, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { ChevronRight, ArrowLeft } from 'lucide-react-native';
 
 interface MythPair {
   id: number;
@@ -234,9 +233,6 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Myth Buster</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -283,10 +279,6 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
-            <View style={styles.backButton} />
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.titleText}>Reflection</Text>
-            </View>
             <View style={styles.backButton} />
           </View>
         </View>

@@ -1,4 +1,4 @@
-import { Brain, Rocket, DollarSign } from 'lucide-react-native';
+import { Brain, Rocket, DollarSign, Cloud } from 'lucide-react-native';
 
 export interface PathDay {
   day: number;
@@ -99,15 +99,15 @@ export const categories: Category[] = [
   {
     id: 'mindset',
     title: 'Mindset & Wellness',
-    description: 'Develop the mental resilience and wellness practices for successful transition',
+    description: 'Mindset shifts and practical tools to support overall wellness during your transition',
     color: '#647C90',
-    icon: <Brain size={24} color='rgba(226, 222, 208, 0.9)' />,
+    icon: <Cloud size={24} color='rgba(226, 222, 208, 0.9)' />,
     paths: [
       {
         id: 'discover-dream-life',
         title: 'Your Dream Life',
         subtitle: '', // We only use subheadings for "Coming Soon"
-        description: 'It\'s time to dream big. Each step in this path offers mindset shifts and thought-provoking exercises to help you discover what you want beyond dance and explore what it means to let go of your dream job to build your dream life.',
+        description: 'It’s time to dream big. Discover what you really want and explore life beyond dance.',
         duration: '7 days',
         totalDays: 7,
         days: [
