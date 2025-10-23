@@ -316,7 +316,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               </Text>
 
               <Text style={styles.reflectionText}>
-                In fact, these myths usually keep us stuck in a cycle where we're more susceptible to manipulation and exploitation by believing these myths. Do you agree?
+                In fact, these myths usually keep us stuck in a cycle where we’re more susceptible to manipulation and exploitation. Do you agree?
               </Text>
 
               <Text style={styles.reflectionClosing}>
