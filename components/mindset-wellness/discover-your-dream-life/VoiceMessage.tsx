@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Play, Pause, ExternalLink, ArrowLeft } from 'lucide-react-native';
 
@@ -28,7 +28,7 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
   };
 
   const handleEbookLink = () => {
-    console.log('Opening How to Pivot ebook link');
+    Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
   };
 
   const handleBack = () => {
@@ -67,26 +67,22 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
                   onPress={handlePlayPause}
                   activeOpacity={0.8}
                 >
-                  <LinearGradient
-                    colors={['#647C90', '#928490']}
-                    style={styles.playButtonGradient}
+                  <View
+                    style={[styles.playButtonGradient, { backgroundColor: '#928490' }]}
                   >
                     {isPlaying ? (
                       <Pause size={40} color="#E2DED0" />
                     ) : (
                       <Play size={40} color="#E2DED0" />
                     )}
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               </View>
 
               <Text style={styles.voiceTitle}>Visualize Your Dream</Text>
 
               <Text style={styles.voiceDescription}>
-                {isPlaying
-                  ? "Playing personal message..."
-                  : "Tap to listen to a guided visualization"
-                }
+                {!isPlaying && "Tap to listen to a guided visualization"}
               </Text>
 
               {isPlaying && (
@@ -113,9 +109,6 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
       <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
         <View style={styles.headerRow}>
           <View style={styles.backButton} />
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.titleText}>Ready for More?</Text>
-          </View>
           <View style={styles.backButton} />
         </View>
       </View>
