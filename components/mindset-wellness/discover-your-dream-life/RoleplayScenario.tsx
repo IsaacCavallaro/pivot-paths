@@ -176,7 +176,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
             <View style={styles.choicesCard}>
-              <Text style={styles.choicesTitle}>Here are your Options</Text>
+              <Text style={styles.choicesTitle}>Your Options</Text>
 
               <View style={styles.choicesContainer}>
                 <TouchableOpacity
