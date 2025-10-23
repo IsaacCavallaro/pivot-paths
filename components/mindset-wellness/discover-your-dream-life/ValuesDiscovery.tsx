@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
 import { ChevronRight, Compass, ArrowLeft } from 'lucide-react-native';
 
 interface ValuesQuestion {
@@ -364,9 +364,10 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
           <View style={styles.centeredContent}>
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
-                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                  <Compass size={32} color="#E2DED0" />
-                </View>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
               </View>
 
               <Text style={styles.introTitle}>What do you actually value?</Text>
@@ -887,5 +888,12 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
     marginVertical: 20,
+  },
+  heroImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderColor: '#647C90',
+    borderWidth: 2,
   },
 });
