@@ -75,6 +75,13 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
     const goBack = () => {
         if (currentScreen === 1) {
             setCurrentScreen(0);
+        } else if (currentScreen === 2) {
+            // Reset game state when going back from reflection screen
+            setMatchedPairs([]);
+            setSelectedItems([]);
+            setCurrentPairIndex(0);
+            setShowMismatch(false);
+            setCurrentScreen(1);
         } else if (currentScreen > 1) {
             setCurrentScreen(currentScreen - 1);
         }
@@ -270,6 +277,9 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
                         <View style={styles.backButton} />
                     </View>
                 </View>
