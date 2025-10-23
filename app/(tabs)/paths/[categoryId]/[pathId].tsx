@@ -1109,7 +1109,7 @@ export default function PathDetailScreen() {
   }
 
   if (showVoiceMessage) {
-    return <VoiceMessage onComplete={handleVoiceMessageComplete} />;
+    return <VoiceMessage onComplete={handleVoiceMessageComplete} onBack={() => setShowVoiceMessage(false)} />;
   }
 
   if (showYourFirstExperiment) {

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking, Image } from 'react-native';
 import { Play, Pause, ExternalLink, ArrowLeft } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -12,17 +11,15 @@ interface VoiceMessageProps {
 
 export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentScreen, setCurrentScreen] = useState(0); // 0 = voice message, 1 = ebook promotion
+  const [currentScreen, setCurrentScreen] = useState(1); // Start at screen 1 (voice message)
 
   const handlePlayPause = () => {
-    // Placeholder for audio functionality
     setIsPlaying(!isPlaying);
 
-    // Simulate audio completion after 3 seconds for demo
     if (!isPlaying) {
       setTimeout(() => {
         setIsPlaying(false);
-        setCurrentScreen(1);
+        setCurrentScreen(2);
       }, 3000);
     }
   };
@@ -31,26 +28,27 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
     Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
   };
 
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
+  const goBack = () => {
+    if (currentScreen === 2) {
+      // Go back from ebook to voice message
+      setCurrentScreen(1);
+    } else if (currentScreen === 1) {
+      if (onBack) {
+        onBack();
+      }
     }
   };
 
   // Voice Message Screen
-  if (currentScreen === 0) {
+  if (currentScreen === 1) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
-            {onBack ? (
-              <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                <ArrowLeft size={28} color="#E2DED0" />
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.backButton} />
-            )}
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
             <View style={styles.backButton} />
           </View>
         </View>
@@ -108,7 +106,9 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
       {/* Sticky Header */}
       <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
         <View style={styles.headerRow}>
-          <View style={styles.backButton} />
+          <TouchableOpacity style={styles.backButton} onPress={goBack}>
+            <ArrowLeft size={28} color="#E2DED0" />
+          </TouchableOpacity>
           <View style={styles.backButton} />
         </View>
       </View>
@@ -119,8 +119,11 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.card}>
-            <View style={styles.ebookIcon}>
-              <ExternalLink size={32} color="#928490" />
+            <View style={styles.finalIconContainer}>
+              <Image
+                source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                style={styles.heroImage}
+              />
             </View>
 
             <Text style={styles.ebookTitle}>Ready for More?</Text>
@@ -334,5 +337,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 16,
     color: '#E2DED0',
+  },
+  finalIconContainer: {
+    marginBottom: 30,
+  },
+  heroImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderColor: '#647C90',
+    borderWidth: 2,
   },
 });
