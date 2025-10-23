@@ -149,9 +149,6 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
             ) : (
               <View style={styles.backIconWrapper} />
             )}
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>Flip the Script</Text>
-            </View>
             <View style={styles.backIconWrapper} />
           </View>
         </View>
@@ -192,9 +189,6 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <View style={styles.backIconWrapper} />
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>Flip the Script</Text>
-            </View>
             <View style={styles.backIconWrapper} />
           </View>
         </View>
