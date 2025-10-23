@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, ChevronLeft, Zap, ArrowLeft } from 'lucide-react-native';
+import { ChevronRight, Zap, ArrowLeft } from 'lucide-react-native';
 
 interface QuizQuestion {
     id: number;
@@ -403,8 +402,11 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                     <View style={styles.content}>
                         <View style={styles.introCard}>
                             <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Zap size={32} color="#E2DED0" />
+                                <View style={styles.finalIconContainer}>
+                                    <Image
+                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                        style={styles.heroImage}
+                                    />
                                 </View>
                             </View>
 
@@ -808,7 +810,7 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     finalIconContainer: {
-        marginBottom: 32,
+        marginBottom: 10,
     },
     heroImage: {
         width: 120,
