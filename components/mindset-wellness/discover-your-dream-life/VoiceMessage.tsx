@@ -80,7 +80,7 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.voiceTitle}>Visualize your dream</Text>
+              <Text style={styles.voiceTitle}>Visualize Your Dream</Text>
 
               <Text style={styles.voiceDescription}>
                 {isPlaying

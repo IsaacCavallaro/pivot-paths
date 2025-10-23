@@ -650,7 +650,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,
-    fontStyle: 'italic',
   },
   startButton: {
     borderRadius: 30,
