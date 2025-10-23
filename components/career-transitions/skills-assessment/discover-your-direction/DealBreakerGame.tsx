@@ -227,9 +227,6 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Deal Breakers</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -273,10 +270,6 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Reflection</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
