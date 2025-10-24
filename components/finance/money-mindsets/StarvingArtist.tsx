@@ -246,8 +246,11 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
                     <View style={styles.content}>
                         <View style={styles.introCard}>
                             <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Star size={32} color="#E2DED0" />
+                                <View style={styles.finalIconContainer}>
+                                    <Image
+                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                        style={styles.heroImage}
+                                    />
                                 </View>
                             </View>
 
