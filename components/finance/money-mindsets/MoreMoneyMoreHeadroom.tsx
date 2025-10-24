@@ -146,9 +146,6 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                         ) : (
                             <View style={styles.backIconWrapper} />
                         )}
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>More Headroom</Text>
-                        </View>
                         <View style={styles.backIconWrapper} />
                     </View>
                 </View>
@@ -188,10 +185,6 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
             <View style={styles.container}>
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backIconWrapper} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>More Headroom</Text>
-                        </View>
                         <View style={styles.backIconWrapper} />
                     </View>
                 </View>
