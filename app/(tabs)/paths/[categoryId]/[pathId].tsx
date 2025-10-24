@@ -1061,11 +1061,11 @@ export default function PathDetailScreen() {
   }
 
   if (showLeadershipExperience) {
-    return <LeadershipExperience onComplete={handleLeadershipComplete} />;
+    return <LeadershipExperience onComplete={handleLeadershipComplete} onBack={() => setShowLeadershipExperience(false)} />;
   }
 
   if (showDealBreakerGame) {
-    return <DealBreakerGame onComplete={handleDealBreakerGameComplete} />;
+    return <DealBreakerGame onComplete={handleDealBreakerGameComplete} onBack={() => setShowDealBreakerGame(false)} />;
   }
 
   if (showMythBuster) {
@@ -1117,47 +1117,47 @@ export default function PathDetailScreen() {
   }
 
   if (showStartWithYourStrenghts) {
-    return <StartWithYourStrengths onComplete={handleStartWithYourStrengthsComplete} />;
+    return <StartWithYourStrengths onComplete={handleStartWithYourStrengthsComplete} onBack={() => setShowStartWithYourStrengths(false)} />;
   }
 
   if (showFindYourLearningStyle) {
-    return <FindYourLearningStyle onComplete={handleFindYourLearningStyleComplete} />;
+    return <FindYourLearningStyle onComplete={handleFindYourLearningStyleComplete} onBack={() => setShowFindYourLearningStyle(false)} />;
   }
 
   if (showWorkBackwards) {
-    return <WorkBackwards onComplete={handleWorkBackwardsComplete} />;
+    return <WorkBackwards onComplete={handleWorkBackwardsComplete} onBack={() => setShowWorkBackwards(false)} />;
   }
 
   if (showYourHiddenNetwork) {
-    return <YourHiddenNetwork onComplete={handleYourHiddenNetworkComplete} />;
+    return <YourHiddenNetwork onComplete={handleYourHiddenNetworkComplete} onBack={() => setShowYourHiddenNetwork(false)} />;
   }
 
   if (showOvercomeAnalysisParalysis) {
-    return <OvercomeAnalysisParalysis onComplete={handleOvercomeAnalysisParalysisComplete} />;
+    return <OvercomeAnalysisParalysis onComplete={handleOvercomeAnalysisParalysisComplete} onBack={() => setShowOvercomeAnalysisParalysis(false)} />;
   }
 
   if (showEmbraceTheBeginner) {
-    return <EmbraceTheBeginner onComplete={handleEmbraceTheBeginnerComplete} />;
+    return <EmbraceTheBeginner onComplete={handleEmbraceTheBeginnerComplete} onBack={() => setShowEmbraceTheBeginner(false)} />;
   }
 
   if (showJustStart) {
-    return <JustStart onComplete={handleJustStartComplete} />;
+    return <JustStart onComplete={handleJustStartComplete} onBack={() => setShowJustStart(false)} />;
   }
 
   if (showConfidenceGap) {
-    return <ConfidenceGap onComplete={handleConfidenceGapComplete} />;
+    return <ConfidenceGap onComplete={handleConfidenceGapComplete} onBack={() => setShowConfidenceGap(false)} />;
   }
 
   if (showCureImposterSyndrome) {
-    return <CureImposterSyndrome onComplete={handleCureImposterSyndromeComplete} />;
+    return <CureImposterSyndrome onComplete={handleCureImposterSyndromeComplete} onBack={() => setShowCureImposterSyndrome(false)} />;
   }
 
   if (showTalkTheTalk) {
-    return <TalkTheTalk onComplete={handleTalkTheTalkComplete} />;
+    return <TalkTheTalk onComplete={handleTalkTheTalkComplete} onBack={() => setShowTalkTheTalk(false)} />;
   }
 
   if (showDanceSkillMatch) {
-    return <DanceSkillMatch onComplete={handleDanceSkillMatchComplete} />;
+    return <DanceSkillMatch onComplete={handleDanceSkillMatchComplete} onBack={() => setShowDanceSkillMatch(false)} />;
   }
 
   if (showLinkedinUpgrade) {
