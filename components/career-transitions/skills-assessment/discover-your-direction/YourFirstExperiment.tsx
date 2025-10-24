@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Target, ArrowLeft, ChevronLeft } from 'lucide-react-native';
 
@@ -110,6 +110,10 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
         setCurrentStepIndex(prevScreen.stepIndex);
     };
 
+    const handleOpenCourse = () => {
+        Linking.openURL('https://pivotfordancers.com/products/happy-trails/');
+    };
+
     // Intro Screen
     if (screenHistory.length === 0) {
         return (
@@ -185,6 +189,20 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
                                 <Text style={styles.finalText}>
                                     Every big career change starts with small daily experiments. You don't need to know everything today. The goal is to learn, test, and explore, one step at a time.
                                 </Text>
+                            </View>
+
+                            {/* New Happy Trails Course Content */}
+                            <View style={styles.courseCard}>
+                                <Text style={styles.courseTitle}>Take your next step today with Happy Trails</Text>
+                                <Text style={styles.courseDescription}>
+                                    A mini course to plan your pivot. Inside, you'll get access to a 5-year career change roadmap and exclusive resources.
+                                </Text>
+                                <TouchableOpacity style={styles.courseButton} onPress={handleOpenCourse}>
+                                    <View style={[styles.courseButtonContent, { backgroundColor: '#647C90' }]}>
+                                        <Text style={styles.courseButtonText}>Start the Happy Trails Course</Text>
+                                        <ChevronRight size={16} color="#E2DED0" />
+                                    </View>
+                                </TouchableOpacity>
                             </View>
 
                             <Text style={styles.alternativeClosing}>
@@ -487,5 +505,52 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         borderColor: '#647C90',
         borderWidth: 2,
+    },
+    // New styles for the course card
+    courseCard: {
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 32,
+        borderLeftWidth: 4,
+        borderLeftColor: '#647C90',
+        width: '100%',
+    },
+    courseTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
+    },
+    courseDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: 20,
+    },
+    courseButton: {
+        borderRadius: 30,
+        overflow: 'hidden',
+    },
+    courseButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#647C90',
+    },
+    courseButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 14,
+        color: '#E2DED0',
+        marginRight: 8,
+        fontWeight: '600',
     },
 });
