@@ -1233,7 +1233,7 @@ export default function PathDetailScreen() {
   }
 
   if (showKnowYourValue) {
-    return <KnowYourValue onComplete={handleKnowYourValueComplete} />;
+    return <KnowYourValue onComplete={handleKnowYourValueComplete} onBack={() => setShowKnowYourValue(false)} />;
   }
 
   if (showGenerosity) {
