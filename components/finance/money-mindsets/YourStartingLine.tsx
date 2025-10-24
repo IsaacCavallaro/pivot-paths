@@ -336,6 +336,9 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
                         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>Your Starting Line</Text>
+                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -379,7 +382,9 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
+                        <TouchableOpacity style={styles.backButton} onPress={() => setCurrentScreen(11)}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
                         <View style={styles.headerTitleContainer}>
                             <Text style={styles.titleText}>Your Starting Line</Text>
                         </View>
@@ -440,7 +445,9 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
                         <View style={styles.headerTitleContainer}>
                             <Text style={styles.titleText}>Your Starting Line</Text>
                         </View>
