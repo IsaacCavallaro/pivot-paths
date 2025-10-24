@@ -112,25 +112,6 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
 
     const scenarioData = getScenarioData();
 
-    const getHeaderTitle = () => {
-        switch (currentScreen) {
-            case 0:
-                return "How Money Creates Generosity";
-            case 1:
-                return "Imagine This";
-            case 2:
-                return "Your Options";
-            case 3:
-                return "Your Status";
-            case 4:
-                return "The Alternative";
-            case 5:
-                return "The Alternative";
-            default:
-                return "Generosity";
-        }
-    };
-
     const getHeaderColor = () => {
         switch (currentScreen) {
             case 0:
@@ -156,9 +137,6 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -205,9 +183,6 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -248,9 +223,6 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -291,9 +263,6 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -334,9 +303,6 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -387,9 +353,6 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>

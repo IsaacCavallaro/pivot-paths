@@ -1237,7 +1237,7 @@ export default function PathDetailScreen() {
   }
 
   if (showGenerosity) {
-    return <Generosity onComplete={handleGenerosityComplete} />;
+    return <Generosity onComplete={handleGenerosityComplete} onBack={() => setShowGenerosity(false)} />;
   }
 
   if (showShameAroundMoney) {
