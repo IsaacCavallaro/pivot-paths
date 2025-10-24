@@ -253,7 +253,7 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                             <Text style={styles.introTitle}>Deal Breakers</Text>
 
                             <Text style={styles.introDescription}>
-                                Match each deal breaker with the type of work environment or situation it aligns with. These will be the circumstance to avoid.
+                                Match each deal breaker with the type of work environment or situation it aligns with. These will be the circumstances to avoid.
                             </Text>
 
                             <TouchableOpacity

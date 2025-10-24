@@ -136,7 +136,7 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
 
                             <Text style={styles.introTitle}>Take the Leap: Your First Career Experiment</Text>
                             <Text style={styles.introDescription}>
-                                It's time to put ideas into action. Today, you're going to try <Text style={styles.boldText}>one small experiment</Text> to explore a career you're curious about. The goal isn't perfection… it's discovery.
+                                It's time to put ideas into action. Today, you're going to try one small experiment to explore a career you're curious about. The goal isn't perfection… it's discovery.
                             </Text>
 
                             <TouchableOpacity style={styles.startButton} onPress={handleStartExperiment}>
@@ -183,7 +183,7 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
 
                             <View style={styles.finalTextContainer}>
                                 <Text style={styles.finalText}>
-                                    Every big career change starts with <Text style={styles.boldText}>small daily experiments</Text>. You don't need to know everything today. The goal is to <Text style={styles.boldText}>learn, test, and explore</Text>, one step at a time.
+                                    Every big career change starts with small daily experiments. You don't need to know everything today. The goal is to learn, test, and explore, one step at a time.
                                 </Text>
                             </View>
 
