@@ -437,7 +437,7 @@ export const categories: Category[] = [
         id: 'money-mindsets',
         title: 'Money Mindsets',
         subtitle: '',
-        description: 'You don’t have to buy into the starving artist stereotype anymore. In this game, you’ll match the old belief with a reframe that frees you.',
+        description: 'When it comes to money, dancers don’t often have the right mindset. And during your career change, you’re going to grapple with money and some hard truths about your finances.',
         duration: '7 days',
         totalDays: 7,
         days: [
@@ -467,7 +467,7 @@ export const categories: Category[] = [
           },
           {
             day: 5,
-            title: 'Scarcity Vs Abundance',
+            title: 'Scarcity vs Abundance',
             content: 'As dancers, we’ve been taught to accept less… low pay, “exposure gigs,” and the starving artist life. But what if you flipped the script? Let’s explore scarcity vs. abundance thinking by matching the scarcity thought with the abundance reframe.',
             hasScarcityVsAbundance: true,
           },

@@ -165,12 +165,12 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
 
                             <Text style={styles.introTitle}>More Headroom</Text>
                             <Text style={styles.introDescription}>
-                                Wanting more isn't about greed… it's about creating breathing room so your mind can think, create, and choose. Swipe through these cards. Each one ends with a tiny action you can actually try this week.
+                                Wanting more isn't about greed… it's about creating breathing room so your mind can think, create, and choose. Go through the following reflections. Each one ends with a tiny action you can actually try this week.
                             </Text>
 
                             <TouchableOpacity style={styles.startButton} onPress={handleStart}>
                                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Explore the cards</Text>
+                                    <Text style={styles.startButtonText}>Let’s Explore</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>
@@ -207,7 +207,7 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                             </View>
                             <Text style={styles.introTitle}>Moving Towards Clarity</Text>
                             <Text style={styles.finalText}>
-                                Hopefully, some of these cards help you imagine a headspace that's clearer and more at peace. There are so many ways more money = more headroom and these ideas only just scratch the surface of what's possible.
+                                Hopefully, some of these reflections help you imagine a headspace that's clearer and more at peace. There are so many ways more money = more headroom and these ideas only just scratch the surface of what's possible.
                             </Text>
 
                             <Text style={styles.finalClosing}>
@@ -284,7 +284,7 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                                 style={styles.continueButtonContent}
                             >
                                 <Text style={styles.continueButtonText}>
-                                    {currentCardIndex < tipCards.length - 1 ? 'Next Card' : 'Finish'}
+                                    {currentCardIndex < tipCards.length - 1 ? 'Next' : 'Finish'}
                                 </Text>
                                 <ChevronRight size={16} color="#E2DED0" />
                             </LinearGradient>

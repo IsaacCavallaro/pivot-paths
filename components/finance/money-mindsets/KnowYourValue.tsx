@@ -21,19 +21,19 @@ const valuePairs: ValuePair[] = [
     {
         id: 2,
         oldStatement: "I should be grateful for any opportunity.",
-        newStatement: "Gratitude doesn't mean undercutting myself. I can be thankful *and* well-compensated.",
+        newStatement: "Gratitude doesn't mean undercutting myself. I can be thankful and well-compensated.",
         buttonText: "So true!"
     },
     {
         id: 3,
-        oldStatement: "I can't negotiate — I might lose the job.",
+        oldStatement: "I can’t negotiate. I might lose the job.",
         newStatement: "Negotiation shows confidence. The right opportunity won't disappear just because I ask.",
         buttonText: "Totally!"
     },
     {
         id: 4,
         oldStatement: "Money doesn't matter if I love what I do.",
-        newStatement: "Loving what I do *and* earning well is possible. Passion and pay can co-exist.",
+        newStatement: "Loving what I do and earning well is possible. Passion and pay can co-exist.",
         buttonText: "Amen!"
     },
     {
@@ -159,7 +159,7 @@ export default function KnowYourValue({ onComplete, onBack }: KnowYourValueProps
 
                             <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
                                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Let's rewrite the story</Text>
+                                    <Text style={styles.startButtonText}>Rewrite the story</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>

@@ -60,7 +60,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
             case 1:
                 return {
                     title: "Your Sibling's Big Day",
-                    text: "It's a year from now and your youngest sibling is about to graduate college. They've always looked up to you and your dream is to surprise them with a meaningful graduation gift or experience. What do you do?",
+                    text: "It's a year from now and your youngest sibling is about to graduate college. They've always looked up to you and your dream is to surprise them with a meaningful graduation gift or experience.",
                     choices: [
                         "You write them a heartfelt letter and skip the gift, your budget is too tight.",
                         "You chip in a small amount with other family members, even though you'd love to give more.",
@@ -76,7 +76,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
             case 2:
                 return {
                     title: "Supporting Your Roots",
-                    text: "Your hometown dance studio is running a fundraiser to stay afloat. You'd love to support them. After all, they gave you so much growing up. What do you do?",
+                    text: "Your hometown dance studio is running a fundraiser to stay afloat. You'd love to support them. After all, they gave you so much growing up.",
                     choices: [
                         "Share their fundraiser on social media. Unfortunately, you can't afford to donate right now.",
                         "Pitch in a small donation, even though you wish you could do more.",
@@ -92,7 +92,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
             case 3:
                 return {
                     title: "A Friend in Need",
-                    text: "A friend from your previous company has been struggling to cover physical therapy bills after an injury. They're too proud to ask, but you know they could use some help. What do you do?",
+                    text: "A friend from your previous company has been struggling to cover physical therapy bills after an injury. They're too proud to ask, but you know they could use some help.",
                     choices: [
                         "Offer emotional support, but money isn't something you can give right now.",
                         "Send them an UberEats gift card, even though it means cutting corners for yourself this month.",
@@ -230,7 +230,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                 <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                     <View style={styles.content}>
                         <View style={styles.choicesCard}>
-                            <Text style={styles.choicesTitle}>Here are your Options</Text>
+                            <Text style={styles.choicesTitle}>Your Options</Text>
 
                             <View style={styles.choicesContainer}>
                                 {scenarioData.choices.map((choice, index) => (
@@ -331,7 +331,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                             >
                                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
                                     <Text style={styles.continueButtonText}>
-                                        {currentScenario < 3 ? 'Let\'s try another example' : 'Continue'}
+                                        {currentScenario < 3 ? 'Try another example' : 'Continue'}
                                     </Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
