@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 2,
     borderColor: 'transparent',
-    height: 80,
+    height: 100,
     justifyContent: 'center',
     alignItems: 'center',
   },
