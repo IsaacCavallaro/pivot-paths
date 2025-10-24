@@ -1113,7 +1113,7 @@ export default function PathDetailScreen() {
   }
 
   if (showYourFirstExperiment) {
-    return <YourFirstExperiment onComplete={handleYourFirstExperimentComplete} />;
+    return <YourFirstExperiment onComplete={handleYourFirstExperimentComplete} onBack={() => setShowYourFirstExperiment(false)} />;
   }
 
   if (showStartWithYourStrenghts) {
