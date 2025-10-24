@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Star, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { ChevronRight, Star, ArrowLeft } from 'lucide-react-native';
 
 interface BeliefPair {
     id: number;
@@ -293,8 +292,11 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
                     <View style={styles.content}>
                         <View style={styles.reflectionCard}>
                             <View style={styles.reflectionIconContainer}>
-                                <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Star size={40} color="#E2DED0" />
+                                <View style={styles.finalIconContainer}>
+                                    <Image
+                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                        style={styles.heroImage}
+                                    />
                                 </View>
                             </View>
 
@@ -690,5 +692,15 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
         fontWeight: '600',
+    },
+    finalIconContainer: {
+        marginBottom: 0,
+    },
+    heroImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
     },
 });
