@@ -239,9 +239,6 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
                         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Starving Artist No More</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -285,10 +282,9 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Reflection</Text>
-                        </View>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -589,7 +585,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 2,
         borderColor: 'transparent',
-        height: 100,
+        height: 120,
         justifyContent: 'center',
         alignItems: 'center',
     },

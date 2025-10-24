@@ -1229,7 +1229,7 @@ export default function PathDetailScreen() {
   }
 
   if (showStarvingArtist) {
-    return <StarvingArtist onComplete={handleStarvingArtistComplete} />;
+    return <StarvingArtist onComplete={handleStarvingArtistComplete} onBack={() => setShowStarvingArtist(false)} />;
   }
 
   if (showKnowYourValue) {
