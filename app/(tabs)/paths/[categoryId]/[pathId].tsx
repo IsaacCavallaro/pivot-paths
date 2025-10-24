@@ -1241,7 +1241,7 @@ export default function PathDetailScreen() {
   }
 
   if (showShameAroundMoney) {
-    return <ShameAroundMoney onComplete={handleShameAroundMoneyComplete} />;
+    return <ShameAroundMoney onComplete={handleShameAroundMoneyComplete} onBack={() => setShowShameAroundMoney(false)} />;
   }
 
   if (showScarcityVsAbundance) {

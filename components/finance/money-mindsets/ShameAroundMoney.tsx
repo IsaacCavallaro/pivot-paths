@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking, Image } from 'react-native';
 import { Play, Pause, ExternalLink, ArrowLeft } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -12,48 +11,44 @@ interface ShameAroundMoneyProps {
 
 export default function ShameAroundMoney({ onComplete, onBack }: ShameAroundMoneyProps) {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = shame around money, 1 = ebook promotion
+    const [currentScreen, setCurrentScreen] = useState(1); // Start at screen 1 (shame around money)
 
     const handlePlayPause = () => {
-        // Placeholder for audio functionality
         setIsPlaying(!isPlaying);
 
-        // Simulate audio completion after 3 seconds for demo
         if (!isPlaying) {
             setTimeout(() => {
                 setIsPlaying(false);
-                setCurrentScreen(1);
+                setCurrentScreen(2);
             }, 3000);
         }
     };
 
     const handleEbookLink = () => {
-        console.log('Opening How to Pivot ebook link');
+        Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
     };
 
-    const handleBack = () => {
-        if (onBack) {
-            onBack();
+    const goBack = () => {
+        if (currentScreen === 2) {
+            // Go back from ebook to shame around money
+            setCurrentScreen(1);
+        } else if (currentScreen === 1) {
+            if (onBack) {
+                onBack();
+            }
         }
     };
 
     // Shame Around Money Screen
-    if (currentScreen === 0) {
+    if (currentScreen === 1) {
         return (
             <View style={styles.container}>
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        {onBack ? (
-                            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                                <ArrowLeft size={28} color="#E2DED0" />
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={styles.backButton} />
-                        )}
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Confront Money Shame</Text>
-                        </View>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -64,32 +59,28 @@ export default function ShameAroundMoney({ onComplete, onBack }: ShameAroundMone
                         showsVerticalScrollIndicator={false}
                     >
                         <View style={styles.card}>
-                            <View style={styles.shameIcon}>
+                            <View style={styles.voiceIcon}>
                                 <TouchableOpacity
                                     style={styles.playButton}
                                     onPress={handlePlayPause}
                                     activeOpacity={0.8}
                                 >
-                                    <LinearGradient
-                                        colors={['#647C90', '#928490']}
-                                        style={styles.playButtonGradient}
+                                    <View
+                                        style={[styles.playButtonGradient, { backgroundColor: '#928490' }]}
                                     >
                                         {isPlaying ? (
                                             <Pause size={40} color="#E2DED0" />
                                         ) : (
                                             <Play size={40} color="#E2DED0" />
                                         )}
-                                    </LinearGradient>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
 
-                            <Text style={styles.shameTitle}>Confront money shame</Text>
+                            <Text style={styles.voiceTitle}>Confront Money Shame</Text>
 
-                            <Text style={styles.shameDescription}>
-                                {isPlaying
-                                    ? "Playing guided reflection..."
-                                    : "Tap to listen to a guided reflection on money mindset"
-                                }
+                            <Text style={styles.voiceDescription}>
+                                {!isPlaying && "Tap to listen to a guided reflection on money mindset"}
                             </Text>
 
                             {isPlaying && (
@@ -115,10 +106,9 @@ export default function ShameAroundMoney({ onComplete, onBack }: ShameAroundMone
             {/* Sticky Header */}
             <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                 <View style={styles.headerRow}>
-                    <View style={styles.backButton} />
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.titleText}>Ready for More?</Text>
-                    </View>
+                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                        <ArrowLeft size={28} color="#E2DED0" />
+                    </TouchableOpacity>
                     <View style={styles.backButton} />
                 </View>
             </View>
@@ -129,8 +119,11 @@ export default function ShameAroundMoney({ onComplete, onBack }: ShameAroundMone
                     showsVerticalScrollIndicator={false}
                 >
                     <View style={styles.card}>
-                        <View style={styles.ebookIcon}>
-                            <ExternalLink size={32} color="#928490" />
+                        <View style={styles.finalIconContainer}>
+                            <Image
+                                source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                style={styles.heroImage}
+                            />
                         </View>
 
                         <Text style={styles.ebookTitle}>Ready for More?</Text>
@@ -228,7 +221,7 @@ const styles = StyleSheet.create({
         elevation: 5,
         marginVertical: 20,
     },
-    shameIcon: {
+    voiceIcon: {
         marginBottom: 30,
     },
     playButton: {
@@ -242,14 +235,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    shameTitle: {
+    voiceTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 15,
     },
-    shameDescription: {
+    voiceDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#746C70',
@@ -344,5 +337,15 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
+    },
+    finalIconContainer: {
+        marginBottom: 30,
+    },
+    heroImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
     },
 });
