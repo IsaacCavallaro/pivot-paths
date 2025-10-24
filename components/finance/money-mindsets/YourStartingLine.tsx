@@ -336,9 +336,6 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
                         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Starting Line</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>

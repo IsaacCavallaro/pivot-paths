@@ -1245,7 +1245,7 @@ export default function PathDetailScreen() {
   }
 
   if (showScarcityVsAbundance) {
-    return <ScarcityVsAbundance onComplete={handleScarcityVsAbundanceComplete} />;
+    return <ScarcityVsAbundance onComplete={handleScarcityVsAbundanceComplete} onBack={() => setShowScarcityVsAbundance(false)} />;
   }
 
 
@@ -1254,7 +1254,7 @@ export default function PathDetailScreen() {
   }
 
   if (showYourStartingLine) {
-    return <YourStartingLine onComplete={handleYourStartingLineComplete} />;
+    return <YourStartingLine onComplete={handleYourStartingLineComplete} onBack={() => setShowYourStartingLine(false)} />;
   }
 
   if (showGoalSetting) {
