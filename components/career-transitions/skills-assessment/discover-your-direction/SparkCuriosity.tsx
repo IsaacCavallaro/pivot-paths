@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#928490',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 32,
         marginTop: 20,
