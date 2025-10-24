@@ -31,19 +31,19 @@ const quizQuestions: QuizQuestion[] = [
             {
                 id: 'a',
                 text: 'Stress and avoidance',
-                emoji: '😬',
+                emoji: '',
                 type: 'A'
             },
             {
                 id: 'b',
                 text: 'Neutral, I don\'t think about it much',
-                emoji: '🤷‍♀️',
+                emoji: '',
                 type: 'B'
             },
             {
                 id: 'c',
                 text: 'Motivation and possibility',
-                emoji: '💪',
+                emoji: '',
                 type: 'C'
             }
         ]
@@ -394,18 +394,14 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
                     <View style={styles.centeredContent}>
                         <View style={styles.finalCard}>
                             <View style={styles.finalIconContainer}>
-                                <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Image
-                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                        style={styles.heroImage}
-                                    />
-                                </View>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
 
                             <View style={styles.finalHeader}>
-                                <DollarSign size={24} color="#928490" />
                                 <Text style={styles.finalHeading}>Your Starting Line</Text>
-                                <DollarSign size={24} color="#928490" />
                             </View>
 
                             <View style={styles.finalTextContainer}>
@@ -643,7 +639,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 24,
         marginBottom: 32,
-        fontStyle: 'italic',
     },
     startButton: {
         borderRadius: 30,
@@ -784,9 +779,6 @@ const styles = StyleSheet.create({
         elevation: 5,
         marginVertical: 20,
     },
-    finalIconContainer: {
-        marginBottom: 30,
-    },
     finalIconGradient: {
         width: 100,
         height: 100,
@@ -838,9 +830,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 20,
     },
+    finalIconContainer: {
+        marginBottom: 30,
+    },
     heroImage: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
     },
 });
