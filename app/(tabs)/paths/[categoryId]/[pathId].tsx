@@ -1250,7 +1250,7 @@ export default function PathDetailScreen() {
 
 
   if (showMoreMoneyMoreHeadroom) {
-    return <MoreMoneyMoreHeadroom onComplete={handleMoreMoneyMoreHeadroomComplete} />;
+    return <MoreMoneyMoreHeadroom onComplete={handleMoreMoneyMoreHeadroomComplete} onBack={() => setShowMoreMoneyMoreHeadroom(false)} />;
   }
 
   if (showYourStartingLine) {

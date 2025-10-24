@@ -159,7 +159,7 @@ export const categories: Category[] = [
         id: 'mindset-shift',
         title: 'Mindset Shift',
         subtitle: '', // We only use subheadings for "Coming Soon"
-        description: 'Explore who you are beyond your dancer identity - comprehensive path coming soon',
+        description: 'Explore who you are beyond your dancer identity',
         duration: '7 days',
         totalDays: 7,
         days: [

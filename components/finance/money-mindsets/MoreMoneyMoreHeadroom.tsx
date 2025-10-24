@@ -139,23 +139,16 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
             <View style={styles.container}>
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        {onBack ? (
-                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
-                                <ArrowLeft size={24} color="#E2DED0" />
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={styles.backIconWrapper} />
-                        )}
-                        <View style={styles.backIconWrapper} />
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.backButton} />
                     </View>
                 </View>
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.introCard}>
                             <View style={styles.introIcon}>
                                 <DollarSign size={32} color="#928490" />
                             </View>
@@ -167,13 +160,13 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
 
                             <TouchableOpacity style={styles.startButton} onPress={handleStart}>
                                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Let’s Explore</Text>
+                                    <Text style={styles.startButtonText}>Let's Explore</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>
                         </View>
-                    </ScrollView>
-                </View>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
@@ -185,16 +178,16 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
             <View style={styles.container}>
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backIconWrapper} />
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.backButton} />
                     </View>
                 </View>
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.finalCard}>
                             <View style={styles.finalIcon}>
                                 <DollarSign size={40} color="#928490" />
                             </View>
@@ -214,8 +207,8 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                                 </View>
                             </TouchableOpacity>
                         </View>
-                    </ScrollView>
-                </View>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
@@ -227,26 +220,23 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
         <View style={styles.container}>
             <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                 <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
-                        <ChevronLeft size={24} color="#E2DED0" />
+                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                        <ArrowLeft size={28} color="#E2DED0" />
                     </TouchableOpacity>
                     <View style={styles.headerTitleContainer}>
-                        <Text style={styles.headerTitle}>
+                        <Text style={styles.progressText}>
                             {currentCardIndex + 1} of {tipCards.length}
                         </Text>
                     </View>
-                    <View style={styles.backIconWrapper} />
+                    <View style={styles.backButton} />
                 </View>
                 <View style={styles.progressBar}>
                     <View style={[styles.progressFill, { width: `${cardProgress}%` }]} />
                 </View>
             </View>
 
-            <View style={styles.scrollContainer}>
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                >
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.centeredContent}>
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>{currentCard.title}</Text>
 
@@ -272,19 +262,16 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                         </View>
 
                         <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                            <LinearGradient
-                                colors={['#647C90', '#647C90']}
-                                style={styles.continueButtonContent}
-                            >
+                            <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
                                 <Text style={styles.continueButtonText}>
                                     {currentCardIndex < tipCards.length - 1 ? 'Next' : 'Finish'}
                                 </Text>
                                 <ChevronRight size={16} color="#E2DED0" />
-                            </LinearGradient>
+                            </View>
                         </TouchableOpacity>
                     </View>
-                </ScrollView>
-            </View>
+                </View>
+            </ScrollView>
         </View>
     );
 }
@@ -292,16 +279,18 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#E2DED0'
+        backgroundColor: '#E2DED0',
     },
-    scrollContainer: {
+    scrollView: {
         flex: 1,
+        marginTop: 100,
+        zIndex: 1,
     },
-    scrollContent: {
-        flexGrow: 1,
+    centeredContent: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 20,
+        paddingBottom: 30,
     },
 
     stickyHeader: {
@@ -321,18 +310,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
     },
-    backIconWrapper: {
-        width: 40,
-        alignItems: 'center'
+    backButton: {
+        width: 28,
     },
     headerTitleContainer: {
         flex: 1,
-        alignItems: 'center'
+        alignItems: 'center',
     },
-    headerTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
         color: '#E2DED0',
+        textAlign: 'center',
     },
 
     card: {
@@ -346,7 +335,19 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 5,
         marginVertical: 20,
-        marginTop: 120,
+    },
+    introCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
     },
     introIcon: {
         width: 80,
@@ -374,8 +375,8 @@ const styles = StyleSheet.create({
     },
 
     startButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
+        borderRadius: 30,
+        overflow: 'hidden',
     },
     startButtonContent: {
         flexDirection: 'row',
@@ -383,7 +384,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
-        borderRadius: 12,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -424,8 +427,8 @@ const styles = StyleSheet.create({
     },
 
     continueButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
+        borderRadius: 30,
+        overflow: 'hidden',
     },
     continueButtonContent: {
         flexDirection: 'row',
@@ -433,7 +436,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingVertical: 14,
-        borderRadius: 12,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -442,6 +447,19 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
 
+    finalCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+    },
     finalIcon: {
         width: 100,
         height: 100,
@@ -467,8 +485,8 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
+        borderRadius: 30,
+        overflow: 'hidden',
     },
     completeButtonContent: {
         flexDirection: 'row',
@@ -476,7 +494,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
-        borderRadius: 12,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     completeButtonText: {
         fontFamily: 'Montserrat-SemiBold',
@@ -488,8 +508,9 @@ const styles = StyleSheet.create({
     progressBar: {
         width: '100%',
         height: 6,
-        backgroundColor: 'rgba(255,255,255,0.3)',
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
         borderRadius: 3,
+        overflow: 'hidden',
         marginTop: 12,
     },
     progressFill: {
