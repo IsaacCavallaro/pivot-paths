@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     newScriptText: {
-        fontFamily: 'Montserrat-SemiBold',
+        fontFamily: 'Montserrat-Regular',
         fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
