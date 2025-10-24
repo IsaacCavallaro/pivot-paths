@@ -142,9 +142,6 @@ export default function KnowYourValue({ onComplete, onBack }: KnowYourValueProps
                         ) : (
                             <View style={styles.backIconWrapper} />
                         )}
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Know Your Value</Text>
-                        </View>
                         <View style={styles.backIconWrapper} />
                     </View>
                 </View>
@@ -184,10 +181,6 @@ export default function KnowYourValue({ onComplete, onBack }: KnowYourValueProps
             <View style={styles.container}>
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backIconWrapper} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Know Your Value</Text>
-                        </View>
                         <View style={styles.backIconWrapper} />
                     </View>
                 </View>
