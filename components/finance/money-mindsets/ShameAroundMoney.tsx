@@ -126,28 +126,15 @@ export default function ShameAroundMoney({ onComplete, onBack }: ShameAroundMone
                             />
                         </View>
 
-                        <Text style={styles.ebookTitle}>Ready for More?</Text>
+                        <Text style={styles.ebookTitle}>How did that feel?</Text>
 
                         <Text style={styles.ebookText}>
-                            You're ready to dream bigger and step into a full and rich life beyond dance.
+                            There's often a lot of shame baked into dealing with money (dancer or not). In fact, generational shame and trauma around finances can seep into how you feel about your finances. But when you leave the past in the past, you can start to move forward. Half the battle is accepting that you're not in the best money situation. Start there.
                         </Text>
 
-                        <Text style={styles.ebookText}>
-                            Now, take it one step further with our How to Pivot ebook. Dive deeper into your values, mindset, and next steps with actionable activities and real-life examples.
+                        <Text style={styles.reflectionClosing}>
+                            See you tomorrow!
                         </Text>
-
-                        <Text style={styles.ebookCallout}>
-                            Life is yours for the taking. Will you reach out and grab it?
-                        </Text>
-
-                        <TouchableOpacity style={styles.ebookButton} onPress={handleEbookLink}>
-                            <View
-                                style={[styles.ebookButtonContent, { backgroundColor: '#928490' }]}
-                            >
-                                <Text style={styles.ebookButtonText}>Get the How to Pivot Ebook</Text>
-                                <ExternalLink size={16} color="#E2DED0" />
-                            </View>
-                        </TouchableOpacity>
 
                         <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
                             <View
@@ -347,5 +334,13 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         borderColor: '#647C90',
         borderWidth: 2,
+    },
+    reflectionClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 40,
+        fontWeight: '600',
     },
 });
