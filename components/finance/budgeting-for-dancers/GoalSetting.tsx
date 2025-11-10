@@ -160,7 +160,7 @@ export default function GoalSetting({ onComplete, onBack }: GoalSettingProps) {
                             <View
                                 style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}
                             >
-                                <Text style={styles.completeButtonText}>Mark as complete</Text>
+                                <Text style={styles.completeButtonText}>Mark As Complete</Text>
                             </View>
                         </TouchableOpacity>
                     </View>

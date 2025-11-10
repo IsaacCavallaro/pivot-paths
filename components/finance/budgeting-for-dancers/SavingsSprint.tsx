@@ -368,7 +368,7 @@ export default function SavingsSprint({ onComplete, onBack }: SavingsSprintProps
 
                             <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
                                 <View style={[styles.completeButtonContent, { backgroundColor: '#647C90' }]}>
-                                    <Text style={styles.completeButtonText}>Mark as complete</Text>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>

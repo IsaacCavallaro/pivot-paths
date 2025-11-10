@@ -380,7 +380,7 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
 
                             <TouchableOpacity style={styles.completeButton} onPress={handleContinue}>
                                 <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark as complete</Text>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>

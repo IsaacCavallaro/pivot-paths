@@ -285,7 +285,7 @@ export default function LeadershipExperience({ onComplete }: LeadershipExperienc
               style={[styles.actionButton, { backgroundColor: result.color }]}
               onPress={() => onComplete(result)}
             >
-              <Text style={styles.actionButtonText}>Mark as complete</Text>
+              <Text style={styles.actionButtonText}>Mark As Complete</Text>
               <ChevronRight size={16} color="#928490" />
             </TouchableOpacity>
 
