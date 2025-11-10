@@ -20,18 +20,7 @@ jobs:
     - name: Install dependencies
       run: npm install --legacy-peer-deps
     - name: Build Expo PWA
-      run: npx expo export -p web
-    - name: Fix paths for GitHub Pages subdirectory
-      run: |
-        cd dist
-        # Replace absolute paths with subdirectory paths
-        find . -name '*.html' -exec sed -i 's|href="/|href="/pivot-paths/|g' {} \;
-        find . -name '*.html' -exec sed -i 's|src="/|src="/pivot-paths/|g' {} \;
-        find . -name '*.js' -exec sed -i 's|"\/_expo\/|"/pivot-paths/_expo/|g' {} \;
-        find . -name '*.js' -exec sed -i 's|"\/assets\/|"/pivot-paths/assets/|g' {} \;
-        find . -name '*.css' -exec sed -i 's|url("/|url("/pivot-paths/|g' {} \;
-        find . -name '*.json' -exec sed -i 's|"\/_expo\/|"/pivot-paths/_expo/|g' {} \;
-        find . -name '*.json' -exec sed -i 's|"\/assets\/|"/pivot-paths/assets/|g' {} \;
+      run: npx expo export -p web --base-path /pivot-paths
     - name: Setup Pages
       uses: actions/configure-pages@v4
     - name: Upload artifact
