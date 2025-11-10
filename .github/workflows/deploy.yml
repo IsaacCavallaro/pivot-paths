@@ -21,6 +21,20 @@ jobs:
       run: npm install --legacy-peer-deps
     - name: Build Expo PWA
       run: npx expo export -p web
+    - name: Add .nojekyll file
+      run: touch dist/.nojekyll
+    - name: Fix paths for GitHub Pages subdirectory
+      run: |
+        cd dist
+        # Fix all absolute paths to include /pivot-paths
+        find . -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" \) -exec sed -i \
+          -e 's|"/_expo/|"/pivot-paths/_expo/|g' \
+          -e 's|src="/_expo/|src="/pivot-paths/_expo/|g' \
+          -e 's|href="/_expo/|href="/pivot-paths/_expo/|g' \
+          -e 's|"/assets/|"/pivot-paths/assets/|g' \
+          -e 's|src="/assets/|src="/pivot-paths/assets/|g' \
+          -e 's|href="/assets/|href="/pivot-paths/assets/|g' \
+          {} \;
     - name: Setup Pages
       uses: actions/configure-pages@v4
     - name: Upload artifact
