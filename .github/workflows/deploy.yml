@@ -1,0 +1,59 @@
+name: Deploy Expo PWA to GitHub Pages
+
+on:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build Expo PWA
+      run: npx expo export -p web
+
+    - name: Fix paths for GitHub Pages subdirectory
+      run: |
+        cd dist
+        # Fix all absolute paths to work in subdirectory
+        find . -name '*.html' -exec sed -i 's|href="/|href="./|g' {} \;
+        find . -name '*.html' -exec sed -i 's|src="/|src="./|g' {} \;
+        find . -name '*.js' -exec sed -i 's|"/|"./|g' {} \;
+        find . -name '*.css' -exec sed -i 's|url("/|url("./|g' {} \;
+        find . -name '*.json' -exec sed -i 's|"/|"./|g' {} \;
+        echo "All paths fixed for GitHub Pages subdirectory"
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

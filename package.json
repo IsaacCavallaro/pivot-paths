@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "EXPO_NO_TELEMETRY=1 expo start",
     "build:web": "expo export --platform web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build:pwa": "expo export -p web",
+    "serve:pwa": "npx serve dist",
+    "predeploy": "npm run build:pwa"
   },
   "dependencies": {
     "@expo-google-fonts/merriweather": "^0.4.1",
