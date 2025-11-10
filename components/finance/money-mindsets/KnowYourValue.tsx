@@ -1,9 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, DollarSign, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
+import { ChevronRight, DollarSign, ArrowLeft } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface ValuePair {
     id: number;
@@ -22,19 +21,19 @@ const valuePairs: ValuePair[] = [
     {
         id: 2,
         oldStatement: "I should be grateful for any opportunity.",
-        newStatement: "Gratitude doesn't mean undercutting myself. I can be thankful *and* well-compensated.",
+        newStatement: "Gratitude doesn't mean undercutting myself. I can be thankful and well-compensated.",
         buttonText: "So true!"
     },
     {
         id: 3,
-        oldStatement: "I can't negotiate — I might lose the job.",
+        oldStatement: "I can’t negotiate. I might lose the job.",
         newStatement: "Negotiation shows confidence. The right opportunity won't disappear just because I ask.",
         buttonText: "Totally!"
     },
     {
         id: 4,
         oldStatement: "Money doesn't matter if I love what I do.",
-        newStatement: "Loving what I do *and* earning well is possible. Passion and pay can co-exist.",
+        newStatement: "Loving what I do and earning well is possible. Passion and pay can co-exist.",
         buttonText: "Amen!"
     },
     {
@@ -127,36 +126,30 @@ export default function KnowYourValue({ onComplete, onBack }: KnowYourValueProps
     };
 
     // Calculate progress for statement screens
-    const statementProgress = ((currentPairIndex + 1) / valuePairs.length) * 100;
+    const progress = ((currentPairIndex + 1) / valuePairs.length) * 100;
 
     // Intro Screen
     if (screenHistory.length === 0) {
         return (
             <View style={styles.container}>
+                {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        {onBack ? (
-                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
-                                <ArrowLeft size={24} color="#E2DED0" />
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={styles.backIconWrapper} />
-                        )}
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Know Your Value</Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
+                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.backButton} />
                     </View>
                 </View>
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <View style={styles.introIcon}>
-                                <DollarSign size={32} color="#928490" />
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.introCard}>
+                            <View style={styles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.introTitle}>Know Your Value</Text>
@@ -166,13 +159,13 @@ export default function KnowYourValue({ onComplete, onBack }: KnowYourValueProps
 
                             <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
                                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Let's rewrite the story</Text>
+                                    <Text style={styles.startButtonText}>Rewrite the story</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>
                         </View>
-                    </ScrollView>
-                </View>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
@@ -182,47 +175,59 @@ export default function KnowYourValue({ onComplete, onBack }: KnowYourValueProps
     if (currentScreen.pairIndex === -1) {
         return (
             <View style={styles.container}>
+                {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backIconWrapper} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Know Your Value</Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.backButton} />
                     </View>
                 </View>
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <View style={styles.finalIcon}>
-                                <DollarSign size={40} color="#928490" />
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                    <View style={styles.centeredContent}>
+                        <View style={styles.finalCard}>
+                            <View style={styles.finalIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
-                            <Text style={styles.introTitle}>You Deserve It</Text>
-                            <Text style={styles.finalText}>
-                                You've spent years (and maybe decades) delivering excellence for less than you're worth. That doesn't mean you're 'worthless', it means the system was broken.
-                            </Text>
 
-                            <Text style={styles.finalText}>
-                                From here on, you get to set new standards for yourself. Advocate, negotiate, and expect more. You deserve it.
-                            </Text>
+                            <View style={styles.finalHeader}>
+                                <Text style={styles.finalHeading}>You Deserve It</Text>
+                            </View>
 
-                            <Text style={styles.finalClosing}>
+                            <View style={styles.finalTextContainer}>
+                                <Text style={styles.finalText}>
+                                    You've spent years (and maybe decades) delivering excellence for less than you're worth. That doesn't mean you're 'worthless', it means the system was broken.
+                                </Text>
+
+                                <Text style={styles.finalText}>
+                                    From here on, you get to set new standards for yourself. Advocate, negotiate, and expect more. You deserve it.
+                                </Text>
+                            </View>
+
+                            <Text style={styles.alternativeClosing}>
                                 See you tomorrow for more.
                             </Text>
 
-                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
+                            <View style={styles.finalButtonContainer}>
+                                <TouchableOpacity
+                                    style={styles.continueButton}
+                                    onPress={handleComplete}
+                                    activeOpacity={0.8}
+                                >
+                                    <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                        <Text style={styles.continueButtonText}>Mark As Complete</Text>
+                                        <ChevronRight size={16} color="#E2DED0" />
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </ScrollView>
-                </View>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
@@ -230,118 +235,61 @@ export default function KnowYourValue({ onComplete, onBack }: KnowYourValueProps
     // Statement Screens
     const currentPair = valuePairs[currentPairIndex];
 
-    if (!showNewStatement) {
-        // Show old statement
-        return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
-                            <ChevronLeft size={24} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>
-                                {currentPairIndex + 1} of {valuePairs.length}
-                            </Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
+    return (
+        <View style={styles.container}>
+            {/* Sticky Header with Progress */}
+            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                        <ArrowLeft size={28} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.progressText}>{currentPairIndex + 1} of {valuePairs.length}</Text>
                     </View>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${statementProgress}%` }]} />
-                    </View>
+                    <View style={styles.backButton} />
                 </View>
-
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <Text style={styles.scriptLabel}>What I used to say:</Text>
-
-                            <View style={styles.oldScriptCard}>
-                                <Text style={styles.oldScriptText}>"{currentPair.oldStatement}"</Text>
-                            </View>
-
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                                <LinearGradient
-                                    colors={['#928490', '#746C70']}
-                                    style={styles.continueButtonContent}
-                                >
-                                    <Text style={styles.continueButtonText}>See the alternative</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
+                <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${progress}%` }]} />
                 </View>
             </View>
-        );
-    } else {
-        // Show new statement
-        return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
-                            <ChevronLeft size={24} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>
-                                {currentPairIndex + 1} of {valuePairs.length}
+
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.centeredContent}>
+                    <View style={styles.choiceCard}>
+                        <Text style={styles.scriptLabel}>
+                            {showNewStatement ? 'What I could say now:' : 'What I used to say:'}
+                        </Text>
+
+                        <View style={showNewStatement ? styles.newScriptCard : styles.oldScriptCard}>
+                            <Text style={showNewStatement ? styles.newScriptText : styles.oldScriptText}>
+                                "{showNewStatement ? currentPair.newStatement : currentPair.oldStatement}"
                             </Text>
                         </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${statementProgress}%` }]} />
-                    </View>
-                </View>
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <Text style={styles.scriptLabel}>What I could say now:</Text>
-
-                            <View style={styles.newScriptCard}>
-                                <Text style={styles.newScriptText}>"{currentPair.newStatement}"</Text>
+                        <TouchableOpacity
+                            style={styles.continueButton}
+                            onPress={handleContinue}
+                            activeOpacity={0.8}
+                        >
+                            <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                                <Text style={styles.continueButtonText}>
+                                    {showNewStatement ? currentPair.buttonText : 'See the alternative'}
+                                </Text>
+                                <ChevronRight size={16} color="#E2DED0" />
                             </View>
-
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                                <LinearGradient
-                                    colors={['#928490', '#928490']}
-                                    style={styles.continueButtonContent}
-                                >
-                                    <Text style={styles.continueButtonText}>{currentPair.buttonText}</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
-        );
-    }
+            </ScrollView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#E2DED0'
+        backgroundColor: '#E2DED0',
     },
-    scrollContainer: {
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 20,
-    },
-
     stickyHeader: {
         paddingHorizontal: 24,
         paddingTop: 60,
@@ -354,66 +302,84 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 24,
         borderBottomRightRadius: 24,
     },
+    scrollView: {
+        flex: 1,
+        marginTop: 100,
+        zIndex: 1,
+    },
+    centeredContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: height - 200,
+        paddingBottom: 30,
+    },
     headerRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
     },
-    backIconWrapper: {
-        width: 40,
-        alignItems: 'center'
+    backButton: {
+        width: 28,
     },
     headerTitleContainer: {
         flex: 1,
-        alignItems: 'center'
+        alignItems: 'center',
     },
-    headerTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
         color: '#E2DED0',
+        textAlign: 'center',
     },
-
-    card: {
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(226, 222, 208, 0.3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginTop: 12,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#E2DED0',
+        borderRadius: 3,
+    },
+    introCard: {
         width: width * 0.85,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
-        padding: 32,
+        padding: 40,
         alignItems: 'center',
         shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
         elevation: 5,
         marginVertical: 20,
-        marginTop: 100,
     },
-    introIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(146,132,144,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
+    introIconContainer: {
+        marginBottom: 24,
     },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
+        fontSize: 32,
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
+        fontWeight: '700',
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
-        color: '#746C70',
+        color: '#928490',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 32,
     },
-
     startButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
+        borderRadius: 30,
+        overflow: 'hidden',
     },
     startButtonContent: {
         flexDirection: 'row',
@@ -421,15 +387,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 32,
         paddingVertical: 16,
-        borderRadius: 12,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
     },
     startButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-
+    choiceCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+    },
     scriptLabel: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 20,
@@ -444,6 +425,7 @@ const styles = StyleSheet.create({
         marginBottom: 40,
         borderLeftWidth: 4,
         borderLeftColor: '#928490',
+        width: '100%',
     },
     oldScriptText: {
         fontFamily: 'Montserrat-Regular',
@@ -454,49 +436,77 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
     },
     newScriptCard: {
-        backgroundColor: 'rgba(90,125,123,0.15)',
+        backgroundColor: 'rgba(100,124,144,0.15)',
         borderRadius: 16,
         padding: 24,
         marginBottom: 40,
         borderLeftWidth: 4,
-        borderLeftColor: '#928490',
+        borderLeftColor: '#647C90',
+        width: '100%',
     },
     newScriptText: {
-        fontFamily: 'Montserrat-SemiBold',
+        fontFamily: 'Montserrat-Regular',
         fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 26,
         fontStyle: 'italic',
     },
-
     continueButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
+        borderRadius: 30,
+        overflow: 'hidden',
     },
     continueButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 12,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#E2DED0',
+        minWidth: width * 0.5,
     },
     continueButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
     },
-
-    finalIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(146,132,144,0.1)',
-        justifyContent: 'center',
+    finalCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+    },
+    finalIconContainer: {
         marginBottom: 30,
+    },
+    finalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 30,
+        gap: 12,
+    },
+    finalHeading: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        fontWeight: '700',
+    },
+    finalTextContainer: {
+        width: '100%',
+        marginBottom: 32,
     },
     finalText: {
         fontFamily: 'Montserrat-Regular',
@@ -506,42 +516,25 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 20,
     },
-    finalClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
+    alternativeClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: 32,
+        marginTop: 20,
+        fontWeight: '600',
     },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
-    progressBar: {
+    finalButtonContainer: {
         width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(255,255,255,0.3)',
-        borderRadius: 3,
-        marginTop: 12,
+        alignItems: 'center',
+        marginTop: 20,
     },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
+    heroImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
     },
 });

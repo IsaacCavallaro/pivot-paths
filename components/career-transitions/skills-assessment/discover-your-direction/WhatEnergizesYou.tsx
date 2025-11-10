@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, ChevronLeft, Zap, ArrowLeft } from 'lucide-react-native';
+import { ChevronRight, Zap, ArrowLeft } from 'lucide-react-native';
 
 interface QuizQuestion {
     id: number;
@@ -376,8 +375,12 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
     const goBack = () => {
         if (currentScreen === 1) {
             setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        } else if (currentScreen > 1 && currentScreen <= 10) {
             setCurrentScreen(currentScreen - 1);
+        } else if (currentScreen === 11) {
+            setCurrentScreen(10);
+        } else if (currentScreen === 12) {
+            setCurrentScreen(11);
         }
     };
 
@@ -391,9 +394,6 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>What Energizes You?</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -402,8 +402,11 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                     <View style={styles.content}>
                         <View style={styles.introCard}>
                             <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Zap size={32} color="#E2DED0" />
+                                <View style={styles.finalIconContainer}>
+                                    <Image
+                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                        style={styles.heroImage}
+                                    />
                                 </View>
                             </View>
 
@@ -437,10 +440,9 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Energy Compass</Text>
-                        </View>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -489,10 +491,9 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: result.color }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{result.title}</Text>
-                        </View>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -500,6 +501,7 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                 <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                     <View style={styles.content}>
                         <View style={styles.resultCard}>
+                            <Text style={styles.titleText}>{result.title}</Text>
                             <Text style={styles.resultDescription}>{result.description}</Text>
 
                             <View style={styles.resultSubtitleContainer}>
@@ -536,7 +538,7 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                         <ArrowLeft size={28} color="#E2DED0" />
                     </TouchableOpacity>
                     <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>Question {currentScreen} of 10</Text>
+                        <Text style={styles.progressText}>{currentScreen} of 10</Text>
                     </View>
                     <View style={styles.backButton} />
                 </View>
@@ -610,8 +612,9 @@ const styles = StyleSheet.create({
     titleText: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 25,
-        color: '#E2DED0',
+        color: '#4E4F50',
         textAlign: 'center',
+        paddingBottom: 10,
     },
     progressText: {
         fontFamily: 'Montserrat-Medium',
@@ -807,7 +810,7 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     finalIconContainer: {
-        marginBottom: 32,
+        marginBottom: 10,
     },
     heroImage: {
         width: 120,

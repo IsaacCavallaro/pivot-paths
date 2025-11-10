@@ -159,7 +159,7 @@ export const categories: Category[] = [
         id: 'mindset-shift',
         title: 'Mindset Shift',
         subtitle: '', // We only use subheadings for "Coming Soon"
-        description: 'Explore who you are beyond your dancer identity - comprehensive path coming soon',
+        description: 'Explore who you are beyond your dancer identity',
         duration: '7 days',
         totalDays: 7,
         days: [
@@ -270,9 +270,9 @@ export const categories: Category[] = [
     paths: [
       {
         id: 'skills-assessment',
-        title: 'Discover Your Direction',
+        title: 'Map Your Direction', // previously "discover your direction"
         subtitle: '',
-        description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Each step in the path helps you explore career options you may have never considered and start taking action towards landing a job in the industry that’s works for you.',
+        description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Here’s a map to help discover your direction.',
         duration: '7 days',
         totalDays: 7,
         days: [
@@ -437,7 +437,7 @@ export const categories: Category[] = [
         id: 'money-mindsets',
         title: 'Money Mindsets',
         subtitle: '',
-        description: 'You don’t have to buy into the starving artist stereotype anymore. In this game, you’ll match the old belief with a reframe that frees you.',
+        description: 'When it comes to money, dancers don’t often have the right mindset. And during your career change, you’re going to grapple with money and some hard truths about your finances.',
         duration: '7 days',
         totalDays: 7,
         days: [
@@ -467,7 +467,7 @@ export const categories: Category[] = [
           },
           {
             day: 5,
-            title: 'Scarcity Vs Abundance',
+            title: 'Scarcity vs Abundance',
             content: 'As dancers, we’ve been taught to accept less… low pay, “exposure gigs,” and the starving artist life. But what if you flipped the script? Let’s explore scarcity vs. abundance thinking by matching the scarcity thought with the abundance reframe.',
             hasScarcityVsAbundance: true,
           },

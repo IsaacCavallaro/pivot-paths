@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Palette, Briefcase, Heart, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { ChevronRight, Palette, Briefcase, Heart, ArrowLeft } from 'lucide-react-native';
 
 interface TryItOnProps {
     onComplete: () => void;
@@ -128,9 +127,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Try It On</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -139,8 +135,11 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                     <View style={styles.content}>
                         <View style={styles.introCard}>
                             <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Palette size={32} color="#E2DED0" />
+                                <View style={styles.finalIconContainer}>
+                                    <Image
+                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                        style={styles.heroImage}
+                                    />
                                 </View>
                             </View>
 
@@ -173,9 +172,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your First Client Meeting</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -216,9 +212,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Options</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -266,9 +259,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Status</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -309,9 +299,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Next Challenge</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -358,9 +345,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Options</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -414,9 +398,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Reflection</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -454,9 +435,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>The Team Huddle</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -496,9 +474,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Options</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -548,9 +523,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                             <TouchableOpacity style={styles.backButton} onPress={goBack}>
                                 <ArrowLeft size={28} color="#E2DED0" />
                             </TouchableOpacity>
-                            <View style={styles.headerTitleContainer}>
-                                <Text style={styles.titleText}>First Day With Clients</Text>
-                            </View>
                             <View style={styles.backButton} />
                         </View>
                     </View>
@@ -587,9 +559,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                             <TouchableOpacity style={styles.backButton} onPress={goBack}>
                                 <ArrowLeft size={28} color="#E2DED0" />
                             </TouchableOpacity>
-                            <View style={styles.headerTitleContainer}>
-                                <Text style={styles.titleText}>Your Options</Text>
-                            </View>
                             <View style={styles.backButton} />
                         </View>
                     </View>
@@ -638,9 +607,6 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Final Reflection</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -650,7 +616,10 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                         <View style={styles.alternativeCard}>
                             <View style={styles.alternativeIconContainer}>
                                 <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Heart size={32} color="#E2DED0" />
+                                    <Image
+                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                        style={styles.heroImage}
+                                    />
                                 </View>
                             </View>
 
@@ -1310,5 +1279,15 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
         fontWeight: '600',
+    },
+    finalIconContainer: {
+        marginBottom: 30,
+    },
+    heroImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
     },
 });

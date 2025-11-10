@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Compass, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
+import { ChevronRight, ArrowLeft } from 'lucide-react-native';
 
 interface CareerChoice {
     id: number;
@@ -110,10 +109,19 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
     };
 
     const goBack = () => {
-        if (currentScreen === 1) {
+        if (currentScreen === 0) {
+            handleBack();
+        } else if (currentScreen === 1) {
             setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        } else if (currentScreen > 1 && currentScreen <= 9) {
             setCurrentScreen(currentScreen - 1);
+        } else if (currentScreen >= 11 && currentScreen <= 21) {
+            if (currentScreen === 11) {
+                // Go back to last choice screen
+                setCurrentScreen(9);
+            } else {
+                setCurrentScreen(currentScreen - 1);
+            }
         }
     };
 
@@ -173,12 +181,9 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Expand Your Horizons</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -186,10 +191,11 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
                 <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                     <View style={styles.centeredContent}>
                         <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Compass size={32} color="#E2DED0" />
-                                </View>
+                            <View style={styles.finalIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
                             <Text style={styles.introTitle}>Expand Your Horizons</Text>
                             <Text style={styles.introDescription}>
@@ -275,10 +281,9 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
                 {/* Sticky Header */}
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Expand Your Horizons</Text>
-                        </View>
+                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -286,6 +291,17 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
                 <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                     <View style={styles.centeredContent}>
                         <View style={styles.storyCard}>
+                            {isFinal && (
+                                <>
+                                    <View style={styles.finalIconContainer}>
+                                        <Image
+                                            source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                            style={styles.heroImage}
+                                        />
+                                    </View>
+                                    <Text style={styles.introTitle}>Expand Your Horizons</Text>
+                                </>
+                            )}
                             <View style={styles.storyTextContainer}>
                                 {isTitle ? (
                                     <Text style={styles.storyTitle}>{storyText}</Text>
@@ -441,7 +457,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 24,
         marginBottom: 32,
-        fontStyle: 'italic',
     },
     startButton: {
         borderRadius: 30,
@@ -555,5 +570,15 @@ const styles = StyleSheet.create({
         marginBottom: 32,
         marginTop: 5,
         fontWeight: '600',
+    },
+    finalIconContainer: {
+        marginBottom: 30,
+    },
+    heroImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
     },
 });

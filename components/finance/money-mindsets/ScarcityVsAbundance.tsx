@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { ArrowLeft, ChevronRight } from 'lucide-react-native';
 
 interface BeliefPair {
     id: number;
@@ -17,7 +17,7 @@ const beliefPairs: BeliefPair[] = [
     {
         id: 1,
         scarcityThought: "I should be grateful for what I have.",
-        abundanceReframe: "I can be grateful *and* still build wealth for myself and my family."
+        abundanceReframe: "I can be grateful and still build wealth for myself and my family."
     },
     {
         id: 2,
@@ -237,9 +237,6 @@ export default function ScarcityVsAbundance({ onComplete, onBack }: ScarcityVsAb
                         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Scarcity vs Abundance</Text>
-                        </View>
                         <View style={styles.backButton} />
                     </View>
                 </View>
@@ -248,9 +245,10 @@ export default function ScarcityVsAbundance({ onComplete, onBack }: ScarcityVsAb
                     <View style={styles.content}>
                         <View style={styles.introCard}>
                             <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.introIconText}>💭</Text>
-                                </View>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.introTitle}>Scarcity vs Abundance Match Game</Text>
@@ -284,10 +282,6 @@ export default function ScarcityVsAbundance({ onComplete, onBack }: ScarcityVsAb
                 <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
                         <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Reflection</Text>
-                        </View>
-                        <View style={styles.backButton} />
                     </View>
                 </View>
 
@@ -295,9 +289,10 @@ export default function ScarcityVsAbundance({ onComplete, onBack }: ScarcityVsAb
                     <View style={styles.content}>
                         <View style={styles.reflectionCard}>
                             <View style={styles.reflectionIconContainer}>
-                                <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.reflectionIconText}>💰</Text>
-                                </View>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.reflectionTitle}>Aim for Abundance</Text>
@@ -699,5 +694,15 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
         fontWeight: '600',
+    },
+    finalIconContainer: {
+        marginBottom: 30,
+    },
+    heroImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
     },
 });

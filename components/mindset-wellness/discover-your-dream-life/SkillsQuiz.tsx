@@ -92,7 +92,7 @@ const quizQuestions: QuizQuestion[] = [
         id: 'a',
         text: (
           <Text>
-            I could <Text style={{ fontStyle: 'italic' }}>never</Text> pull that off.
+            I could never pull that off.
           </Text>
         ),
         type: 'A'
