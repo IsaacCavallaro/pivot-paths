@@ -13,6 +13,7 @@ import {
   Montserrat_600SemiBold,
 } from '@expo-google-fonts/montserrat';
 import { SplashScreen } from 'expo-router';
+import { Platform } from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,7 +40,15 @@ export default function RootLayout() {
 
   return (
     <>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          // Add this for web subdirectory support
+          ...(Platform.OS === 'web' && {
+            basePath: '/pivot-paths',
+          }),
+        }}
+      >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="+not-found" />
       </Stack>

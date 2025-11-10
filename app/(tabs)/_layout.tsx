@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Chrome as Home, BookOpen, Play, User } from 'lucide-react-native';
+import { Platform } from 'react-native';
 
 export default function TabLayout() {
   return (
@@ -19,6 +20,9 @@ export default function TabLayout() {
           fontFamily: 'Montserrat-Medium',
           fontSize: 12,
         },
+        ...(Platform.OS === 'web' && {
+          basePath: '/pivot-paths',
+        }),
       }}>
       <Tabs.Screen
         name="index"
