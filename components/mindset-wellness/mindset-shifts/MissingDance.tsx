@@ -153,7 +153,7 @@ export default function MissingDance({ onComplete, onBack }: MissingDanceProps) 
 
                             <TouchableOpacity style={styles.startButton} onPress={handleStart}>
                                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Let's begin</Text>
+                                    <Text style={styles.startButtonText}>Let’s Begin</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>

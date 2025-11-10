@@ -269,7 +269,7 @@ export default function FeastOrFamine({ onComplete, onBack }: FeastOrFamineProps
                                 activeOpacity={0.8}
                             >
                                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Start the game</Text>
+                                    <Text style={styles.startButtonText}>Start the Game</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>
