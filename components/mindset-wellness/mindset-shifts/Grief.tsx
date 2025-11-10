@@ -106,7 +106,7 @@ export default function Grief({ onComplete, onBack }: GriefProps) {
                 <View style={styles.headerRow}>
                     <View style={styles.backButton} />
                     <View style={styles.headerTitleContainer}>
-                        <Text style={styles.titleText}>Ready for More?</Text>
+                        <Text style={styles.titleText}>Ready for more?</Text>
                     </View>
                     <View style={styles.backButton} />
                 </View>
@@ -121,7 +121,7 @@ export default function Grief({ onComplete, onBack }: GriefProps) {
                             </View>
                         </View>
 
-                        <Text style={styles.ebookTitle}>Ready for More?</Text>
+                        <Text style={styles.ebookTitle}>Ready for more?</Text>
 
                         <Text style={styles.ebookText}>
                             You're ready to dream bigger and step into a full and rich life beyond dance.
