@@ -1,5 +1,7 @@
 # Pivot Paths
 
+# test pwa
+
 ## Overview
 
 Pivot paths is a mobile app built with Expo and React Native. It provides resources and tools for career transition, mindset wellness, and finance specifically for dancers. The app is structured around three main categories, each containing a set of paths:
