@@ -117,7 +117,7 @@ export default function CategoryScreen() {
                       <View style={styles.pathHeader}>
                         <View style={styles.pathIconContainer}>
                           <View style={[styles.pathIconGradient, { backgroundColor: category.color }]}>
-                            <Clock size={24} color="#E2DED0" />
+                            {path.icon}
                           </View>
                         </View>
                         <View style={styles.pathInfo}>
@@ -404,4 +404,4 @@ const styles = StyleSheet.create({
     marginRight: 8,
     fontWeight: '600',
   },
-}); 
+});

@@ -9,7 +9,7 @@ export default function HomeScreen() {
   const router = useRouter();
 
   const handleExternalLink = () => {
-    console.log('Opening pivotfordancers.com');
+    Linking.openURL('https://pivotfordancers.com/services/mentorship/');
   };
 
   const handleSocialPress = (url: string) => {
@@ -108,12 +108,12 @@ export default function HomeScreen() {
 
       <View style={[styles.ctaSection, { backgroundColor: '#647C90' }]}>
         <View style={styles.ctaContent}>
-          <Text style={styles.ctaTitle}>Join Our Community</Text>
+          <Text style={styles.ctaTitle}>Want Personalized Support?</Text>
           <Text style={styles.ctaSubtitle}>
-            Join thousands of dancers who have successfully transitioned to fulfilling careers
+            Our mentorship program provides personalized guidance from experienced former professional dancers who understand your unique journey.
           </Text>
           <TouchableOpacity style={styles.ctaButton} onPress={handleExternalLink}>
-            <Text style={styles.ctaButtonText}>Join Us</Text>
+            <Text style={styles.ctaButtonText}>Get Started</Text>
             <ChevronRight size={16} color="#E2DED0" />
           </TouchableOpacity>
         </View>

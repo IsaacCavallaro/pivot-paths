@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { ArrowLeft, ChevronRight, CircleCheck as CheckCircle, Circle, Calendar, Clock } from 'lucide-react-native';
+import { ArrowLeft, ChevronRight, CircleCheck as CheckCircle, Circle, Lock } from 'lucide-react-native';
 import { useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPathById } from '@/data/categories';
@@ -1353,8 +1353,10 @@ export default function PathDetailScreen() {
                       ]}>
                         {isCompleted ? (
                           <CheckCircle size={20} color="#E2DED0" />
+                        ) : isAccessible ? (
+                          <Circle size={20} color="#647C90" />
                         ) : (
-                          <Circle size={20} color={isAccessible ? "#647C90" : "#928490"} />
+                          <Lock size={20} color="#928490" />
                         )}
                       </View>
                       {index < path.days.length - 1 && (
@@ -1374,7 +1376,10 @@ export default function PathDetailScreen() {
                       disabled={!isAccessible || isPathLocked}
                       activeOpacity={0.8}
                     >
-                      <View style={styles.dayCard}>
+                      <View style={[
+                        styles.dayCard,
+                        !isAccessible && styles.lockedDayCard,
+                      ]}>
                         <Text style={[
                           styles.dayNumber,
                           isCompleted && styles.completedDayNumber,
@@ -1402,12 +1407,11 @@ export default function PathDetailScreen() {
                         )}
                         {!isAccessible && isPathLocked && (
                           <View style={styles.dayAction}>
-                            <Text style={[
-                              styles.dayActionText,
-                              styles.lockedActionText,
-                            ]}>
-                              Coming Soon
-                            </Text>
+                            <View style={styles.comingSoonBadge}>
+                              <Text style={styles.comingSoonText}>
+                                Coming Soon
+                              </Text>
+                            </View>
                           </View>
                         )}
                       </View>
@@ -1535,6 +1539,12 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
+  lockedDayCard: {
+    backgroundColor: 'rgba(245, 245, 245, 0.6)',
+    borderWidth: 2,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+    borderStyle: 'dashed',
+  },
   dayNumber: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 14,
@@ -1576,8 +1586,20 @@ const styles = StyleSheet.create({
   completedActionText: {
     color: '#928490',
   },
-  lockedActionText: {
+  comingSoonBadge: {
+    backgroundColor: 'rgba(146, 132, 144, 0.2)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#928490',
+    borderStyle: 'dashed',
+  },
+  comingSoonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
     color: '#928490',
+    fontWeight: '600',
   },
   dayNavigation: {
     paddingVertical: 20,
