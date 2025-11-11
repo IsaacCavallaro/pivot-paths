@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking } from 'react-native';
 import { ChevronRight, Sparkles, ArrowLeft } from 'lucide-react-native';
 
 interface DreamChoice {
@@ -137,6 +137,10 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
     } else {
       onComplete();
     }
+  };
+
+  const handleOpenCourse = () => {
+    Linking.openURL('https://pivotfordancers.com/products/happy-trails/');
   };
 
   const getStoryText = (screenNumber: number) => {
@@ -307,6 +311,23 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
               ) : (
                 <View style={styles.storyTextContainer}>
                   <Text style={styles.storyText}>{storyText}</Text>
+                </View>
+              )}
+
+
+              {/* New Happy Trails Course Content */}
+              {isFinal && (
+                <View style={styles.courseCard}>
+                  <Text style={styles.courseTitle}>Take your next step today with Happy Trails</Text>
+                  <Text style={styles.courseDescription}>
+                    A mini course to plan your pivot. Inside, you'll get access to a 5-year career change roadmap and exclusive resources.
+                  </Text>
+                  <TouchableOpacity style={styles.courseButton} onPress={handleOpenCourse}>
+                    <View style={[styles.courseButtonContent, { backgroundColor: '#647C90' }]}>
+                      <Text style={styles.courseButtonText}>Start the Happy Trails Course</Text>
+                      <ChevronRight size={16} color="#E2DED0" />
+                    </View>
+                  </TouchableOpacity>
                 </View>
               )}
 
@@ -587,7 +608,7 @@ const styles = StyleSheet.create({
     color: '#647C90',
     textAlign: 'center',
     marginBottom: 32,
-    marginTop: 20,
+    marginTop: 0,
     fontWeight: '600',
   },
   finalHeader: {
@@ -613,5 +634,52 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderColor: '#647C90',
     borderWidth: 2,
+  },
+  // New Happy Trails Course Styles
+  courseCard: {
+    backgroundColor: 'rgba(100, 124, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 32,
+    borderLeftWidth: 4,
+    borderLeftColor: '#647C90',
+    width: '100%',
+  },
+  courseTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  courseDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 14,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  courseButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  courseButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#647C90',
+  },
+  courseButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
   },
 });

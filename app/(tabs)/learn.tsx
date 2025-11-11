@@ -20,28 +20,24 @@ const videos = [
   {
     id: 'ZsvNvXLtcC4',
     title: 'Will you regret being a dancer? How Monica turned guilt into growth',
-    description: 'We\'re chatting with Monica Bryant on her career change from professional musical theater performer to interior designer. Feeling burnt out from the hustle and bustle of living in New York City, the pandemic was the final push she needed to start her pivot. Learn how Monica "fell into" her first interior design job and how she feels about leaving the Big Apple for a simpler life in North Carolina.',
     category: 'stories',
     duration: '26:03',
   },
   {
     id: 'FJRbh7AI9HQ',
     title: 'Are we done telling dancers not to have a backup plan? Rachel is proof that you can',
-    description: 'In this video, we\'re chatting with Rachel Lee all about dancing full time while running a business and balancing motherhood. We chat about taking imperfect action even when you don\'t feel ready and looking at life (and business) like seasons. Rachel helps business owners bring a sense of calm to their productivity flows and shares her tips and tricks for wedding videographers with her consultants and courses.',
     category: 'stories',
     duration: '30:29',
   },
   {
     id: 'tnPkI_ezUto',
     title: 'Missing the magic of the stage? Here\'s how Ali is finding meaning beyond her ballet career',
-    description: 'Ali\'s impressive ballet career spanned 15 years with credits including Texas Ballet Theater, Eugene Ballet Company, Eglevsky Ballet and the role of Clara in the Radio City Christmas Spectacular.',
     category: 'stories',
     duration: '27:28',
   },
   {
     id: '7EUfZS8mQtk',
     title: 'How Demi\'s roller skating hobby turned into 500K followers on Instagram',
-    description: 'In this video, we\'re joined by Demi Jenkins of ‪@peachyfeverr‬ who took the world of Instagram by storm (and by accident). Although not a hard pivot, Demi\'s story is for the dancers who aren\'t satisfied with the traditional dance path but know they have something to share. She\'s an incredible example of how letting go of industry expectations in favor of being exactly who you are might just be the thing you\'ve been missing.',
     category: 'stories',
     duration: '22:36',
   },
@@ -150,7 +146,6 @@ export default function LearnScreen() {
                         </View>
                         <View style={styles.videoInfo}>
                           <Text style={styles.videoTitle}>{video.title}</Text>
-                          <Text style={styles.videoDescription}>{video.description}</Text>
                           <View style={styles.videoMeta}>
                             <View style={styles.videoDurationBadge}>
                               <Text style={styles.videoDurationText}>{video.duration}</Text>
