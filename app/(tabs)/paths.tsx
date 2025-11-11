@@ -120,10 +120,6 @@ export default function PathsScreen() {
               <TouchableOpacity onPress={handleExternalLink}>
                 <Text style={styles.footerLink}>pivotfordancers.com</Text>
               </TouchableOpacity>
-              <Text style={styles.footerSeparator}>|</Text>
-              <TouchableOpacity onPress={handleTermsPress}>
-                <Text style={styles.footerLink}>Terms & Conditions</Text>
-              </TouchableOpacity>
             </View>
             <View style={styles.socialIcons}>
               <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Instagram')}>

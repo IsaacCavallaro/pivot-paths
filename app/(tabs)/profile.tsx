@@ -359,10 +359,6 @@ export default function ProfileScreen() {
               <TouchableOpacity onPress={() => console.log('Opening pivotfordancers.com')}>
                 <Text style={styles.footerLink}>pivotfordancers.com</Text>
               </TouchableOpacity>
-              <Text style={styles.footerSeparator}>|</Text>
-              <TouchableOpacity onPress={() => console.log('Opening terms & conditions')}>
-                <Text style={styles.footerLink}>Terms & Conditions</Text>
-              </TouchableOpacity>
             </View>
             <View style={styles.socialIcons}>
               <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Instagram')}>

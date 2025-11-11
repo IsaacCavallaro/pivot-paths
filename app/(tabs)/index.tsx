@@ -12,10 +12,6 @@ export default function HomeScreen() {
     console.log('Opening pivotfordancers.com');
   };
 
-  const handleTermsPress = () => {
-    console.log('Opening terms & conditions');
-  };
-
   const handleSocialPress = (platform: string) => {
     console.log(`Opening ${platform}`);
   };
@@ -127,10 +123,6 @@ export default function HomeScreen() {
         <View style={styles.footerLinks}>
           <TouchableOpacity onPress={handleExternalLink}>
             <Text style={styles.footerLink}>pivotfordancers.com</Text>
-          </TouchableOpacity>
-          <Text style={styles.footerSeparator}>|</Text>
-          <TouchableOpacity onPress={handleTermsPress}>
-            <Text style={styles.footerLink}>Terms & Conditions</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.socialIcons}>

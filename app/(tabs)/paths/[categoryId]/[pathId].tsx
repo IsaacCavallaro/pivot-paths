@@ -1,8 +1,7 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, ChevronRight, CircleCheck as CheckCircle, Circle, Calendar, Clock } from 'lucide-react-native';
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPathById } from '@/data/categories';
 import SkillsQuiz from '@/components/mindset-wellness/discover-your-dream-life/SkillsQuiz';
