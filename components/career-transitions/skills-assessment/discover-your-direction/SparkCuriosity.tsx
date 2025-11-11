@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     newScriptCard: {
-        backgroundColor: 'rgba(90, 125, 123, 0.15)',
+        backgroundColor: 'rgba(146,132,144,0.15)',
         borderRadius: 16,
         padding: 24,
         marginBottom: 40,
