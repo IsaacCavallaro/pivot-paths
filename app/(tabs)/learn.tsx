@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Linking } from 'react-native';
 import { useState } from 'react';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { Play, Filter, ExternalLink, Instagram, Youtube, Facebook, Linkedin, ChevronDown, ChevronUp, ArrowLeft, Heart, Star, Trophy } from 'lucide-react-native';
@@ -65,7 +65,7 @@ export default function LearnScreen() {
   };
 
   const handleExternalLink = () => {
-    console.log('Opening pivotfordancers.com');
+    Linking.openURL('https://pivotfordancers.com/products/happy-trails/');
   };
 
   const handleBackPress = () => {
@@ -184,7 +184,7 @@ export default function LearnScreen() {
                 Dive deeper with comprehensive courses and resources at pivotfordancers.com
               </Text>
               <TouchableOpacity style={styles.promotionButton} onPress={handleExternalLink}>
-                <Text style={styles.promotionButtonText}>Explore Courses</Text>
+                <Text style={styles.promotionButtonText}>Explore Course</Text>
                 <ExternalLink size={16} color="#E2DED0" />
               </TouchableOpacity>
             </View>
