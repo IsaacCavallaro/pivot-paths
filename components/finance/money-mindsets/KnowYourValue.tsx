@@ -514,15 +514,15 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 20,
+        marginBottom: 10,
     },
     alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 32,
-        marginTop: 20,
+        marginBottom: 5,
+        marginTop: 0,
         fontWeight: '600',
     },
     finalButtonContainer: {
