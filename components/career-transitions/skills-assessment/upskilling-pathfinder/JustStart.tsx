@@ -212,7 +212,7 @@ export default function JustStart({ onComplete, onBack }: JustStartProps) {
 
                             <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
                                 <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark as complete</Text>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>

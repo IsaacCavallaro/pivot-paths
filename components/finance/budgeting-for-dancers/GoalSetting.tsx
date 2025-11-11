@@ -117,7 +117,7 @@ export default function GoalSetting({ onComplete, onBack }: GoalSettingProps) {
                 <View style={styles.headerRow}>
                     <View style={styles.backButton} />
                     <View style={styles.headerTitleContainer}>
-                        <Text style={styles.titleText}>Ready for More?</Text>
+                        <Text style={styles.titleText}>Ready for more?</Text>
                     </View>
                     <View style={styles.backButton} />
                 </View>
@@ -133,7 +133,7 @@ export default function GoalSetting({ onComplete, onBack }: GoalSettingProps) {
                             <ExternalLink size={32} color="#928490" />
                         </View>
 
-                        <Text style={styles.ebookTitle}>Ready for More?</Text>
+                        <Text style={styles.ebookTitle}>Ready for more?</Text>
 
                         <Text style={styles.ebookText}>
                             You're ready to dream bigger and step into a full and rich life beyond dance.
@@ -160,7 +160,7 @@ export default function GoalSetting({ onComplete, onBack }: GoalSettingProps) {
                             <View
                                 style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}
                             >
-                                <Text style={styles.completeButtonText}>Mark as complete</Text>
+                                <Text style={styles.completeButtonText}>Mark As Complete</Text>
                             </View>
                         </TouchableOpacity>
                     </View>

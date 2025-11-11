@@ -274,7 +274,7 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
                             <TouchableOpacity style={styles.continueButton} onPress={handleContinueStory} activeOpacity={0.8}>
                                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
                                     <Text style={styles.continueButtonText}>
-                                        {isFinal ? 'Mark as complete' : 'Continue'}
+                                        {isFinal ? 'Mark As Complete' : 'Continue'}
                                     </Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>

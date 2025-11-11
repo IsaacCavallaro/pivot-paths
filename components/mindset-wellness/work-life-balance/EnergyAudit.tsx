@@ -414,7 +414,7 @@ export default function EnergyAudit({ onComplete, onBack }: EnergyAuditProps) {
                                 activeOpacity={0.8}
                             >
                                 <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark as Complete</Text>
+                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>

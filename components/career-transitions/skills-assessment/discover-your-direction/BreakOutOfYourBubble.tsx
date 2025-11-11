@@ -126,34 +126,21 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
                             />
                         </View>
 
-                        <Text style={styles.ebookTitle}>Ready for More?</Text>
+                        <Text style={styles.ebookTitle}>How did that feel?</Text>
 
                         <Text style={styles.ebookText}>
-                            You're ready to dream bigger and step into a full and rich life beyond dance.
+                            Stepping out of your comfort zone and into the world outside of dance isn't going to feel good. In fact, it might actually feel pretty bad for a while. But deep down, you know that on the other side of that discomfort is the life you've been craving. So go ahead, break out of that bubble! See what happens next.
                         </Text>
 
-                        <Text style={styles.ebookText}>
-                            Now, take it one step further with our How to Pivot ebook. Dive deeper into your values, mindset, and next steps with actionable activities and real-life examples.
+                        <Text style={styles.reflectionClosing}>
+                            Join us again tomorrow!
                         </Text>
-
-                        <Text style={styles.ebookCallout}>
-                            Life is yours for the taking. Will you reach out and grab it?
-                        </Text>
-
-                        <TouchableOpacity style={styles.ebookButton} onPress={handleEbookLink}>
-                            <View
-                                style={[styles.ebookButtonContent, { backgroundColor: '#928490' }]}
-                            >
-                                <Text style={styles.ebookButtonText}>Get the How to Pivot Ebook</Text>
-                                <ExternalLink size={16} color="#E2DED0" />
-                            </View>
-                        </TouchableOpacity>
 
                         <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
                             <View
                                 style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}
                             >
-                                <Text style={styles.completeButtonText}>Mark as complete</Text>
+                                <Text style={styles.completeButtonText}>Mark As Complete</Text>
                             </View>
                         </TouchableOpacity>
                     </View>
@@ -347,5 +334,13 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         borderColor: '#647C90',
         borderWidth: 2,
+    },
+    reflectionClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 40,
+        fontWeight: '600',
     },
 });

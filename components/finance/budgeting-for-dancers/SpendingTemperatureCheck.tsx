@@ -409,7 +409,7 @@ export default function SpendingTemperatureCheck({ onComplete, onBack }: Spendin
                                     activeOpacity={0.8}
                                 >
                                     <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                        <Text style={styles.continueButtonText}>Mark as complete</Text>
+                                        <Text style={styles.continueButtonText}>Mark As Complete</Text>
                                         <ChevronRight size={16} color="#E2DED0" />
                                     </View>
                                 </TouchableOpacity>

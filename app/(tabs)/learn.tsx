@@ -187,7 +187,7 @@ export default function LearnScreen() {
           {/* Course Promotion */}
           <View style={[styles.promotionContainer, { backgroundColor: '#647C90' }]}>
             <View style={styles.promotionContent}>
-              <Text style={styles.promotionTitle}>Ready for More?</Text>
+              <Text style={styles.promotionTitle}>Ready for more?</Text>
               <Text style={styles.promotionSubtitle}>
                 Dive deeper with comprehensive courses and resources at pivotfordancers.com
               </Text>

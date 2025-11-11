@@ -206,7 +206,7 @@ export default function DecisionMaking({ onComplete, onBack }: DecisionMakingPro
                             </Text>
                             <TouchableOpacity style={styles.continueButton} onPress={handleComplete} activeOpacity={0.8}>
                                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>Mark as Complete</Text>
+                                    <Text style={styles.continueButtonText}>Mark As Complete</Text>
                                     <ChevronRight size={16} color="#E2DED0" />
                                 </View>
                             </TouchableOpacity>
