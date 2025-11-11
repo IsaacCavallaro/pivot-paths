@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 32,
-        color: '#928490',
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
         fontWeight: '700',
@@ -477,15 +477,15 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 20,
+        marginBottom: 0,
     },
     alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 32,
-        marginTop: 20,
+        marginBottom: 5,
+        marginTop: 0,
         fontWeight: '600',
     },
     finalButtonContainer: {

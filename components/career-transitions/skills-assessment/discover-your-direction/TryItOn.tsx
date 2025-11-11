@@ -276,7 +276,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                 <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                     <View style={styles.content}>
                         <View style={styles.choicesCard}>
-                            <Text style={styles.choicesTitle}>Here are your Options</Text>
+                            <Text style={styles.choicesTitle}>Here are your options</Text>
 
                             <View style={styles.choicesContainer}>
                                 <TouchableOpacity
@@ -396,7 +396,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                 <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                     <View style={styles.content}>
                         <View style={styles.choicesCard}>
-                            <Text style={styles.choicesTitle}>Here are your Options</Text>
+                            <Text style={styles.choicesTitle}>Here are your options</Text>
 
                             <View style={styles.choicesContainer}>
                                 <TouchableOpacity
