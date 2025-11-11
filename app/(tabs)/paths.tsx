@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ChevronRight, BookOpen, Users, Instagram, Youtube, Facebook, Linkedin, ArrowLeft, Heart, Star, Trophy } from 'lucide-react-native';
@@ -19,12 +19,8 @@ export default function PathsScreen() {
     console.log('Opening pivotfordancers.com');
   };
 
-  const handleTermsPress = () => {
-    console.log('Opening terms & conditions');
-  };
-
-  const handleSocialPress = (platform: string) => {
-    console.log(`Opening ${platform}`);
+  const handleSocialPress = (url: string) => {
+    Linking.openURL(url);
   };
 
   const handleBackPress = () => {
@@ -122,16 +118,16 @@ export default function PathsScreen() {
               </TouchableOpacity>
             </View>
             <View style={styles.socialIcons}>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Instagram')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.instagram.com/pivotfordancers')}>
                 <Instagram size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('YouTube')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.youtube.com/@pivotfordancers')}>
                 <Youtube size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Facebook')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.facebook.com/pivotfordancers/')}>
                 <Facebook size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('LinkedIn')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.linkedin.com/company/pivotfordancers/')}>
                 <Linkedin size={24} color="#647C90" />
               </TouchableOpacity>
             </View>
