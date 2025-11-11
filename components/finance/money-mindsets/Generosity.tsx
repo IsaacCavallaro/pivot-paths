@@ -296,7 +296,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                     <View style={styles.content}>
                         <View style={styles.alternativeCard}>
                             <View style={styles.alternativeIconContainer}>
-                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#5A7D7B' }]}>
+                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
                                     <Gift size={32} color="#E2DED0" />
                                 </View>
                             </View>
@@ -346,7 +346,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                     <View style={styles.content}>
                         <View style={styles.alternativeCard}>
                             <View style={styles.alternativeIconContainer}>
-                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#5A7D7B' }]}>
+                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
                                     <Heart size={32} color="#E2DED0" />
                                 </View>
                             </View>
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     },
     responseCard: {
         marginHorizontal: 24,
-        marginTop: 50,
+        marginTop: 100,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
