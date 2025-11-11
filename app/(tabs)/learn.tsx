@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { useState } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { Play, Filter, ExternalLink, Instagram, Youtube, Facebook, Linkedin, ChevronDown, ChevronUp, ArrowLeft, Heart, Star, Trophy } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
@@ -15,42 +14,35 @@ const videoCategories = [
   { id: 'wellness', title: 'Wellness', color: '#4E4F50' },
 ];
 
-// Real YouTube videos from Pivot for Dancers
+// Updated YouTube videos from Pivot for Dancers
 const videos = [
   {
     id: 'ZsvNvXLtcC4',
     title: 'Will you regret being a dancer? How Monica turned guilt into growth',
-    description: 'Monica shares her journey of overcoming guilt and finding growth after leaving dance.',
+    description: 'We\'re chatting with Monica Bryant on her career change from professional musical theater performer to interior designer. Feeling burnt out from the hustle and bustle of living in New York City, the pandemic was the final push she needed to start her pivot. Learn how Monica "fell into" her first interior design job and how she feels about leaving the Big Apple for a simpler life in North Carolina.',
     category: 'stories',
-    duration: '15:32',
+    duration: '26:03',
   },
   {
-    id: 'tuBxpzNHWlU',
-    title: 'How do you land a muggle job anyway? Career Change Workshop for Professional Dancers',
-    description: 'A comprehensive workshop on transitioning from dance to traditional careers.',
-    category: 'tips',
-    duration: '45:18',
+    id: 'FJRbh7AI9HQ',
+    title: 'Are we done telling dancers not to have a backup plan? Rachel is proof that you can',
+    description: 'In this video, we\'re chatting with Rachel Lee all about dancing full time while running a business and balancing motherhood. We chat about taking imperfect action even when you don\'t feel ready and looking at life (and business) like seasons. Rachel helps business owners bring a sense of calm to their productivity flows and shares her tips and tricks for wedding videographers with her consultants and courses.',
+    category: 'stories',
+    duration: '30:29',
   },
   {
-    id: 'rr5G_7E9ZcY',
-    title: '"Why I Had to Walk Away From Dance" - Pivot Interview with Sakina Ibrahim',
-    description: 'Sakina Ibrahim opens up about her decision to leave dance and what came next.',
+    id: 'tnPkI_ezUto',
+    title: 'Missing the magic of the stage? Here\'s how Ali is finding meaning beyond her ballet career',
+    description: 'Ali\'s impressive ballet career spanned 15 years with credits including Texas Ballet Theater, Eugene Ballet Company, Eglevsky Ballet and the role of Clara in the Radio City Christmas Spectacular.',
     category: 'stories',
-    duration: '28:45',
+    duration: '27:28',
   },
   {
-    id: 'dG-WzFlfBDY',
-    title: 'My dance career was no longer working for me... This is what I did next',
-    description: 'A personal story of recognizing when it\'s time to pivot and taking action.',
+    id: '7EUfZS8mQtk',
+    title: 'How Demi\'s roller skating hobby turned into 500K followers on Instagram',
+    description: 'In this video, we\'re joined by Demi Jenkins of ‪@peachyfeverr‬ who took the world of Instagram by storm (and by accident). Although not a hard pivot, Demi\'s story is for the dancers who aren\'t satisfied with the traditional dance path but know they have something to share. She\'s an incredible example of how letting go of industry expectations in favor of being exactly who you are might just be the thing you\'ve been missing.',
     category: 'stories',
-    duration: '22:15',
-  },
-  {
-    id: 'U7GJ6I-Cgdk',
-    title: 'Why we left the stage to start over',
-    description: 'Two dancers share their journey of leaving performance to build something new.',
-    category: 'stories',
-    duration: '18:30',
+    duration: '22:36',
   },
 ];
 
@@ -164,9 +156,13 @@ export default function LearnScreen() {
                       {isExpanded && (
                         <View style={styles.playerContainer}>
                           <YoutubePlayer
-                            height={220}
+                            height={160}
                             play={false}
                             videoId={video.id}
+                            webViewStyle={styles.youtubeWebView}
+                            webViewProps={{
+                              allowsFullscreenVideo: false,
+                            }}
                             onChangeState={(state: any) => {
                               console.log('Video state:', state);
                             }}
@@ -364,6 +360,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderRadius: 12,
     overflow: 'hidden',
+    width: '100%',
+  },
+  youtubeWebView: {
+    alignSelf: 'stretch',
   },
   promotionContainer: {
     marginHorizontal: 24,
