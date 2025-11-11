@@ -254,7 +254,7 @@ const dreamerResults: { [key: string]: DreamerResult } = {
       </Text>
     ),
     subtitle: 'You don\'t need to let go of logic to follow your dreams. You just need a little more permission to dream bigger.',
-    color: '#647C90'
+    color: '#928490'
   },
   'C': {
     type: 'C',

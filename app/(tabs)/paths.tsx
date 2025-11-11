@@ -117,12 +117,15 @@ export default function PathsScreen() {
           {/* CTA Section */}
           <View style={[styles.ctaSection, { backgroundColor: '#647C90' }]}>
             <View style={styles.ctaContent}>
-              <Text style={styles.ctaTitle}>Join Our Community</Text>
+              <Text style={styles.ctaTitle}>Take Your Next Step with Confidence</Text>
               <Text style={styles.ctaSubtitle}>
-                Join thousands of dancers who have successfully transitioned to fulfilling careers
+                Happy Trails is a self-paced, 4-part mini course named after the famous Broadway send-off to help you make a plan for before, during, and after your pivot.
               </Text>
-              <TouchableOpacity style={styles.ctaButton} onPress={handleExternalLink}>
-                <Text style={styles.ctaButtonText}>Join Us</Text>
+              <TouchableOpacity
+                style={styles.ctaButton}
+                onPress={() => Linking.openURL('https://pivotfordancers.com/products/happy-trails/')}
+              >
+                <Text style={styles.ctaButtonText}>Learn More</Text>
                 <ChevronRight size={16} color="#E2DED0" />
               </TouchableOpacity>
             </View>

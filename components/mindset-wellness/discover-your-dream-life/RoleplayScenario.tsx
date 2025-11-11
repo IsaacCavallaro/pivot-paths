@@ -221,7 +221,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
@@ -259,7 +259,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />

@@ -178,9 +178,10 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
           <View style={styles.centeredContent}>
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
-                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                  <Sparkles size={32} color="#E2DED0" />
-                </View>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
               </View>
 
               <Text style={styles.introTitle}>Dream Bigger</Text>
