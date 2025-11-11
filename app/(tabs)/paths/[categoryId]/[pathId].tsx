@@ -207,6 +207,7 @@ export default function PathDetailScreen() {
   const [CelebrateTheWinsResult, setCelebrateTheWinsResult] = useState<any>(null);
 
   const path = getPathById(categoryId!, pathId!);
+  const isPathLocked = path?.subtitle === 'Coming Soon';
 
   useFocusEffect(
     useCallback(() => {
@@ -1341,7 +1342,7 @@ export default function PathDetailScreen() {
               {path.days.map((day, index) => {
                 const dayNumber = index + 1;
                 const isCompleted = dayNumber <= progress;
-                const isAccessible = dayNumber <= progress + 1;
+                const isAccessible = !isPathLocked && dayNumber <= progress + 1;
 
                 return (
                   <View key={dayNumber} style={styles.timelineItem}>
@@ -1371,7 +1372,7 @@ export default function PathDetailScreen() {
                         !isAccessible && styles.lockedContent,
                       ]}
                       onPress={() => handleDayPress(dayNumber)}
-                      disabled={!isAccessible}
+                      disabled={!isAccessible || isPathLocked}
                       activeOpacity={0.8}
                     >
                       <View style={styles.dayCard}>
@@ -1395,9 +1396,19 @@ export default function PathDetailScreen() {
                               styles.dayActionText,
                               isCompleted && styles.completedActionText,
                             ]}>
-                              {isCompleted ? 'Completed' : 'Start'}
+                              {isPathLocked ? 'Coming Soon' : (isCompleted ? 'Completed' : 'Start')}
                             </Text>
-                            {!isCompleted && <ChevronRight size={16} color="#647C90" />}
+                            {!isCompleted && !isPathLocked && <ChevronRight size={16} color="#647C90" />}
+                          </View>
+                        )}
+                        {!isAccessible && isPathLocked && (
+                          <View style={styles.dayAction}>
+                            <Text style={[
+                              styles.dayActionText,
+                              styles.lockedActionText,
+                            ]}>
+                              Coming Soon
+                            </Text>
                           </View>
                         )}
                       </View>
@@ -1564,6 +1575,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   completedActionText: {
+    color: '#928490',
+  },
+  lockedActionText: {
     color: '#928490',
   },
   dayNavigation: {
