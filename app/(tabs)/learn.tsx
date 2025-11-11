@@ -1,8 +1,9 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Linking } from 'react-native';
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { useRouter } from 'expo-router';
+import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { Play, Filter, ExternalLink, Instagram, Youtube, Facebook, Linkedin, ChevronDown, ChevronUp, ArrowLeft, Heart, Star, Trophy } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
 import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
@@ -55,6 +56,20 @@ export default function LearnScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [expandedVideo, setExpandedVideo] = useState<string | null>(null);
 
+  // Add this scroll ref for tab navigation
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
+  // Add this to scroll to top when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Scroll to top when screen is focused
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ y: 0, animated: false });
+      }
+    }, [])
+  );
+
   const filteredVideos = selectedCategory === 'all'
     ? videos
     : videos.filter(video => video.category === selectedCategory);
@@ -98,7 +113,11 @@ export default function LearnScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}  // Add this ref
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Content */}
         <View style={styles.content}>
           {/* Video List */}

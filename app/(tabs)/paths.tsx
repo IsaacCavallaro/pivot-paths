@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import { ChevronRight, BookOpen, Users, Instagram, Youtube, Facebook, Linkedin, ArrowLeft, Heart, Star, Trophy } from 'lucide-react-native';
 import { categories } from '@/data/categories';
 import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
@@ -10,6 +10,20 @@ const { width } = Dimensions.get('window');
 
 export default function PathsScreen() {
   const router = useRouter();
+
+  // Add this scroll ref for tab navigation
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
+  // Add this to scroll to top when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Scroll to top when screen is focused
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ y: 0, animated: false });
+      }
+    }, [])
+  );
 
   const handleCategoryPress = (categoryId: string) => {
     router.push(`/(tabs)/categories/${categoryId}`);
@@ -53,7 +67,11 @@ export default function PathsScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}  // Add this ref
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Content */}
         <View style={styles.content}>
 

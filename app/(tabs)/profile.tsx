@@ -1,8 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Dimensions, Linking } from 'react-native';
-import { useState } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'expo-router';
+import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Trophy, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Target } from 'lucide-react-native';
 import { categories } from '@/data/categories';
@@ -14,9 +13,18 @@ export default function ProfileScreen() {
   const [progress, setProgress] = useState<{ [key: string]: number }>({});
   const [showResetModal, setShowResetModal] = useState(false);
 
+  // Add this scroll ref for tab navigation
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
   useFocusEffect(
     useCallback(() => {
       loadProgress();
+
+      // Scroll to top when screen is focused
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ y: 0, animated: false });
+      }
     }, [])
   );
 
@@ -151,7 +159,11 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}  // Add this ref
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.content}>
           {/* Paths in Progress */}
           {getInProgressPaths().length > 0 && (

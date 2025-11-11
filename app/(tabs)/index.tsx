@@ -1,5 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Linking } from 'react-native';
+import { useRef, useCallback } from 'react';
 import { useRouter } from 'expo-router';
+import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import { ChevronRight, Play, BookOpen, Instagram, Youtube, Facebook, Linkedin } from 'lucide-react-native';
 import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
@@ -7,6 +9,20 @@ const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
+
+  // Add this scroll ref for tab navigation
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
+  // Add this to scroll to top when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Scroll to top when screen is focused
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ y: 0, animated: false });
+      }
+    }, [])
+  );
 
   const handleExternalLink = () => {
     Linking.openURL('https://pivotfordancers.com/services/mentorship/');
@@ -52,7 +68,11 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={scrollRef}  // Add this ref
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={[styles.heroSection, { backgroundColor: '#647C90' }]}>
         <View style={styles.heroContent}>
           <Image
