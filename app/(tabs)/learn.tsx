@@ -46,8 +46,8 @@ const videos = [
   },
 ];
 
-const handleSocialPress = (platform: string) => {
-  console.log(`Opening ${platform}`);
+const handleSocialPress = (url: string) => {
+  Linking.openURL(url);
 };
 
 export default function LearnScreen() {
@@ -198,16 +198,16 @@ export default function LearnScreen() {
               </TouchableOpacity>
             </View>
             <View style={styles.socialIcons}>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Instagram')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.instagram.com/pivotfordancers')}>
                 <Instagram size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('YouTube')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.youtube.com/@pivotfordancers')}>
                 <Youtube size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Facebook')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.facebook.com/pivotfordancers/')}>
                 <Facebook size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('LinkedIn')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.linkedin.com/company/pivotfordancers/')}>
                 <Linkedin size={24} color="#647C90" />
               </TouchableOpacity>
             </View>
