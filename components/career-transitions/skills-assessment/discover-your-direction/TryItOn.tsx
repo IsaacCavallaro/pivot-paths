@@ -40,7 +40,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
             title: "Corporate Role: Project Coordinator",
             scenarioTitle: "The Team Huddle",
             icon: Briefcase,
-            color: "#647C90",
+            color: "#928490",
             question1: {
                 text: "The manager says: \"Let's go around—what are you working on today?\"\n\nIt's your turn.",
                 choice1: "\"I'm just doing the tasks I was assigned.\"",
@@ -314,7 +314,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
         return (
             <View style={styles.container}>
                 {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
@@ -430,7 +430,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
         return (
             <View style={styles.container}>
                 {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     },
     scenarioCard: {
         marginHorizontal: 24,
-        marginTop: 50,
+        marginTop: 100,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     },
     choicesCard: {
         marginHorizontal: 24,
-        marginTop: 50,
+        marginTop: 100,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 32,
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
     },
     responseCard: {
         marginHorizontal: 24,
-        marginTop: 50,
+        marginTop: 100,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
@@ -745,7 +745,7 @@ const styles = StyleSheet.create({
     },
     alternativeCard: {
         marginHorizontal: 24,
-        marginTop: 50,
+        marginTop: 100,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
