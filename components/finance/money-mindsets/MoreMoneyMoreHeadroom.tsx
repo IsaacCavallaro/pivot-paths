@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
 import { ChevronRight, DollarSign, ArrowLeft, ChevronLeft } from 'lucide-react-native';
 
@@ -79,6 +79,7 @@ interface MoreMoneyMoreHeadroomProps {
 export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyMoreHeadroomProps) {
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
     const [screenHistory, setScreenHistory] = useState<number[]>([]);
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const handleBack = useCallback(() => {
         if (onBack) {
@@ -90,14 +91,20 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
         setScreenHistory([0]);
     };
 
+    const scrollToTop = () => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    };
+
     const handleContinue = () => {
         if (currentCardIndex < tipCards.length - 1) {
             const newCardIndex = currentCardIndex + 1;
             setCurrentCardIndex(newCardIndex);
             setScreenHistory([...screenHistory, newCardIndex]);
+            scrollToTop();
         } else {
             // All cards completed, go to final screen
             setScreenHistory([...screenHistory, -1]); // -1 represents final screen
+            scrollToTop();
         }
     };
 
@@ -127,6 +134,7 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
         }
 
         setCurrentCardIndex(prevScreenIndex);
+        scrollToTop();
     };
 
     // Calculate progress for card screens
@@ -145,7 +153,7 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                     </View>
                 </View>
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
                     <View style={styles.centeredContent}>
                         <View style={styles.introCard}>
                             <View style={styles.introIconContainer}>
@@ -187,7 +195,7 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                     </View>
                 </View>
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
                     <View style={styles.centeredContent}>
                         <View style={styles.finalCard}>
                             <View style={styles.introIconContainer}>
@@ -240,7 +248,7 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                 </View>
             </View>
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
                 <View style={styles.centeredContent}>
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>{currentCard.title}</Text>
