@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     marginHorizontal: 24,
-    marginBottom: 48,
+    marginBottom: 0,
     borderRadius: 24,
     padding: 20,
     alignItems: 'center',

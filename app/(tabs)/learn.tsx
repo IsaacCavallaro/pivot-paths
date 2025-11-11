@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   promotionContainer: {
     marginHorizontal: 24,
-    marginBottom: 48,
+    marginBottom: 0,
     borderRadius: 24,
     padding: 40,
     shadowColor: '#000',
