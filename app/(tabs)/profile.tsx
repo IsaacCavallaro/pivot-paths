@@ -3,7 +3,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Trophy, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Target, ChevronRight } from 'lucide-react-native';
+import { Trophy, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Map, ChevronRight } from 'lucide-react-native';
 import { categories } from '@/data/categories';
 
 const { width } = Dimensions.get('window');
@@ -250,7 +250,7 @@ export default function ProfileScreen() {
             <View style={styles.emptyStateContainer}>
               <View style={[styles.emptyStateCard, { backgroundColor: '#F5F5F5' }]}>
                 <View style={styles.emptyStateIcon}>
-                  <Target size={48} color="#647C90" />
+                  <Map size={48} color="#647C90" />
                 </View>
                 <Text style={styles.emptyStateTitle}>Your Journey Awaits</Text>
                 <Text style={styles.emptyStateText}>
