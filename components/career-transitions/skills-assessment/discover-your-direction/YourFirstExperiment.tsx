@@ -205,10 +205,6 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
                                 </TouchableOpacity>
                             </View>
 
-                            <Text style={styles.alternativeClosing}>
-                                Ready to dive deeper into your career change?
-                            </Text>
-
                             <View style={styles.finalButtonContainer}>
                                 <TouchableOpacity style={styles.continueButton} onPress={handleComplete}>
                                     <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>

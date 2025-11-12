@@ -346,9 +346,10 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                     <View style={styles.content}>
                         <View style={styles.alternativeCard}>
                             <View style={styles.alternativeIconContainer}>
-                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Heart size={32} color="#E2DED0" />
-                                </View>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.alternativeTitle}>Money isn't holding you back.</Text>
