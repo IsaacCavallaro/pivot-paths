@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking } from 'react-native';
 import { ChevronRight, Palette, Briefcase, Heart, ArrowLeft } from 'lucide-react-native';
 
 interface TryItOnProps {
     onComplete: () => void;
     onBack?: () => void;
 }
+
+const hanndleMockInterviewOpen = () => {
+    Linking.openURL('https://pivotfordancers.com/services/mock-interviews/');
+};
 
 export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     const [currentScreen, setCurrentScreen] = useState(0);
@@ -494,6 +498,19 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                                 You just "tried on" your first week in a new role. When you put yourself in those shoes, which one felt most aligned? Perhaps that's a good place to start as you dive deeper into your exploration.
                             </Text>
 
+                            <View style={styles.mockInterviewCard}>
+                                <Text style={styles.mockInterviewTitle}>Ready to practice together?</Text>
+                                <Text style={styles.mockInterviewDescription}>
+                                    Practice interviewing in a safe environment before the real thing. Reduce interview anxiety and increase your confidence through realistic simulation and expert guidance.
+                                </Text>
+                                <TouchableOpacity style={styles.mockInterviewButton} onPress={hanndleMockInterviewOpen}>
+                                    <View style={[styles.mockInterviewButtonContent, { backgroundColor: '#647C90' }]}>
+                                        <Text style={styles.mockInterviewButtonText}>Learn More</Text>
+                                        <ChevronRight size={16} color="#E2DED0" />
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+
                             <Text style={styles.alternativeClosing}>
                                 Meet you here again tomorrow.
                             </Text>
@@ -745,7 +762,7 @@ const styles = StyleSheet.create({
     },
     alternativeCard: {
         marginHorizontal: 24,
-        marginTop: 100,
+        marginTop: 50,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
@@ -776,6 +793,7 @@ const styles = StyleSheet.create({
         color: '#647C90',
         textAlign: 'center',
         marginBottom: 25,
+        marginTop: 25,
         fontWeight: '700',
     },
     alternativeText: {
@@ -824,5 +842,51 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         borderColor: '#647C90',
         borderWidth: 2,
+    },
+    mockInterviewCard: {
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 32,
+        borderLeftWidth: 4,
+        borderLeftColor: '#647C90',
+        width: '100%',
+    },
+    mockInterviewTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
+    },
+    mockInterviewDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: 20,
+    },
+    mockInterviewButton: {
+        borderRadius: 30,
+        overflow: 'hidden',
+    },
+    mockInterviewButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#647C90',
+    },
+    mockInterviewButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 14,
+        color: '#E2DED0',
+        marginRight: 8,
+        fontWeight: '600',
     },
 });
