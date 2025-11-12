@@ -9,14 +9,36 @@ import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from '
 const { width } = Dimensions.get('window');
 
 const videoCategories = [
-  { id: 'all', title: 'All Videos', color: '#647C90' },
   { id: 'stories', title: 'Career Stories', color: '#928490' },
-  { id: 'tips', title: 'Transition Tips', color: '#746C70' },
-  { id: 'wellness', title: 'Wellness', color: '#4E4F50' },
+  { id: 'data', title: 'Data', color: '#746C70' },
 ];
 
 // Updated YouTube videos from Pivot for Dancers
 const videos = [
+  {
+    id: '16JMiSPzlBE',
+    title: 'How a ski mountain helped Elise let go of her dance career',
+    category: 'stories',
+    duration: '32:21',
+  },
+  {
+    id: 'a_U9pZr03zI',
+    title: 'Kelsey didn\'t wait around for her dance career to inevitably end',
+    category: 'stories',
+    duration: '26:17',
+  },
+  {
+    id: 'D6b1OD2q55A',
+    title: 'Shocking data reveals that dancers retire much earlier than expected...',
+    category: 'data',
+    duration: '8:15',
+  },
+  {
+    id: '1J26CRRwr-k',
+    title: 'If a recession is coming, are dancers really ready?',
+    category: 'data',
+    duration: '5:42',
+  },
   {
     id: 'ZsvNvXLtcC4',
     title: 'Will you regret being a dancer? How Monica turned guilt into growth',
@@ -49,7 +71,7 @@ const handleSocialPress = (url: string) => {
 
 export default function LearnScreen() {
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('stories');
   const [expandedVideo, setExpandedVideo] = useState<string | null>(videos[0]?.id || null);
 
   // Add this scroll ref for tab navigation
@@ -69,9 +91,7 @@ export default function LearnScreen() {
     }, [])
   );
 
-  const filteredVideos = selectedCategory === 'all'
-    ? videos
-    : videos.filter(video => video.category === selectedCategory);
+  const filteredVideos = videos.filter(video => video.category === selectedCategory);
 
   const handleVideoPress = (videoId: string) => {
     // If the same video is clicked, collapse it. Otherwise, expand the new one
@@ -86,14 +106,14 @@ export default function LearnScreen() {
     router.push('/(tabs)/');
   };
 
-  const scaleValues = videos.map(() => useSharedValue(1));
+  const scaleValue = useSharedValue(1);
 
-  const handlePressIn = (index: number) => {
-    scaleValues[index].value = withTiming(0.95, { duration: 150, easing: Easing.out(Easing.ease) });
+  const handlePressIn = () => {
+    scaleValue.value = withTiming(0.95, { duration: 150, easing: Easing.out(Easing.ease) });
   };
 
-  const handlePressOut = (index: number) => {
-    scaleValues[index].value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
+  const handlePressOut = () => {
+    scaleValue.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
   };
 
   return (
@@ -113,31 +133,56 @@ export default function LearnScreen() {
       </View>
 
       <ScrollView
-        ref={scrollRef}  // Add this ref
+        ref={scrollRef}
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
         {/* Content */}
         <View style={styles.content}>
+          {/* Category Filter */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryScrollContent}
+            style={styles.categoryScroll}
+          >
+            {videoCategories.map((category) => (
+              <TouchableOpacity
+                key={category.id}
+                onPress={() => setSelectedCategory(category.id)}
+                style={[
+                  styles.categoryButton,
+                  selectedCategory === category.id && styles.categoryButtonActive,
+                  { borderColor: category.color }
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.categoryButtonText,
+                    selectedCategory === category.id && styles.categoryButtonTextActive,
+                    { color: selectedCategory === category.id ? '#E2DED0' : category.color }
+                  ]}
+                >
+                  {category.title}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
           {/* Video List */}
           <View style={styles.videosContainer}>
             {filteredVideos.map((video, index) => {
               const isExpanded = expandedVideo === video.id;
 
               return (
-                <Animated.View
+                <View
                   key={`${video.id}-${index}`}
-                  style={[
-                    styles.videoCard,
-                    useAnimatedStyle(() => ({
-                      transform: [{ scale: scaleValues[index].value }],
-                    })),
-                  ]}
+                  style={styles.videoCard}
                 >
                   <TouchableOpacity
                     onPress={() => handleVideoPress(video.id)}
-                    onPressIn={() => handlePressIn(index)}
-                    onPressOut={() => handlePressOut(index)}
+                    onPressIn={handlePressIn}
+                    onPressOut={handlePressOut}
                     activeOpacity={0.8}
                   >
                     <View style={[styles.videoContentContainer, { backgroundColor: '#F5F5F5' }]}>
@@ -188,7 +233,7 @@ export default function LearnScreen() {
                       )}
                     </View>
                   </TouchableOpacity>
-                </Animated.View>
+                </View>
               );
             })}
           </View>
@@ -280,10 +325,35 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     textAlign: 'center',
   },
+  categoryScroll: {
+    marginBottom: 24,
+  },
+  categoryScrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 30,
+    gap: 12,
+  },
+  categoryButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 2,
+    backgroundColor: '#E2DED0',
+  },
+  categoryButtonActive: {
+    backgroundColor: '#647C90',
+  },
+  categoryButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  categoryButtonTextActive: {
+    color: '#E2DED0',
+  },
   videosContainer: {
     paddingHorizontal: 24,
     paddingBottom: 30,
-    paddingTop: 50,
   },
   videoCard: {
     marginBottom: 24,

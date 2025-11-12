@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Trophy, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Map, ChevronRight } from 'lucide-react-native';
+import { Trophy, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Map, ChevronRight, Target } from 'lucide-react-native';
 import { categories } from '@/data/categories';
 
 const { width } = Dimensions.get('window');
