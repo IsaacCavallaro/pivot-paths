@@ -28,6 +28,10 @@ export default function HomeScreen() {
     Linking.openURL('https://pivotfordancers.com/services/mentorship/');
   };
 
+  const handleWebsiteLink = () => {
+    Linking.openURL('https://pivotfordancers.com/');
+  };
+
   const handleSocialPress = (url: string) => {
     Linking.openURL(url);
   };
@@ -141,7 +145,7 @@ export default function HomeScreen() {
 
       <View style={styles.footer}>
         <View style={styles.footerLinks}>
-          <TouchableOpacity onPress={handleExternalLink}>
+          <TouchableOpacity onPress={handleWebsiteLink}>
             <Text style={styles.footerLink}>pivotfordancers.com</Text>
           </TouchableOpacity>
         </View>

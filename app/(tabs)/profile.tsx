@@ -1,3 +1,4 @@
+
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Dimensions, Linking } from 'react-native';
 import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'expo-router';
@@ -148,6 +149,11 @@ export default function ProfileScreen() {
     Linking.openURL(url);
   };
 
+  // Add this function to handle path navigation
+  const handlePathPress = (categoryId: string, pathId: string) => {
+    router.push(`/paths/${categoryId}/${pathId}`);
+  };
+
   return (
     <View style={styles.container}>
       {/* Sticky Header */}
@@ -174,40 +180,46 @@ export default function ProfileScreen() {
             <View style={styles.pathsProgressContainer}>
               <Text style={styles.sectionTitle}>Paths in Progress</Text>
               {getInProgressPaths().map((pathData) => (
-                <View key={`${pathData.categoryId}_${pathData.pathId}`} style={styles.pathProgressCard}>
-                  <View style={[styles.pathProgressContent, { backgroundColor: '#F5F5F5' }]}>
-                    <View style={styles.pathProgressHeader}>
-                      <View style={styles.pathIconContainer}>
-                        <View style={[styles.pathIconGradient, { backgroundColor: pathData.categoryColor }]}>
-                          <Text style={styles.pathProgressIconText}>
-                            {categories.find(c => c.id === pathData.categoryId)?.icon}
-                          </Text>
+                <TouchableOpacity
+                  key={`${pathData.categoryId}_${pathData.pathId}`}
+                  onPress={() => handlePathPress(pathData.categoryId, pathData.pathId)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.pathProgressCard}>
+                    <View style={[styles.pathProgressContent, { backgroundColor: '#F5F5F5' }]}>
+                      <View style={styles.pathProgressHeader}>
+                        <View style={styles.pathIconContainer}>
+                          <View style={[styles.pathIconGradient, { backgroundColor: pathData.categoryColor }]}>
+                            <Text style={styles.pathProgressIconText}>
+                              {categories.find(c => c.id === pathData.categoryId)?.icon}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.pathProgressInfo}>
+                          <Text style={styles.pathProgressTitle}>{pathData.pathTitle}</Text>
+                          <Text style={styles.pathProgressSubtitle}>{pathData.pathSubtitle}</Text>
+                          <Text style={styles.pathProgressCategory}>{pathData.categoryTitle}</Text>
+                        </View>
+                        <View style={styles.pathProgressStats}>
+                          <Text style={styles.pathProgressPercentage}>{pathData.percentage}%</Text>
                         </View>
                       </View>
-                      <View style={styles.pathProgressInfo}>
-                        <Text style={styles.pathProgressTitle}>{pathData.pathTitle}</Text>
-                        <Text style={styles.pathProgressSubtitle}>{pathData.pathSubtitle}</Text>
-                        <Text style={styles.pathProgressCategory}>{pathData.categoryTitle}</Text>
+                      <View style={styles.pathProgressBarContainer}>
+                        <View style={styles.pathProgressBar}>
+                          <View
+                            style={[
+                              styles.pathProgressFill,
+                              { width: `${pathData.percentage}%`, backgroundColor: pathData.categoryColor }
+                            ]}
+                          />
+                        </View>
+                        <Text style={styles.pathProgressDays}>
+                          {pathData.completed}/{pathData.total} days
+                        </Text>
                       </View>
-                      <View style={styles.pathProgressStats}>
-                        <Text style={styles.pathProgressPercentage}>{pathData.percentage}%</Text>
-                      </View>
-                    </View>
-                    <View style={styles.pathProgressBarContainer}>
-                      <View style={styles.pathProgressBar}>
-                        <View
-                          style={[
-                            styles.pathProgressFill,
-                            { width: `${pathData.percentage}%`, backgroundColor: pathData.categoryColor }
-                          ]}
-                        />
-                      </View>
-                      <Text style={styles.pathProgressDays}>
-                        {pathData.completed}/{pathData.total} days
-                      </Text>
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           )}
