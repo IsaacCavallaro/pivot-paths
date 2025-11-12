@@ -79,7 +79,7 @@ export default function LearnScreen() {
   };
 
   const handleExternalLink = () => {
-    Linking.openURL('https://pivotfordancers.com/products/happy-trails/');
+    Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
   };
 
   const handleBackPress = () => {
@@ -198,10 +198,10 @@ export default function LearnScreen() {
             <View style={styles.promotionContent}>
               <Text style={styles.promotionTitle}>Ready for more?</Text>
               <Text style={styles.promotionSubtitle}>
-                Dive deeper with comprehensive courses and resources at pivotfordancers.com
+                Dive deeper with our part self-help book and part action-focused career resource tailored specifically for professional dancers.
               </Text>
               <TouchableOpacity style={styles.promotionButton} onPress={handleExternalLink}>
-                <Text style={styles.promotionButtonText}>Explore Course</Text>
+                <Text style={styles.promotionButtonText}>Learn More</Text>
                 <ExternalLink size={16} color="#E2DED0" />
               </TouchableOpacity>
             </View>
