@@ -267,6 +267,7 @@ export default function ProfileScreen() {
 
           {/* Achievements */}
           <View style={styles.achievementsContainer}>
+            <Text style={styles.sectionTitle}>Achievements</Text>
             <View style={styles.achievementsList}>
               {getTotalDaysCompleted() >= 1 ? (
                 <>
@@ -512,6 +513,7 @@ const styles = StyleSheet.create({
     color: '#647C90',
     marginBottom: 20,
     fontWeight: '700',
+    textAlign: 'center', // Add this line to center the titles
   },
   pathProgressCard: {
     marginBottom: 24,
