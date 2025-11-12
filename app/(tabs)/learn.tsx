@@ -50,7 +50,7 @@ const handleSocialPress = (url: string) => {
 export default function LearnScreen() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [expandedVideo, setExpandedVideo] = useState<string | null>(null);
+  const [expandedVideo, setExpandedVideo] = useState<string | null>(videos[0]?.id || null);
 
   // Add this scroll ref for tab navigation
   const scrollRef = useRef<ScrollView>(null);
@@ -63,6 +63,9 @@ export default function LearnScreen() {
       if (scrollRef.current) {
         scrollRef.current.scrollTo({ y: 0, animated: false });
       }
+
+      // Reset the first video to be expanded when screen comes into focus
+      setExpandedVideo(videos[0]?.id || null);
     }, [])
   );
 

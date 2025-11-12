@@ -318,13 +318,13 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
               {/* New Happy Trails Course Content */}
               {isFinal && (
                 <View style={styles.courseCard}>
-                  <Text style={styles.courseTitle}>Take your next step today with Happy Trails</Text>
+                  <Text style={styles.courseTitle}>Mindset Shifts</Text>
                   <Text style={styles.courseDescription}>
-                    A mini course to plan your pivot. Inside, you'll get access to a 5-year career change roadmap and exclusive resources.
+                    A huge part of your next chapter will be changing your mindset. We help you prepare for the mental shifts required to successfully pivot.
                   </Text>
                   <TouchableOpacity style={styles.courseButton} onPress={handleOpenCourse}>
                     <View style={[styles.courseButtonContent, { backgroundColor: '#647C90' }]}>
-                      <Text style={styles.courseButtonText}>Start the Happy Trails Course</Text>
+                      <Text style={styles.courseButtonText}>Learn More</Text>
                       <ChevronRight size={16} color="#E2DED0" />
                     </View>
                   </TouchableOpacity>
