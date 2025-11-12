@@ -3,7 +3,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Trophy, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Target } from 'lucide-react-native';
+import { Trophy, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Target, ChevronRight } from 'lucide-react-native';
 import { categories } from '@/data/categories';
 
 const { width } = Dimensions.get('window');
@@ -46,7 +46,11 @@ export default function ProfileScreen() {
   };
 
   const handleExternalLink = () => {
-    console.log('Opening pivotfordancers.com');
+    Linking.openURL('https://pivotfordancers.com/');
+  };
+
+  const handleOpenMentorship = () => {
+    Linking.openURL('https://pivotfordancers.com/services/mentorship/');
   };
 
   const confirmReset = async () => {
@@ -357,6 +361,20 @@ export default function ProfileScreen() {
                 </View>
               )}
             </View>
+          </View>
+
+          {/* Mentorship CTA */}
+          <View style={styles.mentorshipCard}>
+            <Text style={styles.mentorshipTitle}>Want more Support?</Text>
+            <Text style={styles.mentorshipDescription}>
+              Our mentorship program provides personalized guidance from experienced former professional dancers who understand your unique journey.
+            </Text>
+            <TouchableOpacity style={styles.mentorshipButton} onPress={handleOpenMentorship}>
+              <View style={[styles.mentorshipButtonContent, { backgroundColor: '#647C90' }]}>
+                <Text style={styles.mentorshipButtonText}>Learn More</Text>
+                <ChevronRight size={16} color="#E2DED0" />
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* Reset Progress Button */}
@@ -913,5 +931,53 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     backgroundColor: 'rgba(146, 132, 144, 0.1)',
+  },
+  // New styles for the mentorship card
+  mentorshipCard: {
+    backgroundColor: 'rgba(100, 124, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 32,
+    borderLeftWidth: 4,
+    borderLeftColor: '#647C90',
+    marginRight: 24,
+    marginLeft: 24,
+  },
+  mentorshipTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  mentorshipDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 14,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  mentorshipButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  mentorshipButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#647C90',
+  },
+  mentorshipButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
   },
 });
