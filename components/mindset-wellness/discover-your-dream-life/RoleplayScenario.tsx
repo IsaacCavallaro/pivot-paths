@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { ChevronRight, Heart, ArrowLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions, Modal, Linking } from 'react-native';
+import { ChevronRight, ArrowLeft, X } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
 
 interface RoleplayScenarioProps {
   onComplete: () => void;
   onBack?: () => void;
 }
 
+const { width, height } = Dimensions.get('window');
+
 export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenarioProps) {
-  const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1 = scenario, 2 = choices, 3 = response, 4 = follow-up, 5 = alternative
+  const [currentScreen, setCurrentScreen] = useState(0);
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
 
   const handleStartRoleplay = () => {
     setCurrentScreen(1);
@@ -46,6 +51,37 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     }
   };
 
+  const openVideoModal = () => {
+    setShowVideoModal(true);
+    setIsPlaying(true);
+  };
+
+  const closeVideoModal = () => {
+    setIsPlaying(false);
+    setShowVideoModal(false);
+  };
+
+  // New function to open YouTube Short in browser
+  const openYouTubeShort = async () => {
+    const youtubeUrl = `https://www.youtube.com/shorts/s-hpQ9XBGP4`;
+
+    try {
+      const supported = await Linking.canOpenURL(youtubeUrl);
+
+      if (supported) {
+        await Linking.openURL(youtubeUrl);
+      } else {
+        // Fallback to modal if YouTube app/browser isn't available
+        console.log("YouTube app not available, opening in modal");
+        openVideoModal();
+      }
+    } catch (error) {
+      console.log("Error opening YouTube:", error);
+      // Fallback to modal on error
+      openVideoModal();
+    }
+  };
+
   const getResponseText = () => {
     switch (selectedChoice) {
       case 1:
@@ -72,11 +108,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     }
   };
 
-  // Intro Screen
   if (currentScreen === 0) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -99,7 +133,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
               <Text style={styles.introTitle}>What's the alternative?</Text>
 
               <Text style={styles.introDescription}>
-                Let's walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you’d be most likely to do in this scenario and we’ll shed light on an alternative. You have more options than you might think.
+                Let's walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you'd be most likely to do in this scenario and we'll shed light on an alternative. You have more options than you might think.
               </Text>
 
               <TouchableOpacity
@@ -119,11 +153,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     );
   }
 
-  // Scenario Screen
   if (currentScreen === 1) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
@@ -147,7 +179,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 onPress={handleContinue}
                 activeOpacity={0.8}
               >
-                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                <View style={styles.continueButtonContent}>
                   <Text style={styles.continueButtonText}>What will you do?</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
@@ -159,11 +191,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     );
   }
 
-  // Choices Screen
   if (currentScreen === 2) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
@@ -216,11 +246,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     );
   }
 
-  // Response Screen
   if (currentScreen === 3) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
@@ -242,7 +270,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 onPress={handleContinue}
                 activeOpacity={0.8}
               >
-                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                <View style={styles.continueButtonContent}>
                   <Text style={styles.continueButtonText}>Continue</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
@@ -254,11 +282,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     );
   }
 
-  // Follow-up Screen
   if (currentScreen === 4) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
@@ -280,7 +306,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 onPress={handleContinue}
                 activeOpacity={0.8}
               >
-                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                <View style={styles.continueButtonContent}>
                   <Text style={styles.continueButtonText}>See the Alternative</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
@@ -292,11 +318,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     );
   }
 
-  // Alternative Screen
   if (currentScreen === 5) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
@@ -317,7 +341,6 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
               </View>
 
               <Text style={styles.alternativeTitle}>So, what's the alternative?</Text>
-
               <Text style={styles.alternativeText}>
                 You finish off your dance contract on your terms, retiring with grace and dignity. You've started in a new career making more money than ever with three weeks of paid time off. You take dance class every Thursday and spend your weekends trying different hobbies.
               </Text>
@@ -330,6 +353,24 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 You have the best time seeing old friends and celebrating this once in a lifetime event with the memories to prove it. You're still living the dream. How does that sound?
               </Text>
 
+              {/* Updated YouTube Short Button - Now shows thumbnail */}
+              <TouchableOpacity
+                style={styles.videoThumbnailContainer}
+                onPress={openYouTubeShort}
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={{ uri: 'https://img.youtube.com/vi/s-hpQ9XBGP4/maxresdefault.jpg' }}
+                  style={styles.videoThumbnail}
+                  resizeMode="cover"
+                />
+                <View style={styles.playButtonOverlay}>
+                  <View style={styles.playButton}>
+                    <Text style={styles.playIcon}>▶</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
               <Text style={styles.alternativeClosing}>
                 See you for more tomorrow.
               </Text>
@@ -339,7 +380,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 onPress={onComplete}
                 activeOpacity={0.8}
               >
-                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                <View style={styles.completeButtonContent}>
                   <Text style={styles.completeButtonText}>Mark As Complete</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
@@ -347,6 +388,40 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
             </View>
           </View>
         </ScrollView>
+
+        {/* Keep the modal as fallback */}
+        <Modal
+          visible={showVideoModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={closeVideoModal}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={closeVideoModal}
+                activeOpacity={0.8}
+              >
+                <X size={28} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              <View style={styles.videoPlayerContainer}>
+                <YoutubePlayer
+                  height={height * 0.75}
+                  play={isPlaying}
+                  videoId={'ShIxdYpquqA'}
+                  webViewProps={{
+                    allowsFullscreenVideo: true,
+                  }}
+                  onChangeState={(state) => {
+                    console.log('Video state:', state);
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -386,16 +461,6 @@ const styles = StyleSheet.create({
   backButton: {
     width: 28,
   },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  titleText: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 25,
-    color: '#E2DED0',
-    textAlign: 'center',
-  },
   introCard: {
     marginHorizontal: 24,
     marginTop: 50,
@@ -411,17 +476,6 @@ const styles = StyleSheet.create({
   },
   introIconContainer: {
     marginBottom: 24,
-  },
-  introIconGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
   },
   introTitle: {
     fontFamily: 'Merriweather-Bold',
@@ -502,6 +556,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderWidth: 1,
     borderColor: '#E2DED0',
+    backgroundColor: '#928490',
   },
   continueButtonText: {
     fontFamily: 'Montserrat-SemiBold',
@@ -621,17 +676,6 @@ const styles = StyleSheet.create({
   alternativeIconContainer: {
     marginBottom: 24,
   },
-  alternativeIconGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
   alternativeTitle: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 24,
@@ -669,6 +713,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderWidth: 1,
     borderColor: '#E2DED0',
+    backgroundColor: '#928490',
   },
   completeButtonText: {
     fontFamily: 'Montserrat-SemiBold',
@@ -684,5 +729,78 @@ const styles = StyleSheet.create({
     borderColor: '#647C90',
     borderWidth: 2,
     marginBottom: 10,
+  },
+  // YouTube Thumbnail Styles
+  videoThumbnailContainer: {
+    width: '100%',
+    marginBottom: 25,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+    position: 'relative',
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+  },
+  playButtonOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  playButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF0000', // YouTube red
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  playIcon: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 4, // Slight offset to center the play icon
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: width * 0.9,
+    maxWidth: 500,
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: -50,
+    right: 0,
+    zIndex: 10,
+    padding: 10,
+  },
+  videoPlayerContainer: {
+    width: '100%',
+    aspectRatio: 9 / 16, // YouTube Shorts aspect ratio (vertical)
+    backgroundColor: '#000',
+    borderRadius: 16,
+    overflow: 'hidden',
   },
 });
