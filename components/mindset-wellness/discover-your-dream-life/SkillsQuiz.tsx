@@ -339,7 +339,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
   // Function to open YouTube Short
   const openYouTubeShort = async () => {
-    const youtubeUrl = `https://www.youtube.com/shorts/ark1JdF7j6U`;
+    const youtubeUrl = ` https://www.youtube.com/shorts/ShIxdYpquqA`;
 
     try {
       const supported = await Linking.canOpenURL(youtubeUrl);
@@ -441,7 +441,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 activeOpacity={0.8}
               >
                 <Image
-                  source={{ uri: 'https://img.youtube.com/vi/ark1JdF7j6U/maxresdefault.jpg' }}
+                  source={{ uri: 'https://img.youtube.com/vi/ShIxdYpquqA/maxresdefault.jpg' }}
                   style={styles.videoThumbnail}
                   resizeMode="cover"
                 />
