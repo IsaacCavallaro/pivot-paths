@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking } from 'react-native';
 import { ChevronRight, ArrowLeft } from 'lucide-react-native';
 
 interface MythPair {
@@ -230,6 +230,23 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     }
   };
 
+  // Function to open YouTube Short
+  const openYouTubeShort = async () => {
+    const youtubeUrl = `https://www.youtube.com/shorts/8DwWYZHsUHw`;
+
+    try {
+      const supported = await Linking.canOpenURL(youtubeUrl);
+
+      if (supported) {
+        await Linking.openURL(youtubeUrl);
+      } else {
+        console.log("YouTube app not available");
+      }
+    } catch (error) {
+      console.log("Error opening YouTube:", error);
+    }
+  };
+
   // Intro Screen
   if (currentScreen === 0) {
     return (
@@ -316,8 +333,26 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               </Text>
 
               <Text style={styles.reflectionText}>
-                In fact, these myths usually keep us stuck in a cycle where we’re more susceptible to manipulation and exploitation. Do you agree?
+                In fact, these myths usually keep us stuck in a cycle where we're more susceptible to manipulation and exploitation. Do you agree?
               </Text>
+
+              {/* Added YouTube Short Thumbnail */}
+              <TouchableOpacity
+                style={styles.videoThumbnailContainer}
+                onPress={openYouTubeShort}
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={{ uri: 'https://img.youtube.com/vi/8DwWYZHsUHw/maxresdefault.jpg' }}
+                  style={styles.videoThumbnail}
+                  resizeMode="cover"
+                />
+                <View style={styles.playButtonOverlay}>
+                  <View style={styles.playButton}>
+                    <Text style={styles.playIcon}>▶</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
 
               <Text style={styles.reflectionClosing}>
                 We'll check back in tomorrow.
@@ -708,5 +743,52 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderColor: '#647C90',
     borderWidth: 2,
+  },
+  // YouTube Thumbnail Styles
+  videoThumbnailContainer: {
+    width: '100%',
+    marginBottom: 25,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+    position: 'relative',
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+  },
+  playButtonOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  playButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF0000', // YouTube red
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  playIcon: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 4, // Slight offset to center the play icon
   },
 });
