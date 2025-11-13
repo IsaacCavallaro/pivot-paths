@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking } from 'react-native';
 import { ChevronRight, MessageCircle, ArrowLeft } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -135,6 +135,23 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     setShowNewScript(prevScreen.showNew);
   };
 
+  // Function to open YouTube Short
+  const openYouTubeShort = async () => {
+    const youtubeUrl = `https://www.youtube.com/shorts/txScPvwXEcQ`;
+
+    try {
+      const supported = await Linking.canOpenURL(youtubeUrl);
+
+      if (supported) {
+        await Linking.openURL(youtubeUrl);
+      } else {
+        console.log("YouTube app not available");
+      }
+    } catch (error) {
+      console.log("Error opening YouTube:", error);
+    }
+  };
+
   // Intro Screen
   if (screenHistory.length === 0) {
     return (
@@ -211,6 +228,24 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
                   Reframing the way you speak about your transition can do wonders for your mental health throughout the journey. Own your story!
                 </Text>
               </View>
+
+              {/* Added YouTube Short Thumbnail */}
+              <TouchableOpacity
+                style={styles.videoThumbnailContainer}
+                onPress={openYouTubeShort}
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={{ uri: 'https://img.youtube.com/vi/txScPvwXEcQ/maxresdefault.jpg' }}
+                  style={styles.videoThumbnail}
+                  resizeMode="cover"
+                />
+                <View style={styles.playButtonOverlay}>
+                  <View style={styles.playButton}>
+                    <Text style={styles.playIcon}>▶</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
 
               <Text style={styles.alternativeClosing}>
                 You're almost at the final step in this path. See you there.
@@ -550,5 +585,52 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderColor: '#647C90',
     borderWidth: 2,
+  },
+  // YouTube Thumbnail Styles
+  videoThumbnailContainer: {
+    width: '100%',
+    marginBottom: 25,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+    position: 'relative',
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+  },
+  playButtonOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  playButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF0000', // YouTube red
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  playIcon: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 4, // Slight offset to center the play icon
   },
 });
