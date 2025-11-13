@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking } from 'react-native';
 import { ChevronRight, ArrowLeft } from 'lucide-react-native';
 
 interface QuizQuestion {
@@ -337,6 +337,23 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     }
   };
 
+  // Function to open YouTube Short
+  const openYouTubeShort = async () => {
+    const youtubeUrl = `https://www.youtube.com/shorts/ark1JdF7j6U`;
+
+    try {
+      const supported = await Linking.canOpenURL(youtubeUrl);
+
+      if (supported) {
+        await Linking.openURL(youtubeUrl);
+      } else {
+        console.log("YouTube app not available");
+      }
+    } catch (error) {
+      console.log("Error opening YouTube:", error);
+    }
+  };
+
   // Intro Screen
   if (currentScreen === 0) {
     return (
@@ -416,6 +433,24 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               <Text style={styles.finalDescription}>
                 The Expansive Dreamer is someone who allows their imagination to be bold <Text style={{ fontStyle: 'italic' }}>without apology</Text>.
               </Text>
+
+              {/* Added YouTube Short Thumbnail */}
+              <TouchableOpacity
+                style={styles.videoThumbnailContainer}
+                onPress={openYouTubeShort}
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={{ uri: 'https://img.youtube.com/vi/ark1JdF7j6U/maxresdefault.jpg' }}
+                  style={styles.videoThumbnail}
+                  resizeMode="cover"
+                />
+                <View style={styles.playButtonOverlay}>
+                  <View style={styles.playButton}>
+                    <Text style={styles.playIcon}>▶</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
 
               <Text style={styles.finalClosing}>
                 See you tomorrow!
@@ -828,5 +863,52 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     marginRight: 8,
     fontWeight: '600',
+  },
+  // YouTube Thumbnail Styles
+  videoThumbnailContainer: {
+    width: '100%',
+    marginBottom: 25,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+    position: 'relative',
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+  },
+  playButtonOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  playButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF0000', // YouTube red
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  playIcon: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 4, // Slight offset to center the play icon
   },
 });
