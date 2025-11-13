@@ -96,12 +96,14 @@ export default function CategoryScreen() {
               const progressPercentage = getPathProgress(path.id);
               const isCompleted = progressPercentage >= 100;
               const hasProgress = progressPercentage > 0;
+              const isComingSoon = path.subtitle === "Coming Soon";
 
               return (
                 <Animated.View
                   key={path.id}
                   style={[
                     styles.pathCard,
+                    isComingSoon && styles.comingSoonCard,
                     useAnimatedStyle(() => ({
                       transform: [{ scale: scaleValues[index].value }],
                     })),
@@ -113,22 +115,45 @@ export default function CategoryScreen() {
                     onPressOut={() => handlePressOut(index)}
                     activeOpacity={0.8}
                   >
-                    <View style={[styles.pathContentContainer, { backgroundColor: '#F5F5F5' }]}>
+                    <View style={[
+                      styles.pathContentContainer,
+                      { backgroundColor: '#F5F5F5' },
+                      isComingSoon && styles.comingSoonContentContainer
+                    ]}>
                       <View style={styles.pathHeader}>
                         <View style={styles.pathIconContainer}>
-                          <View style={[styles.pathIconGradient, { backgroundColor: category.color }]}>
+                          <View style={[
+                            styles.pathIconGradient,
+                            { backgroundColor: category.color },
+                            isComingSoon && styles.comingSoonIcon
+                          ]}>
                             {path.icon}
                           </View>
                         </View>
                         <View style={styles.pathInfo}>
-                          <Text style={styles.pathTitle}>{path.title}</Text>
-                          <Text style={styles.pathSubtitle}>{path.subtitle}</Text>
-                          <Text style={styles.pathDescription}>{path.description}</Text>
+                          <Text style={[
+                            styles.pathTitle,
+                            isComingSoon && styles.comingSoonTitle
+                          ]}>{path.title}</Text>
+                          <Text style={[
+                            styles.pathSubtitle,
+                            isComingSoon && styles.comingSoonSubtitle
+                          ]}>{path.subtitle}</Text>
+                          <Text style={[
+                            styles.pathDescription,
+                            isComingSoon && styles.comingSoonDescription
+                          ]}>{path.description}</Text>
                           <View style={styles.pathMeta}>
-                            <View style={styles.durationBadge}>
-                              <Text style={styles.durationText}>{path.duration}</Text>
+                            <View style={[
+                              styles.durationBadge,
+                              isComingSoon && styles.comingSoonDurationBadge
+                            ]}>
+                              <Text style={[
+                                styles.durationText,
+                                isComingSoon && styles.comingSoonDurationText
+                              ]}>{path.duration}</Text>
                             </View>
-                            {hasProgress && (
+                            {hasProgress && !isComingSoon && (
                               <View style={styles.progressBadge}>
                                 <Text style={styles.progressBadgeText}>{progressPercentage}% complete</Text>
                               </View>
@@ -136,12 +161,12 @@ export default function CategoryScreen() {
                           </View>
                         </View>
                         <View style={styles.chevronIcon}>
-                          <ChevronRight size={20} color="#647C90" />
+                          <ChevronRight size={20} color={isComingSoon ? "#B0B0B0" : "#647C90"} />
                         </View>
                       </View>
 
                       {/* Progress Bar */}
-                      {hasProgress && (
+                      {hasProgress && !isComingSoon && (
                         <View style={styles.progressContainer}>
                           <View style={styles.progressBar}>
                             <View
@@ -249,8 +274,19 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
+  comingSoonCard: {
+    opacity: 0.8,
+    shadowOpacity: 0.05,
+    elevation: 2,
+  },
   pathContentContainer: {
     padding: 24,
+  },
+  comingSoonContentContainer: {
+    backgroundColor: '#F8F8F8',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderStyle: 'dashed',
   },
   pathHeader: {
     flexDirection: 'row',
@@ -270,6 +306,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
   },
+  comingSoonIcon: {
+    opacity: 0.6,
+  },
   pathInfo: {
     flex: 1,
   },
@@ -281,11 +320,18 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontWeight: '700',
   },
+  comingSoonTitle: {
+    color: '#9E9E9E',
+  },
   pathSubtitle: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 14,
     color: '#647C90',
     marginBottom: 6,
+  },
+  comingSoonSubtitle: {
+    color: '#647C90',
+    fontStyle: 'italic',
   },
   pathDescription: {
     fontFamily: 'Montserrat-Regular',
@@ -293,6 +339,9 @@ const styles = StyleSheet.create({
     color: '#928490',
     lineHeight: 20,
     marginBottom: 16,
+  },
+  comingSoonDescription: {
+    color: '#B0B0B0',
   },
   pathMeta: {
     flexDirection: 'row',
@@ -307,11 +356,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#647C90',
   },
+  comingSoonDurationBadge: {
+    backgroundColor: 'rgba(176, 176, 176, 0.1)',
+    borderColor: '#B0B0B0',
+  },
   durationText: {
     fontFamily: 'Montserrat-Medium',
     fontSize: 12,
     color: '#647C90',
     fontWeight: '500',
+  },
+  comingSoonDurationText: {
+    color: '#B0B0B0',
   },
   progressBadge: {
     backgroundColor: 'rgba(146, 132, 144, 0.1)',
