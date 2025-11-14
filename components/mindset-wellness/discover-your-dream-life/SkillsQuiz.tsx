@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking } from 'react-native';
 import { ChevronRight, ArrowLeft } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
 
 interface QuizQuestion {
   id: number;
@@ -18,6 +19,7 @@ interface DreamerResult {
   description: string | React.ReactElement;
   subtitle: string;
   color: string;
+  videoContent: string | React.ReactElement;
 }
 
 const quizQuestions: QuizQuestion[] = [
@@ -243,7 +245,8 @@ const dreamerResults: { [key: string]: DreamerResult } = {
     title: 'The Anxious Dreamer',
     description: 'You\'re full of potential, but fear or uncertainty has been holding you back. Whether it\'s perfectionism, imposter syndrome, or fear of judgment, it\'s hard to dream clearly when anxiety gets loud. This path will help you replace "what ifs" with grounded confidence.',
     subtitle: 'Your dream life doesn\'t need to be perfect. It just needs to be yours.',
-    color: '#928490'
+    color: '#928490',
+    videoContent: 'Watch how Monica transformed her anxiety about leaving dance into growth. Like you, she faced uncertainty but learned to embrace new possibilities. Her journey from musical theater to interior design shows how anxiety can be channeled into creative expansion.'
   },
   'B': {
     type: 'B',
@@ -254,14 +257,16 @@ const dreamerResults: { [key: string]: DreamerResult } = {
       </Text>
     ),
     subtitle: 'You don\'t need to let go of logic to follow your dreams. You just need a little more permission to dream bigger.',
-    color: '#928490'
+    color: '#928490',
+    videoContent: 'Monica\'s story demonstrates how practical steps can lead to expansive dreams. Notice how she "fell into" interior design through calculated risks - showing that practicality and big dreams aren\'t mutually exclusive. Her transition proves that careful planning can support rather than limit your aspirations.'
   },
   'C': {
     type: 'C',
     title: 'The Limited Dreamer',
     description: 'You\'ve been dreaming small, maybe without even realizing it. Whether due to burnout, self-protection, or past letdowns, your imagination needs a little spark. This path is your invitation to let yourself want more.',
     subtitle: 'Playing small won\'t keep you safe, it just keeps you stuck. Let\'s expand your vision together.',
-    color: '#928490'
+    color: '#928490',
+    videoContent: 'See how Monica broke free from limited thinking. She moved from the structured world of musical theater to discovering new passions in interior design, then from NYC to North Carolina. Her story shows how expanding your vision can lead to unexpected fulfillment beyond your current imagination.'
   }
 };
 
@@ -337,23 +342,6 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     }
   };
 
-  // Function to open YouTube Short
-  const openYouTubeShort = async () => {
-    const youtubeUrl = ` https://www.youtube.com/shorts/ShIxdYpquqA`;
-
-    try {
-      const supported = await Linking.canOpenURL(youtubeUrl);
-
-      if (supported) {
-        await Linking.openURL(youtubeUrl);
-      } else {
-        console.log("YouTube app not available");
-      }
-    } catch (error) {
-      console.log("Error opening YouTube:", error);
-    }
-  };
-
   // Intro Screen
   if (currentScreen === 0) {
     return (
@@ -404,7 +392,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   }
 
   // Final Screen
-  if (currentScreen === 12) {
+  if (currentScreen === 12 && result) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
@@ -434,23 +422,20 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 The Expansive Dreamer is someone who allows their imagination to be bold <Text style={{ fontStyle: 'italic' }}>without apology</Text>.
               </Text>
 
-              {/* Added YouTube Short Thumbnail */}
-              <TouchableOpacity
-                style={styles.videoThumbnailContainer}
-                onPress={openYouTubeShort}
-                activeOpacity={0.8}
-              >
-                <Image
-                  source={{ uri: 'https://img.youtube.com/vi/ShIxdYpquqA/maxresdefault.jpg' }}
-                  style={styles.videoThumbnail}
-                  resizeMode="cover"
-                />
-                <View style={styles.playButtonOverlay}>
-                  <View style={styles.playButton}>
-                    <Text style={styles.playIcon}>▶</Text>
-                  </View>
+              {/* YouTube Video Player */}
+              <View style={styles.videoContainer}>
+                <Text style={styles.videoTitle}>Inspiration</Text>
+                <Text style={styles.videoContentText}>{result.videoContent}</Text>
+
+                <View style={styles.youtubePlayer}>
+                  <YoutubePlayer
+                    height={130}
+                    play={false}
+                    videoId={'ZsvNvXLtcC4'}
+                    webViewStyle={styles.youtubeWebView}
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
 
               <Text style={styles.finalClosing}>
                 See you tomorrow!
@@ -864,51 +849,47 @@ const styles = StyleSheet.create({
     marginRight: 8,
     fontWeight: '600',
   },
-  // YouTube Thumbnail Styles
-  videoThumbnailContainer: {
+  // YouTube Video Styles
+  videoContainer: {
     width: '100%',
     marginBottom: 25,
+  },
+  videoTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 20,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  videoContentText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 20,
+    fontStyle: 'italic',
+  },
+  youtubePlayer: {
     borderRadius: 16,
     overflow: 'hidden',
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 5,
-    position: 'relative',
   },
-  videoThumbnail: {
-    width: '100%',
-    height: 200,
+  youtubeWebView: {
     borderRadius: 16,
   },
-  playButtonOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  playButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FF0000', // YouTube red
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  playIcon: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginLeft: 4, // Slight offset to center the play icon
+  videoDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 14,
+    color: '#928490',
+    textAlign: 'center',
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
 });
