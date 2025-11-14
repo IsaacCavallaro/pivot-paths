@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
 import { ChevronRight, ArrowLeft, PlusCircle } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -285,12 +285,22 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const [result, setResult] = useState<DreamerResult | null>(null);
   const [journalEntry, setJournalEntry] = useState('');
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const scrollToTop = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: false });
+    }
+  };
+
   const handleWelcomeContinue = () => {
     setCurrentScreen(1);
+    scrollToTop();
   };
 
   const handleStartQuiz = () => {
     setCurrentScreen(2);
+    scrollToTop();
   };
 
   const handleBack = () => {
@@ -306,6 +316,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
     if (currentScreen < 11) {
       setCurrentScreen(currentScreen + 1);
+      scrollToTop();
     } else {
       calculateResult(newAnswers);
     }
@@ -325,14 +336,17 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     const finalResult = dreamerResults[dominantType];
     setResult(finalResult);
     setCurrentScreen(12);
+    scrollToTop();
   };
 
   const handleContinueToExpansiveDreamer = () => {
     setCurrentScreen(13);
+    scrollToTop();
   };
 
   const handleContinueToTakeAction = () => {
     setCurrentScreen(14);
+    scrollToTop();
   };
 
   const addJournalEntry = async () => {
@@ -384,20 +398,26 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
       if (onBack) onBack();
     } else if (currentScreen === 1) {
       setCurrentScreen(0);
+      scrollToTop();
     } else if (currentScreen > 1 && currentScreen <= 11) {
       setCurrentScreen(currentScreen - 1);
+      scrollToTop();
     } else if (currentScreen === 12) {
       // Go back from result screen to last question
       setCurrentScreen(11);
+      scrollToTop();
     } else if (currentScreen === 13) {
       // Go back from expansive dreamer screen to result screen
       setCurrentScreen(12);
+      scrollToTop();
     } else if (currentScreen === 14) {
       // Go back from takeaction screen to expansive dreamer screen
       setCurrentScreen(13);
+      scrollToTop();
     } else if (currentScreen === 15) {
       // Go back from final screen to takeaction screen
       setCurrentScreen(14);
+      scrollToTop();
     }
   };
 
@@ -415,7 +435,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.welcomeCard}>
               <View style={styles.welcomeIconContainer}>
@@ -478,7 +502,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
@@ -527,7 +555,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.expansiveDreamerCard}>
               <View style={styles.expansiveIconContainer}>
@@ -625,7 +657,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.takeactionCard}>
               {/* Header with Icon */}
@@ -763,7 +799,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.congratulationsCard}>
               <View style={styles.congratulationsIconContainer}>
@@ -818,7 +858,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.resultCard}>
               <Text style={styles.titleText}>{result.title}</Text>
@@ -867,7 +911,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.content}>
           <View style={styles.questionCard}>
             <Text style={styles.questionText}>{question.question}</Text>
@@ -894,6 +942,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 }
 
 const styles = StyleSheet.create({
+  // ... (all your existing styles remain exactly the same)
   container: {
     flex: 1,
     backgroundColor: '#E2DED0',
@@ -1430,20 +1479,6 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     marginRight: 8,
     fontWeight: '600',
-  },
-  takeactionCard: {
-    marginHorizontal: 20,
-    marginTop: 40,
-    borderRadius: 28,
-    backgroundColor: '#F5F5F5',
-    padding: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(146, 132, 144, 0.1)',
   },
   takeactionHeader: {
     alignItems: 'center',
