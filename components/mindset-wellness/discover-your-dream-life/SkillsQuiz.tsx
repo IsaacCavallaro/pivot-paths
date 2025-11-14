@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking } from 'react-native';
-import { ChevronRight, ArrowLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
+import { ChevronRight, ArrowLeft, PlusCircle } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface QuizQuestion {
   id: number;
@@ -20,6 +21,12 @@ interface DreamerResult {
   subtitle: string;
   color: string;
   videoContent: string | React.ReactElement;
+}
+
+interface JournalEntry {
+  id: string;
+  date: string;
+  content: string;
 }
 
 const quizQuestions: QuizQuestion[] = [
@@ -279,6 +286,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const [currentScreen, setCurrentScreen] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: string }>({});
   const [result, setResult] = useState<DreamerResult | null>(null);
+  const [journalEntry, setJournalEntry] = useState('');
 
   const handleStartQuiz = () => {
     setCurrentScreen(1);
@@ -324,6 +332,44 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
   const handleContinueToInspiration = () => {
     setCurrentScreen(13);
+  };
+
+  const addJournalEntry = async () => {
+    const trimmed = journalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        content: trimmed,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setJournalEntry('');
+      Alert.alert('Success', 'Journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
   };
 
   const handleComplete = () => {
@@ -490,6 +536,37 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                     webViewStyle={styles.youtubeWebView}
                   />
                 </View>
+              </View>
+
+              <Text style={styles.inspirationPrompt}>
+                Watch the video above and reflect: What resonates with you about Monica's journey? What possibilities does it open up for your own path?
+              </Text>
+
+              {/* Journal Entry Section */}
+              <View style={styles.journalSection}>
+                <Text style={styles.journalTitle}>Journal Your Thoughts</Text>
+
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Write your reflections here..."
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={journalEntry}
+                    onChangeText={setJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addJournalEntry}
+                  >
+                    <PlusCircle size={24} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Add to Journal</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  This entry will be saved to your journal tab where you can view and manage all your entries.
+                </Text>
               </View>
 
               <Text style={styles.inspirationQuote}>
@@ -978,6 +1055,18 @@ const styles = StyleSheet.create({
   youtubeWebView: {
     borderRadius: 16,
   },
+  inspirationPrompt: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 32,
+    fontStyle: 'italic',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    padding: 20,
+    borderRadius: 16,
+  },
   inspirationQuote: {
     fontFamily: 'Montserrat-Italic',
     fontSize: 16,
@@ -985,6 +1074,66 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,
+    fontStyle: 'italic',
+  },
+  // Journal Section Styles
+  journalSection: {
+    width: '100%',
+    marginBottom: 32,
+  },
+  journalTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 20,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 16,
+    fontWeight: '700',
+  },
+  journalInputContainer: {
+    marginBottom: 16,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  journalTextInput: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    minHeight: 100,
+    textAlignVertical: 'top',
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    borderRadius: 8,
+  },
+  journalAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  journalAddButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 16,
+    color: '#E2DED0',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  journalNote: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 14,
+    color: '#928490',
+    textAlign: 'center',
+    lineHeight: 20,
     fontStyle: 'italic',
   },
   // Congratulations Screen Styles
