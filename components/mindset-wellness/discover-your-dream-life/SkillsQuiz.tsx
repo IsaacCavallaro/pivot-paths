@@ -630,11 +630,6 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
             <View style={styles.takeactionCard}>
               {/* Header with Icon */}
               <View style={styles.takeactionHeader}>
-                <View style={styles.takeactionIconContainer}>
-                  <View style={styles.takeactionIcon}>
-                    <Text style={styles.takeactionIconText}>✨</Text>
-                  </View>
-                </View>
                 <Text style={styles.takeactionTitle}>Take Action</Text>
               </View>
 
@@ -689,7 +684,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 <View style={styles.videoContainer}>
                   <View style={styles.youtubePlayer}>
                     <YoutubePlayer
-                      height={180}
+                      height={140}
                       play={false}
                       videoId={'ZsvNvXLtcC4'}
                       webViewStyle={styles.youtubeWebView}
