@@ -806,21 +806,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
         >
           <View style={styles.content}>
             <View style={styles.congratulationsCard}>
-              <View style={styles.congratulationsIconContainer}>
-                <Image
-                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                  style={styles.heroImage}
-                />
-              </View>
 
               <Text style={styles.congratulationsTitle}>Congratulations!</Text>
 
               <Text style={styles.congratulationsDescription}>
                 You've taken the first step toward becoming an Expansive Dreamer. By understanding your current dreaming style, you're already opening yourself up to new possibilities.
-              </Text>
-
-              <Text style={styles.congratulationsDescription}>
-                Remember: Your dance background has given you everything you need to create a fulfilling next chapter. The discipline, creativity, and resilience you developed are your superpowers.
               </Text>
 
               <Text style={styles.congratulationsClosing}>
