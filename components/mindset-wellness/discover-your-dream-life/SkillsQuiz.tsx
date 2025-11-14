@@ -318,8 +318,12 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     setCurrentScreen(11);
   };
 
-  const handleContinueToFinal = () => {
+  const handleContinueToExpansiveDreamer = () => {
     setCurrentScreen(12);
+  };
+
+  const handleContinueToInspiration = () => {
+    setCurrentScreen(13);
   };
 
   const handleComplete = () => {
@@ -337,8 +341,14 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
       // Go back from result screen to last question
       setCurrentScreen(10);
     } else if (currentScreen === 12) {
-      // Go back from final screen to result screen
+      // Go back from expansive dreamer screen to result screen
       setCurrentScreen(11);
+    } else if (currentScreen === 13) {
+      // Go back from inspiration screen to expansive dreamer screen
+      setCurrentScreen(12);
+    } else if (currentScreen === 14) {
+      // Go back from final screen to inspiration screen
+      setCurrentScreen(13);
     }
   };
 
@@ -391,7 +401,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     );
   }
 
-  // Final Screen
+  // The Expansive Dreamer Screen
   if (currentScreen === 12 && result) {
     return (
       <View style={styles.container}>
@@ -407,29 +417,74 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
-            <View style={styles.finalCard}>
-              <View style={styles.finalIconContainer}>
+            <View style={styles.expansiveDreamerCard}>
+              <View style={styles.expansiveIconContainer}>
                 <Image
                   source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
                   style={styles.heroImage}
                 />
               </View>
 
-              <Text style={styles.finalTitle}>Here's What You Could Be:</Text>
-              <Text style={styles.finalTitleBold}>The Expansive Dreamer</Text>
+              <Text style={styles.expansiveTitle}>Here's What You Could Be:</Text>
+              <Text style={styles.expansiveTitleBold}>The Expansive Dreamer</Text>
 
-              <Text style={styles.finalDescription}>
+              <Text style={styles.expansiveDescription}>
                 The Expansive Dreamer is someone who allows their imagination to be bold <Text style={{ fontStyle: 'italic' }}>without apology</Text>.
+              </Text>
+
+              <Text style={styles.expansiveDescription}>
+                This dreamer understands that their past experiences in dance have given them unique strengths: discipline, creativity, resilience, and the ability to envision something before it exists. They use these strengths to build a future that excites them on their own terms.
+              </Text>
+
+              <Text style={styles.expansiveDescription}>
+                The Expansive Dreamer doesn't let fear of the unknown stop them. Instead, they see possibility where others see obstacles, and they trust that each step forward reveals the next.
+              </Text>
+
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleContinueToInspiration}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Inspiration Screen
+  if (currentScreen === 13 && result) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.inspirationCard}>
+              <Text style={styles.inspirationTitle}>Inspiration</Text>
+
+              <Text style={styles.inspirationDescription}>
+                {result.videoContent}
               </Text>
 
               {/* YouTube Video Player */}
               <View style={styles.videoContainer}>
-                <Text style={styles.videoTitle}>Inspiration</Text>
-                <Text style={styles.videoContentText}>{result.videoContent}</Text>
-
                 <View style={styles.youtubePlayer}>
                   <YoutubePlayer
-                    height={130}
+                    height={200}
                     play={false}
                     videoId={'ZsvNvXLtcC4'}
                     webViewStyle={styles.youtubeWebView}
@@ -437,8 +492,63 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 </View>
               </View>
 
-              <Text style={styles.finalClosing}>
-                See you tomorrow!
+              <Text style={styles.inspirationQuote}>
+                "The only limits that exist are the ones you place on yourself."
+              </Text>
+
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={() => setCurrentScreen(14)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Congratulations and Mark as Complete Screen
+  if (currentScreen === 14 && result) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.congratulationsCard}>
+              <View style={styles.congratulationsIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.congratulationsTitle}>Congratulations!</Text>
+
+              <Text style={styles.congratulationsDescription}>
+                You've taken the first step toward becoming an Expansive Dreamer. By understanding your current dreaming style, you're already opening yourself up to new possibilities.
+              </Text>
+
+              <Text style={styles.congratulationsDescription}>
+                Remember: Your dance background has given you everything you need to create a fulfilling next chapter. The discipline, creativity, and resilience you developed are your superpowers.
+              </Text>
+
+              <Text style={styles.congratulationsClosing}>
+                Your expansive future awaits!
               </Text>
 
               <TouchableOpacity
@@ -484,7 +594,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
               <TouchableOpacity
                 style={styles.continueButton}
-                onPress={handleContinueToFinal}
+                onPress={handleContinueToExpansiveDreamer}
                 activeOpacity={0.8}
               >
                 <View style={[styles.continueButtonContent, { backgroundColor: result.color }]}>
@@ -772,7 +882,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
     fontWeight: '600',
   },
-  finalCard: {
+  // The Expansive Dreamer Screen Styles
+  expansiveDreamerCard: {
     marginHorizontal: 24,
     marginTop: 50,
     borderRadius: 24,
@@ -785,7 +896,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
-  finalIconContainer: {
+  expansiveIconContainer: {
     marginBottom: 32,
   },
   heroImage: {
@@ -796,7 +907,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     marginBottom: 10,
   },
-  finalTitle: {
+  expansiveTitle: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 18,
     color: '#4E4F50',
@@ -804,7 +915,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontWeight: '700',
   },
-  finalTitleBold: {
+  expansiveTitleBold: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 28,
     color: '#928490',
@@ -812,7 +923,37 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     fontWeight: '700',
   },
-  finalDescription: {
+  expansiveDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  // Inspiration Screen Styles
+  inspirationCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  inspirationTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 28,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '700',
+  },
+  inspirationDescription: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
     color: '#4E4F50',
@@ -820,9 +961,68 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 24,
   },
-  finalClosing: {
+  videoContainer: {
+    width: '100%',
+    marginBottom: 25,
+  },
+  youtubePlayer: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  youtubeWebView: {
+    borderRadius: 16,
+  },
+  inspirationQuote: {
+    fontFamily: 'Montserrat-Italic',
+    fontSize: 16,
+    color: '#928490',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 32,
+    fontStyle: 'italic',
+  },
+  // Congratulations Screen Styles
+  congratulationsCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  congratulationsIconContainer: {
+    marginBottom: 32,
+  },
+  congratulationsTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 32,
+    color: '#928490',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '700',
+  },
+  congratulationsDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  congratulationsClosing: {
     fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
+    fontSize: 20,
     color: '#647C90',
     textAlign: 'center',
     marginBottom: 32,
@@ -848,48 +1048,5 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     marginRight: 8,
     fontWeight: '600',
-  },
-  // YouTube Video Styles
-  videoContainer: {
-    width: '100%',
-    marginBottom: 25,
-  },
-  videoTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 20,
-    color: '#647C90',
-    textAlign: 'center',
-    marginBottom: 12,
-    fontWeight: '700',
-  },
-  videoContentText: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 15,
-    color: '#4E4F50',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 20,
-    fontStyle: 'italic',
-  },
-  youtubePlayer: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  youtubeWebView: {
-    borderRadius: 16,
-  },
-  videoDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 14,
-    color: '#928490',
-    textAlign: 'center',
-    lineHeight: 20,
-    fontStyle: 'italic',
   },
 });
