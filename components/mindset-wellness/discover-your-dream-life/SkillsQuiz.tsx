@@ -20,7 +20,6 @@ interface DreamerResult {
   description: string | React.ReactElement;
   subtitle: string;
   color: string;
-  videoContent: string | React.ReactElement;
 }
 
 interface JournalEntry {
@@ -248,14 +247,12 @@ const quizQuestions: QuizQuestion[] = [
 ];
 
 const dreamerResults: { [key: string]: DreamerResult } = {
-  // ... (dreamer results remain exactly the same)
   'A': {
     type: 'A',
     title: 'The Anxious Dreamer',
     description: 'You\'re full of potential, but fear or uncertainty has been holding you back. Whether it\'s perfectionism, imposter syndrome, or fear of judgment, it\'s hard to dream clearly when anxiety gets loud. This path will help you replace "what ifs" with grounded confidence.',
     subtitle: 'Your dream life doesn\'t need to be perfect. It just needs to be yours.',
     color: '#928490',
-    videoContent: 'Watch how Monica transformed her anxiety about leaving dance into growth. Like you, she faced uncertainty but learned to embrace new possibilities. Her journey from musical theater to interior design shows how anxiety can be channeled into creative expansion.'
   },
   'B': {
     type: 'B',
@@ -267,7 +264,6 @@ const dreamerResults: { [key: string]: DreamerResult } = {
     ),
     subtitle: 'You don\'t need to let go of logic to follow your dreams. You just need a little more permission to dream bigger.',
     color: '#928490',
-    videoContent: 'Monica\'s story demonstrates how practical steps can lead to expansive dreams. Notice how she "fell into" interior design through calculated risks - showing that practicality and big dreams aren\'t mutually exclusive. Her transition proves that careful planning can support rather than limit your aspirations.'
   },
   'C': {
     type: 'C',
@@ -275,7 +271,6 @@ const dreamerResults: { [key: string]: DreamerResult } = {
     description: 'You\'ve been dreaming small, maybe without even realizing it. Whether due to burnout, self-protection, or past letdowns, your imagination needs a little spark. This path is your invitation to let yourself want more.',
     subtitle: 'Playing small won\'t keep you safe, it just keeps you stuck. Let\'s expand your vision together.',
     color: '#928490',
-    videoContent: 'See how Monica broke free from limited thinking. She moved from the structured world of musical theater to discovering new passions in interior design, then from NYC to North Carolina. Her story shows how expanding your vision can lead to unexpected fulfillment beyond your current imagination.'
   }
 };
 
@@ -336,7 +331,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     setCurrentScreen(13);
   };
 
-  const handleContinueToInspiration = () => {
+  const handleContinueToTakeAction = () => {
     setCurrentScreen(14);
   };
 
@@ -398,10 +393,10 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
       // Go back from expansive dreamer screen to result screen
       setCurrentScreen(12);
     } else if (currentScreen === 14) {
-      // Go back from inspiration screen to expansive dreamer screen
+      // Go back from takeaction screen to expansive dreamer screen
       setCurrentScreen(13);
     } else if (currentScreen === 15) {
-      // Go back from final screen to inspiration screen
+      // Go back from final screen to takeaction screen
       setCurrentScreen(14);
     }
   };
@@ -559,7 +554,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
               <TouchableOpacity
                 style={styles.continueButton}
-                onPress={handleContinueToInspiration}
+                onPress={handleContinueToTakeAction}
                 activeOpacity={0.8}
               >
                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
@@ -574,8 +569,50 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     );
   }
 
-  // Inspiration Screen
+  // takeaction Screen
   if (currentScreen === 14 && result) {
+    // Get dynamic content based on dreamer type
+    const getReflectionQuestions = () => {
+      switch (result.type) {
+        case 'A':
+          return [
+            'How did Monica turn her anxiety about the future into real change?',
+            'Is it serving me to be the Anxious Dreamer?',
+            'What did I learn from Monica\'s story?'
+          ];
+        case 'B':
+          return [
+            'How did Monica take practical steps on her journey that helped her dream bigger?',
+            'Is it serving me to be the Practical Dreamer?',
+            'What did I learn from Monica\'s story?'
+          ];
+        case 'C':
+          return [
+            'How did Monica challenge her limiting beliefs?',
+            'Is it serving me to be the Limited Dreamer?',
+            'What did I learn from Monica\'s story?'
+          ];
+        default:
+          return [];
+      }
+    };
+
+    const getJournalPlaceholder = () => {
+      switch (result.type) {
+        case 'A':
+          return 'Monica channelled anxious feelings into change by...';
+        case 'B':
+          return 'Monica took practical steps by...';
+        case 'C':
+          return 'Monica challenged her limiting beliefs by...';
+        default:
+          return 'Write your reflections here...';
+      }
+    };
+
+    const reflectionQuestions = getReflectionQuestions();
+    const journalPlaceholder = getJournalPlaceholder();
+
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
@@ -590,37 +627,88 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
-            <View style={styles.inspirationCard}>
-              <Text style={styles.inspirationTitle}>Inspiration</Text>
+            <View style={styles.takeactionCard}>
+              {/* Header with Icon */}
+              <View style={styles.takeactionHeader}>
+                <View style={styles.takeactionIconContainer}>
+                  <View style={styles.takeactionIcon}>
+                    <Text style={styles.takeactionIconText}>✨</Text>
+                  </View>
+                </View>
+                <Text style={styles.takeactionTitle}>Take Action</Text>
+              </View>
 
-              <Text style={styles.inspirationDescription}>
-                {result.videoContent}
-              </Text>
+              {/* Introduction Text */}
+              <View style={styles.takeactionIntro}>
+                <Text style={styles.takeactionDescription}>
+                  Do you feel that the <Text style={styles.highlightText}>{result.title.toLowerCase()}</Text> describes you? Or are you bothered by the results? Whatever's coming up for you, go with it. We got you!
+                </Text>
 
-              <Text style={styles.inspirationPrompt}>
-                Watch the below above and reflect: What resonates with you about Monica's journey? What possibilities does it open up for your own path? Add these reflections to the journal below.
-              </Text>
+                <Text style={styles.takeactionDescription}>
+                  Now, how can you unlock the <Text style={styles.highlightText}>expansive dreamer</Text> within?!
+                </Text>
+
+                <Text style={styles.takeactionDescription}>
+                  Let's hear from a dancer who gave herself permission to be the expansive dreamer and learn from her.
+                </Text>
+              </View>
+
+              {/* Reflection Section */}
+              <View style={styles.reflectionSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Your Reflection Journey</Text>
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.reflectionInstruction}>
+                  Start by watching the video below and reflect on these questions:
+                </Text>
+
+                {/* Dynamic Reflection Questions */}
+                <View style={styles.reflectionQuestionsContainer}>
+                  {reflectionQuestions.map((question, index) => (
+                    <View key={index} style={styles.reflectionQuestionCard}>
+                      <View style={styles.questionNumber}>
+                        <Text style={styles.questionNumberText}>{index + 1}</Text>
+                      </View>
+                      <Text style={styles.reflectionQuestion}>{question}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                <Text style={styles.reflectionInstruction}>
+                  As you're watching, write your reflections as a journal entry below.
+                </Text>
+              </View>
 
               {/* YouTube Video Player */}
-              <View style={styles.videoContainer}>
-                <View style={styles.youtubePlayer}>
-                  <YoutubePlayer
-                    height={130}
-                    play={false}
-                    videoId={'ZsvNvXLtcC4'}
-                    webViewStyle={styles.youtubeWebView}
-                  />
+              <View style={styles.videoSection}>
+                <View style={styles.videoHeader}>
+                  <Text style={styles.videoTitle}>Watch & Learn</Text>
+                </View>
+                <View style={styles.videoContainer}>
+                  <View style={styles.youtubePlayer}>
+                    <YoutubePlayer
+                      height={180}
+                      play={false}
+                      videoId={'ZsvNvXLtcC4'}
+                      webViewStyle={styles.youtubeWebView}
+                    />
+                  </View>
                 </View>
               </View>
 
               {/* Journal Entry Section */}
               <View style={styles.journalSection}>
-                <Text style={styles.journalTitle}>Journal Your Thoughts</Text>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Journal Your Thoughts</Text>
+                  <View style={styles.sectionDivider} />
+                </View>
 
                 <View style={styles.journalInputContainer}>
                   <TextInput
                     style={styles.journalTextInput}
-                    placeholder="Write your reflections here..."
+                    placeholder={journalPlaceholder}
                     placeholderTextColor="#928490"
                     multiline
                     value={journalEntry}
@@ -636,22 +724,27 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 </View>
 
                 <Text style={styles.journalNote}>
-                  We'll keep these entries safe in your personal journal which you can view at the end of todays progress.
+                  We'll keep these entries safe in your personal journal which you can view at the end of today's progress.
                 </Text>
               </View>
 
-              <Text style={styles.inspirationQuote}>
-                "The only limits that exist are the ones you place on yourself."
-              </Text>
+              {/* Inspirational Quote */}
+              <View style={styles.quoteContainer}>
+                <Text style={styles.quoteSymbol}>"</Text>
+                <Text style={styles.takeactionQuote}>
+                  The only limits that exist are the ones you place on yourself.
+                </Text>
+              </View>
 
+              {/* Continue Button */}
               <TouchableOpacity
                 style={styles.continueButton}
                 onPress={() => setCurrentScreen(15)}
                 activeOpacity={0.8}
               >
                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.continueButtonText}>Continue</Text>
-                  <ChevronRight size={16} color="#E2DED0" />
+                  <Text style={styles.continueButtonText}>Continue Your Journey</Text>
+                  <ChevronRight size={20} color="#E2DED0" />
                 </View>
               </TouchableOpacity>
             </View>
@@ -1162,8 +1255,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 20,
   },
-  // Inspiration Screen Styles
-  inspirationCard: {
+  // takeaction Screen Styles
+  takeactionCard: {
     marginHorizontal: 24,
     marginTop: 50,
     borderRadius: 24,
@@ -1176,7 +1269,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
-  inspirationTitle: {
+  takeactionTitle: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 28,
     color: '#647C90',
@@ -1184,7 +1277,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontWeight: '700',
   },
-  inspirationDescription: {
+  takeactionDescription: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
     color: '#4E4F50',
@@ -1209,7 +1302,7 @@ const styles = StyleSheet.create({
   youtubeWebView: {
     borderRadius: 16,
   },
-  inspirationPrompt: {
+  takeactionPrompt: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
     color: '#4E4F50',
@@ -1220,15 +1313,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(146, 132, 144, 0.1)',
     padding: 20,
     borderRadius: 16,
-  },
-  inspirationQuote: {
-    fontFamily: 'Montserrat-Italic',
-    fontSize: 16,
-    color: '#928490',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
-    fontStyle: 'italic',
   },
   // Journal Section Styles
   journalSection: {
@@ -1351,5 +1435,161 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     marginRight: 8,
     fontWeight: '600',
+  },
+  takeactionCard: {
+    marginHorizontal: 20,
+    marginTop: 40,
+    borderRadius: 28,
+    backgroundColor: '#F5F5F5',
+    padding: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.1)',
+  },
+  takeactionHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  takeactionIconContainer: {
+    marginBottom: 16,
+  },
+  takeactionIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#928490',
+  },
+  takeactionIconText: {
+    fontSize: 32,
+  },
+  takeactionIntro: {
+    marginBottom: 32,
+    padding: 20,
+    backgroundColor: 'rgba(146, 132, 144, 0.05)',
+    borderRadius: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#928490',
+  },
+  highlightText: {
+    fontFamily: 'Montserrat-SemiBold',
+    color: '#928490',
+    fontWeight: '600',
+  },
+  reflectionSection: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 22,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  sectionDivider: {
+    width: 60,
+    height: 3,
+    backgroundColor: '#928490',
+    borderRadius: 2,
+  },
+  reflectionInstruction: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+    fontWeight: '500',
+  },
+  reflectionQuestionsContainer: {
+    marginBottom: 20,
+  },
+  reflectionQuestionCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.1)',
+  },
+  questionNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#928490',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    marginTop: 2,
+  },
+  questionNumberText: {
+    fontFamily: 'Montserrat-Bold',
+    fontSize: 16,
+    color: '#E2DED0',
+    fontWeight: '700',
+  },
+  reflectionQuestion: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#4E4F50',
+    lineHeight: 22,
+    flex: 1,
+    paddingTop: 2,
+  },
+  videoSection: {
+    marginBottom: 32,
+  },
+  videoHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  videoTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 20,
+    color: '#647C90',
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  quoteContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+    padding: 24,
+    backgroundColor: 'rgba(146, 132, 144, 0.08)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  quoteSymbol: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 48,
+    color: '#928490',
+    marginBottom: -20,
+  },
+  takeactionQuote: {
+    fontFamily: 'Merriweather-Italic',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    lineHeight: 26,
+    fontStyle: 'italic',
   },
 });
