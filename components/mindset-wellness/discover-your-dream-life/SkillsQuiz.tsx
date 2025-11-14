@@ -30,6 +30,7 @@ interface JournalEntry {
 }
 
 const quizQuestions: QuizQuestion[] = [
+  // ... (quiz questions remain exactly the same)
   {
     id: 1,
     question: "When someone asks what you want to do after dance, you usually…",
@@ -247,6 +248,7 @@ const quizQuestions: QuizQuestion[] = [
 ];
 
 const dreamerResults: { [key: string]: DreamerResult } = {
+  // ... (dreamer results remain exactly the same)
   'A': {
     type: 'A',
     title: 'The Anxious Dreamer',
@@ -288,8 +290,12 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const [result, setResult] = useState<DreamerResult | null>(null);
   const [journalEntry, setJournalEntry] = useState('');
 
-  const handleStartQuiz = () => {
+  const handleWelcomeContinue = () => {
     setCurrentScreen(1);
+  };
+
+  const handleStartQuiz = () => {
+    setCurrentScreen(2);
   };
 
   const handleBack = () => {
@@ -299,11 +305,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   };
 
   const handleAnswer = (optionType: string) => {
-    const questionIndex = currentScreen - 1;
+    const questionIndex = currentScreen - 2;
     const newAnswers = { ...answers, [questionIndex]: optionType };
     setAnswers(newAnswers);
 
-    if (currentScreen < 10) {
+    if (currentScreen < 11) {
       setCurrentScreen(currentScreen + 1);
     } else {
       calculateResult(newAnswers);
@@ -323,15 +329,15 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
     const finalResult = dreamerResults[dominantType];
     setResult(finalResult);
-    setCurrentScreen(11);
-  };
-
-  const handleContinueToExpansiveDreamer = () => {
     setCurrentScreen(12);
   };
 
-  const handleContinueToInspiration = () => {
+  const handleContinueToExpansiveDreamer = () => {
     setCurrentScreen(13);
+  };
+
+  const handleContinueToInspiration = () => {
+    setCurrentScreen(14);
   };
 
   const addJournalEntry = async () => {
@@ -379,26 +385,28 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   };
 
   const goBack = () => {
-    if (currentScreen === 1) {
+    if (currentScreen === 0) {
+      if (onBack) onBack();
+    } else if (currentScreen === 1) {
       setCurrentScreen(0);
-    } else if (currentScreen > 1 && currentScreen <= 10) {
+    } else if (currentScreen > 1 && currentScreen <= 11) {
       setCurrentScreen(currentScreen - 1);
-    } else if (currentScreen === 11) {
-      // Go back from result screen to last question
-      setCurrentScreen(10);
     } else if (currentScreen === 12) {
-      // Go back from expansive dreamer screen to result screen
+      // Go back from result screen to last question
       setCurrentScreen(11);
     } else if (currentScreen === 13) {
-      // Go back from inspiration screen to expansive dreamer screen
+      // Go back from expansive dreamer screen to result screen
       setCurrentScreen(12);
     } else if (currentScreen === 14) {
-      // Go back from final screen to inspiration screen
+      // Go back from inspiration screen to expansive dreamer screen
       setCurrentScreen(13);
+    } else if (currentScreen === 15) {
+      // Go back from final screen to inspiration screen
+      setCurrentScreen(14);
     }
   };
 
-  // Intro Screen
+  // Welcome Screen
   if (currentScreen === 0) {
     return (
       <View style={styles.container}>
@@ -406,6 +414,69 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.welcomeCard}>
+              <View style={styles.welcomeIconContainer}>
+                <View style={[styles.welcomeIconGradient, { backgroundColor: '#928490' }]}>
+                  <Image
+                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                    style={styles.heroImage}
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.welcomeTitle}>Welcome to Your Path</Text>
+
+              <Text style={styles.welcomeDescription}>
+                Taking this first step is something to be truly proud of. It takes courage to look inward and explore what might be holding you back from the future you deserve.
+              </Text>
+
+              <Text style={styles.welcomeDescription}>
+                This is a safe space for vulnerability. Whatever comes up for you during this journey - uncertainty, fear, hope, excitement - it's all welcome here. Your feelings are valid, and your dreams matter.
+              </Text>
+
+              <Text style={styles.welcomeDescription}>
+                By being here, you're already showing incredible strength. You're choosing to dream differently, and that's the bravest first step you can take.
+              </Text>
+
+              <View style={styles.welcomeHighlight}>
+                <Text style={styles.welcomeHighlightText}>
+                  Congratulations on beginning this journey toward becoming the expansive dreamer you were meant to be.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.welcomeButton}
+                onPress={handleWelcomeContinue}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.welcomeButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.welcomeButtonText}>I'm Ready to Begin</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Intro Screen
+  if (currentScreen === 1) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
             <View style={styles.backButton} />
@@ -448,7 +519,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   }
 
   // The Expansive Dreamer Screen
-  if (currentScreen === 12 && result) {
+  if (currentScreen === 13 && result) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
@@ -504,7 +575,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   }
 
   // Inspiration Screen
-  if (currentScreen === 13 && result) {
+  if (currentScreen === 14 && result) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
@@ -526,21 +597,21 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 {result.videoContent}
               </Text>
 
+              <Text style={styles.inspirationPrompt}>
+                Watch the below above and reflect: What resonates with you about Monica's journey? What possibilities does it open up for your own path? Add these reflections to the journal below.
+              </Text>
+
               {/* YouTube Video Player */}
               <View style={styles.videoContainer}>
                 <View style={styles.youtubePlayer}>
                   <YoutubePlayer
-                    height={200}
+                    height={130}
                     play={false}
                     videoId={'ZsvNvXLtcC4'}
                     webViewStyle={styles.youtubeWebView}
                   />
                 </View>
               </View>
-
-              <Text style={styles.inspirationPrompt}>
-                Watch the video above and reflect: What resonates with you about Monica's journey? What possibilities does it open up for your own path?
-              </Text>
 
               {/* Journal Entry Section */}
               <View style={styles.journalSection}>
@@ -565,7 +636,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 </View>
 
                 <Text style={styles.journalNote}>
-                  This entry will be saved to your journal tab where you can view and manage all your entries.
+                  We'll keep these entries safe in your personal journal which you can view at the end of todays progress.
                 </Text>
               </View>
 
@@ -575,7 +646,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
               <TouchableOpacity
                 style={styles.continueButton}
-                onPress={() => setCurrentScreen(14)}
+                onPress={() => setCurrentScreen(15)}
                 activeOpacity={0.8}
               >
                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
@@ -591,7 +662,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   }
 
   // Congratulations and Mark as Complete Screen
-  if (currentScreen === 14 && result) {
+  if (currentScreen === 15 && result) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
@@ -646,7 +717,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   }
 
   // Result Screen
-  if (currentScreen === 11 && result) {
+  if (currentScreen === 12 && result) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
@@ -687,8 +758,8 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   }
 
   // Question Screens
-  const question = quizQuestions[currentScreen - 1];
-  const progress = (currentScreen / 10) * 100;
+  const question = quizQuestions[currentScreen - 2];
+  const progress = ((currentScreen - 1) / 10) * 100;
 
   return (
     <View style={styles.container}>
@@ -699,7 +770,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
             <ArrowLeft size={28} color="#E2DED0" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
-            <Text style={styles.progressText}>{currentScreen} of 10</Text>
+            <Text style={styles.progressText}>{currentScreen - 1} of 10</Text>
           </View>
           <View style={styles.backButton} />
         </View>
@@ -795,6 +866,89 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2DED0',
     borderRadius: 3,
   },
+  // Welcome Screen Styles
+  welcomeCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  welcomeIconContainer: {
+    marginBottom: 24,
+  },
+  welcomeIconGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  welcomeTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 28,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '700',
+  },
+  welcomeDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#928490',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  welcomeHighlight: {
+    backgroundColor: 'rgba(146, 132, 144, 0.15)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: 'rgba(100, 124, 144, 0.2)',
+  },
+  welcomeHighlightText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#647C90',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontStyle: 'italic',
+    fontWeight: '500',
+  },
+  welcomeButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  welcomeButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  welcomeButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
+  },
+  // Intro Screen Styles
   introCard: {
     marginHorizontal: 24,
     marginTop: 50,
