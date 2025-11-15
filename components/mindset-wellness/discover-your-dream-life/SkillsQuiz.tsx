@@ -387,9 +387,16 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (result) {
-      onComplete(result);
+      try {
+        await AsyncStorage.setItem('day1SkillsQuizResult', JSON.stringify(result));
+        onComplete(result);
+      } catch (error) {
+        console.error('Error saving quiz result to AsyncStorage:', error);
+        // Optionally, still call onComplete even if saving fails
+        onComplete(result);
+      }
     }
   };
 

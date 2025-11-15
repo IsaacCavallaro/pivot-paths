@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking } from 'react-native';
 import { ChevronRight, ArrowLeft } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface DreamerResult {
+  type: string;
+  title: string;
+  description: string | React.ReactElement;
+  subtitle: string;
+  color: string;
+}
 
 interface MythPair {
   id: number;
@@ -63,12 +72,27 @@ const mythPairs: MythPair[] = [
 
 export default function MythBusterGame({ onComplete, onBack }: MythBusterGameProps) {
   const [currentScreen, setCurrentScreen] = useState(-1); // -1 = welcome, 0 = intro, 1 = game, 2 = reflection
+  const [day1SkillsQuizResult, setDay1SkillsQuizResult] = useState<DreamerResult | null>(null);
   const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; pairId: number; type: 'myth' | 'reality' }>>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
   const [currentPairIndex, setCurrentPairIndex] = useState(0);
   const [showMismatch, setShowMismatch] = useState(false);
   const [animatedValues] = useState(() => new Map());
+
+  useEffect(() => {
+    const loadQuizResult = async () => {
+      try {
+        const storedResult = await AsyncStorage.getItem('day1SkillsQuizResult');
+        if (storedResult) {
+          setDay1SkillsQuizResult(JSON.parse(storedResult));
+        }
+      } catch (error) {
+        console.error('Error loading quiz result from AsyncStorage:', error);
+      }
+    };
+    loadQuizResult();
+  }, []);
 
   const handleBack = () => {
     onBack?.();
@@ -275,15 +299,41 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                 </View>
               </View>
 
-              <Text style={styles.welcomeTitle}>Welcome Back!</Text>
-
-              <Text style={styles.welcomeDescription}>
-                Today we're diving into the myths that shape our thinking in the dance industry.
-              </Text>
-
-              <Text style={styles.welcomeDescription}>
-                Many dancers carry beliefs that may actually be holding them back from building sustainable, fulfilling careers.
-              </Text>
+              {day1SkillsQuizResult ? (
+                <>
+                  <Text style={styles.welcomeTitle}>Welcome Back!</Text>
+                  <Text style={styles.welcomeDescription}>
+                    Yesterday, you discovered your "Dreamer Type":
+                  </Text>
+                  <View style={[styles.learningBox, { borderColor: day1SkillsQuizResult.color + '20' }]}>
+                    <Text style={[styles.learningBoxTitle, { color: day1SkillsQuizResult.color }]}>
+                      {day1SkillsQuizResult.title}
+                    </Text>
+                    <Text style={styles.learningBoxItem}>
+                      {day1SkillsQuizResult.description}
+                    </Text>
+                    <Text style={[styles.welcomeFooter, { color: day1SkillsQuizResult.color }]}>
+                      {day1SkillsQuizResult.subtitle}
+                    </Text>
+                  </View>
+                  <Text style={styles.welcomeDescription}>
+                    Today, we're diving into the myths that shape our thinking in the dance industry.
+                  </Text>
+                  <Text style={styles.welcomeDescription}>
+                    Many dancers carry beliefs that may actually be holding them back from building sustainable, fulfilling careers.
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.welcomeTitle}>Welcome Back!</Text>
+                  <Text style={styles.welcomeDescription}>
+                    Today we're diving into the myths that shape our thinking in the dance industry.
+                  </Text>
+                  <Text style={styles.welcomeDescription}>
+                    Many dancers carry beliefs that may actually be holding them back from building sustainable, fulfilling careers.
+                  </Text>
+                </>
+              )}
 
               <View style={styles.learningBox}>
                 <Text style={styles.learningBoxTitle}>What You'll Learn:</Text>
