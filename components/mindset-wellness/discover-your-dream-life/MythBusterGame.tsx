@@ -538,7 +538,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                 activeOpacity={0.8}
               >
                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.continueButtonText}>Continue to Summary</Text>
+                  <Text style={styles.continueButtonText}>Continue</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
               </TouchableOpacity>
@@ -586,7 +586,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               </Text>
 
               <Text style={styles.reflectionText}>
-                In fact, these myths usually keep us stuck in a cycle where we're more susceptible to manipulation and exploitation. Do you agree?
+                Take a detour and check out the myths our founder had to unlearn. But don’t forget to come back and mark this day as complete!
               </Text>
 
               {/* Added YouTube Short Thumbnail */}
