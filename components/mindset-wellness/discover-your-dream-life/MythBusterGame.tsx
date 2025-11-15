@@ -62,7 +62,7 @@ const mythPairs: MythPair[] = [
 ];
 
 export default function MythBusterGame({ onComplete, onBack }: MythBusterGameProps) {
-  const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1 = game, 2 = reflection
+  const [currentScreen, setCurrentScreen] = useState(-1); // -1 = welcome, 0 = intro, 1 = game, 2 = reflection
   const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; pairId: number; type: 'myth' | 'reality' }>>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
@@ -79,7 +79,9 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
   };
 
   const goBack = () => {
-    if (currentScreen === 1) {
+    if (currentScreen === 0) {
+      setCurrentScreen(-1);
+    } else if (currentScreen === 1) {
       setCurrentScreen(0);
     } else if (currentScreen === 2) {
       // Reset game state when going back from reflection screen
@@ -247,6 +249,70 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     }
   };
 
+  // Welcome Screen
+  if (currentScreen === -1) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.welcomeCard}>
+              <View style={styles.welcomeIconContainer}>
+                <View style={[styles.welcomeIconGradient, { backgroundColor: '#928490' }]}>
+                  <Image
+                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                    style={styles.heroImage}
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.welcomeTitle}>Welcome Back!</Text>
+
+              <Text style={styles.welcomeDescription}>
+                Today we're diving into the myths that shape our thinking in the dance industry.
+              </Text>
+
+              <Text style={styles.welcomeDescription}>
+                Many dancers carry beliefs that may actually be holding them back from building sustainable, fulfilling careers.
+              </Text>
+
+              <View style={styles.learningBox}>
+                <Text style={styles.learningBoxTitle}>What You'll Learn:</Text>
+                <Text style={styles.learningBoxItem}>• Common myths that dancers believe</Text>
+                <Text style={styles.learningBoxItem}>• The reality behind these industry narratives</Text>
+                <Text style={styles.learningBoxItem}>• How these beliefs impact your career decisions</Text>
+              </View>
+
+              <Text style={styles.welcomeFooter}>
+                This interactive quiz will help you identify and challenge the myths you might be holding onto.
+              </Text>
+
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={() => setCurrentScreen(0)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
   // Intro Screen
   if (currentScreen === 0) {
     return (
@@ -254,7 +320,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
             <View style={styles.backButton} />
@@ -517,6 +583,103 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2DED0',
     borderRadius: 3,
   },
+  // Welcome Screen Styles
+  welcomeCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  welcomeIconContainer: {
+    marginBottom: 24,
+  },
+  welcomeIconGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  welcomeTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 32,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '700',
+  },
+  welcomeDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  learningBox: {
+    width: '100%',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  learningBoxTitle: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  learningBoxItem: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#4E4F50',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  welcomeFooter: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#928490',
+    textAlign: 'center',
+    marginBottom: 30,
+    lineHeight: 22,
+  },
+  continueButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  continueButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  continueButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
+  },
+  // Existing Intro Screen Styles
   introCard: {
     marginHorizontal: 24,
     marginTop: 50,
