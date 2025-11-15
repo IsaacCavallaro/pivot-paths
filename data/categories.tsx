@@ -275,7 +275,7 @@ export const categories: Category[] = [
       {
         id: 'skills-assessment',
         title: 'Map Your Direction', // previously "discover your direction"
-        subtitle: '',
+        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
         description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Here’s a map to help discover your direction.',
         duration: '7 days',
         totalDays: 7,
@@ -443,7 +443,7 @@ export const categories: Category[] = [
       {
         id: 'money-mindsets',
         title: 'Money Mindsets',
-        subtitle: '',
+        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
         description: 'When it comes to money, dancers don’t often have the right mindset. And during your career change, you’re going to grapple with money and some hard truths about your finances.',
         duration: '7 days',
         totalDays: 7,
