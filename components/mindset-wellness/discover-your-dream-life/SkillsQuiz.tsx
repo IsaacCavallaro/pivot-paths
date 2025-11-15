@@ -608,20 +608,20 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
       switch (result.type) {
         case 'A':
           return [
-            'How did Monica turn her anxiety about the future into real change?',
             'Is it serving me to be the Anxious Dreamer?',
+            'How did Monica turn her anxiety about the future into real change?',
             'What did I learn from Monica\'s story?'
           ];
         case 'B':
           return [
-            'How did Monica take practical steps on her journey that helped her dream bigger?',
             'Is it serving me to be the Practical Dreamer?',
+            'How did Monica take practical steps on her journey that helped her dream bigger?',
             'What did I learn from Monica\'s story?'
           ];
         case 'C':
           return [
-            'How did Monica challenge her limiting beliefs?',
             'Is it serving me to be the Limited Dreamer?',
+            'How did Monica challenge her limiting beliefs?',
             'What did I learn from Monica\'s story?'
           ];
         default:
