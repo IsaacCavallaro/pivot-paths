@@ -467,7 +467,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
               <View style={styles.welcomeHighlight}>
                 <Text style={styles.welcomeHighlightText}>
-                  Congratulations on beginning this journey toward becoming the expansive dreamer you were meant to be.
+                  Congratulations on giving yourself permission to indentify as something more than a dancer.
                 </Text>
               </View>
 
