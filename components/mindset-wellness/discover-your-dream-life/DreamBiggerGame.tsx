@@ -91,7 +91,7 @@ const getStoryMapping = (choice: string): string => {
 };
 
 export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameProps) {
-  const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-10 = choices, 11-18 = story
+  const [currentScreen, setCurrentScreen] = useState(-1); // -1 = new intro, 0 = original intro, 1-10 = choices, 11-17 = story, 18 = reflection, 19 = final
   const [choices, setChoices] = useState<{ [key: string]: string }>({});
   const [randomizedChoices, setRandomizedChoices] = useState<DreamChoice[]>([]);
 
@@ -102,7 +102,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
   }, []);
 
   const handleStartGame = () => {
-    setCurrentScreen(1);
+    setCurrentScreen(0);
   };
 
   const handleBack = () => {
@@ -112,9 +112,13 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
   };
 
   const goBack = () => {
-    if (currentScreen === 1) {
+    if (currentScreen === -1) {
+      if (onBack) onBack();
+    } else if (currentScreen === 0) {
+      setCurrentScreen(-1);
+    } else if (currentScreen === 1) {
       setCurrentScreen(0);
-    } else if (currentScreen > 1) {
+    } else if (currentScreen > 1 && currentScreen <= 19) {
       setCurrentScreen(currentScreen - 1);
     }
   };
@@ -134,9 +138,15 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
   const handleContinueStory = () => {
     if (currentScreen < 18) {
       setCurrentScreen(currentScreen + 1);
+    } else if (currentScreen === 18) {
+      setCurrentScreen(19); // Go to final screen
     } else {
       onComplete();
     }
+  };
+
+  const handleOpenEbook = () => {
+    Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
   };
 
   const handleOpenCourse = () => {
@@ -174,21 +184,70 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
         return `Your to-do list involves organizing ${choices.lifestyle === 'Travel the world' ? 'next week\'s travel plans' : 'renovations for your forever home'}, training for that upcoming ${getStoryMapping(choices.wellness || '').toLowerCase()}, and deciding ${choices.giving === 'Donate to charity' ? 'which charity to donate to this month' : 'when you\'re meeting up with your parents now that you helped them retire too'}.`;
       case 17:
         return `And tonight, you're off ${choices.entertainment === 'Season tickets to the theatre' ? 'to the theater with season tickets' : 'to workshop a new show you\'re creating which opens next month'}. Life's good.`;
-      case 18:
-        return "Use this dream life experiment to get even more specific about your vision for the future. If these ideas seem far-fetched, that's the point! This is just the beginning of what life after dance can be. It won't happen overnight, but it can happen if you go for it.";
       default:
         return "";
     }
   };
 
-  // Intro Screen
-  if (currentScreen === 0) {
+  // NEW: Intro Screen
+  if (currentScreen === -1) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.centeredContent}>
+            <View style={styles.introCard}>
+              <View style={styles.introIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.introTitle}>Welcome to Day 4</Text>
+
+              <Text style={styles.introDescription}>
+                This is where we're diving deeper into becoming the Expansive Dreamer we talked about on Day 1.
+              </Text>
+
+              <Text style={styles.introDescription}>
+                You've already identified your dreamer type, challenged industry myths, and explored alternatives. Now, let's stretch your imagination even further.
+              </Text>
+
+              <TouchableOpacity
+                style={styles.startButton}
+                onPress={handleStartGame}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.startButtonText}>Continue</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Original Intro Screen (now screen 0)
+  if (currentScreen === 0) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
             <View style={styles.backButton} />
@@ -213,7 +272,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
 
               <TouchableOpacity
                 style={styles.startButton}
-                onPress={handleStartGame}
+                onPress={() => setCurrentScreen(1)}
                 activeOpacity={0.8}
               >
                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
@@ -280,11 +339,11 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
     );
   }
 
-  // Story Screens (11-18)
-  if (currentScreen >= 11 && currentScreen <= 18) {
+  // Story Screens (11-17)
+  if (currentScreen >= 11 && currentScreen <= 17) {
     const storyText = getStoryText(currentScreen);
     const isTitle = currentScreen === 12;
-    const isFinal = currentScreen === 18;
+    const isFinal = currentScreen === 17;
 
     return (
       <View style={styles.container}>
@@ -305,21 +364,6 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.centeredContent}>
             <View style={styles.storyCard}>
-              {isFinal && (
-                <View style={styles.finalHeader}>
-                  <Text style={styles.finalHeading}>How does this make you feel?</Text>
-                </View>
-              )}
-
-              {isFinal && (
-                <View style={styles.finalIconContainer}>
-                  <Image
-                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                    style={styles.heroImage}
-                  />
-                </View>
-              )}
-
               {isTitle ? (
                 <View style={styles.storyTitleContainer}>
                   <Text style={styles.storyTitle}>{storyText}</Text>
@@ -331,47 +375,62 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                 </View>
               )}
 
-              {/* Added YouTube Short Thumbnail */}
-              {isFinal && (
-                <TouchableOpacity
-                  style={styles.videoThumbnailContainer}
-                  onPress={openYouTubeShort}
-                  activeOpacity={0.8}
-                >
-                  <Image
-                    source={{ uri: 'https://img.youtube.com/vi/C7m4B08IPKk/maxresdefault.jpg' }}
-                    style={styles.videoThumbnail}
-                    resizeMode="cover"
-                  />
-                  <View style={styles.playButtonOverlay}>
-                    <View style={styles.playButton}>
-                      <Text style={styles.playIcon}>▶</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              )}
-
-              {/* New Happy Trails Course Content */}
-              {isFinal && (
-                <View style={styles.courseCard}>
-                  <Text style={styles.courseTitle}>Mindset Shifts</Text>
-                  <Text style={styles.courseDescription}>
-                    A huge part of your next chapter will be changing your mindset. We help you prepare for the mental shifts required to successfully pivot.
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleContinueStory}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>
+                    {isFinal ? 'Own It' : 'Continue'}
                   </Text>
-                  <TouchableOpacity style={styles.courseButton} onPress={handleOpenCourse}>
-                    <View style={[styles.courseButtonContent, { backgroundColor: '#647C90' }]}>
-                      <Text style={styles.courseButtonText}>Learn More</Text>
-                      <ChevronRight size={16} color="#E2DED0" />
-                    </View>
-                  </TouchableOpacity>
+                  <ChevronRight size={16} color="#E2DED0" />
                 </View>
-              )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
 
-              {isFinal && (
-                <Text style={styles.alternativeClosing}>
-                  See you for more tomorrow
-                </Text>
-              )}
+  // Reflection Screen (now screen 18)
+  if (currentScreen === 18) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.centeredContent}>
+            <View style={styles.reflectionCard}>
+              <View style={styles.reflectionIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.reflectionTitle}>Building Your Dreamer Muscle</Text>
+
+              <Text style={styles.reflectionText}>
+                Perhaps this doesn't sound possible? But the goal is to give yourself permission to turn up as the expansive dreamer.
+              </Text>
+
+              <Text style={styles.reflectionText}>
+                This is just an exercise of building the muscle to dream about something other than booking your dream job.
+              </Text>
+
+              <Text style={styles.reflectionText}>
+                Every time you allow yourself to imagine a different future, you're strengthening that expansive dreamer within you.
+              </Text>
 
               <TouchableOpacity
                 style={styles.continueButton}
@@ -380,8 +439,83 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
               >
                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
                   <Text style={styles.continueButtonText}>
-                    {isFinal ? 'Mark as complete' : 'Continue'}
+                    Continue
                   </Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Final Screen (now screen 19)
+  if (currentScreen === 19) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.storyBackground}>
+          <View style={styles.storyBackgroundPattern} />
+        </View>
+
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.centeredContent}>
+            <View style={styles.storyCard}>
+              <Image
+                source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                style={styles.heroImage}
+              />
+              <View style={styles.storyTextContainer}>
+                <Text style={styles.storyText}>
+                  Take a moment to notice how you're feeling right now. Are you excited? Skeptical? Overwhelmed?
+                </Text>
+
+                <Text style={styles.storyText}>
+                  If any part of you thought "this could never be me" - that sounds like an unhelpful story that keeps you stuck.
+                </Text>
+
+                <Text style={styles.storyText}>
+                  These mindset shifts are exactly what we explore in our resources, helping you rewrite those limiting stories.
+                </Text>
+              </View>
+
+              {/* Ebook Callout */}
+              <View style={styles.ebookCard}>
+                <Text style={styles.ebookTitle}>Explore Mindset Tools</Text>
+                <Text style={styles.ebookDescription}>
+                  If you'd like to dive deeper into shifting those limiting beliefs, our book "How to Pivot" offers practical strategies that might help.
+                </Text>
+                <TouchableOpacity style={styles.ebookButton} onPress={handleOpenEbook}>
+                  <View style={[styles.ebookButtonContent, { backgroundColor: '#647C90' }]}>
+                    <Text style={styles.ebookButtonText}>Learn More</Text>
+                    <ChevronRight size={16} color="#E2DED0" />
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+
+              <Text style={styles.alternativeClosing}>
+                See you for more tomorrow
+              </Text>
+
+              <TouchableOpacity
+                style={styles.completeButton}
+                onPress={onComplete}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.completeButtonText}>Mark As Complete</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
               </TouchableOpacity>
@@ -519,7 +653,7 @@ const styles = StyleSheet.create({
     color: '#928490',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 32,
+    marginBottom: 20,
   },
   startButton: {
     borderRadius: 30,
@@ -585,6 +719,94 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginVertical: 20,
   },
+  // NEW: Reflection Screen Styles
+  reflectionCard: {
+    width: width * 0.85,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginVertical: 20,
+  },
+  reflectionIconContainer: {
+    marginBottom: 30,
+  },
+  reflectionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 24,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 30,
+    fontWeight: '700',
+  },
+  reflectionText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  reflectionClosing: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 32,
+    fontWeight: '600',
+  },
+  // Ebook Styles
+  ebookCard: {
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 32,
+    borderLeftWidth: 4,
+    borderLeftColor: '#928490',
+    width: '100%',
+  },
+  ebookTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  ebookDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 14,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  ebookButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  ebookButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#647C90',
+  },
+  ebookButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
+  },
   storyTitleContainer: {
     alignItems: 'center',
     marginBottom: 40,
@@ -615,6 +837,7 @@ const styles = StyleSheet.create({
     color: '#4E4F50',
     textAlign: 'center',
     lineHeight: 28,
+    marginTop: 10,
   },
   continueButton: {
     borderRadius: 30,
@@ -638,6 +861,29 @@ const styles = StyleSheet.create({
     marginRight: 8,
     fontWeight: '600',
   },
+  completeButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  completeButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+    backgroundColor: '#928490',
+    minWidth: width * 0.5,
+  },
+  completeButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 16,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
+  },
   alternativeClosing: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 18,
@@ -647,23 +893,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
     fontWeight: '600',
   },
-  finalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 30,
-    gap: 12,
-  },
-  finalHeading: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 24,
-    color: '#647C90',
-    textAlign: 'center',
-    fontWeight: '700',
-  },
-  finalIconContainer: {
-    marginBottom: 30,
-  },
+  // REMOVED: finalHeader and finalIconContainer styles since they're no longer used
   heroImage: {
     width: 120,
     height: 120,
