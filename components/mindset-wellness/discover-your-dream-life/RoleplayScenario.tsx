@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions, Modal, Linking } from 'react-native';
 import { ChevronRight, ArrowLeft, X } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -16,8 +16,17 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const scrollToTop = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: false });
+    }
+  };
+
   const handleStartRoleplay = () => {
     setCurrentScreen(0);
+    scrollToTop();
   };
 
   const handleBack = () => {
@@ -36,11 +45,13 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     } else if (currentScreen > 1 && currentScreen <= 6) {
       setCurrentScreen(currentScreen - 1);
     }
+    scrollToTop();
   };
 
   const handleChoiceSelect = (choiceNumber: number) => {
     setSelectedChoice(choiceNumber);
     setCurrentScreen(3);
+    scrollToTop();
   };
 
   const handleContinue = () => {
@@ -55,6 +66,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     } else {
       setCurrentScreen(currentScreen + 1);
     }
+    scrollToTop();
   };
 
   const openVideoModal = () => {
@@ -127,7 +139,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.welcomeCard}>
               <View style={styles.welcomeIconContainer}>
@@ -188,7 +204,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
@@ -206,7 +226,10 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
 
               <TouchableOpacity
                 style={styles.startButton}
-                onPress={() => setCurrentScreen(1)}
+                onPress={() => {
+                  setCurrentScreen(1);
+                  scrollToTop();
+                }}
                 activeOpacity={0.8}
               >
                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
@@ -233,7 +256,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.scenarioCard}>
               <Text style={styles.scenarioTitle}>Imagine This</Text>
@@ -271,7 +298,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.choicesCard}>
               <Text style={styles.choicesTitle}>Your Options</Text>
@@ -326,7 +357,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.responseCard}>
               <Text style={styles.responseTitle}>Here's where you're at</Text>
@@ -362,7 +397,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.followUpCard}>
               <Text style={styles.followUpTitle}>Here's your situation</Text>
@@ -398,7 +437,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.alternativeCard}>
               <View style={styles.alternativeIconContainer}>
@@ -451,7 +494,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.reflectionCard}>
               <View style={styles.reflectionIconContainer}>
