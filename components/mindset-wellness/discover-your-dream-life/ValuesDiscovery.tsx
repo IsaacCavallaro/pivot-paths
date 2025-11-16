@@ -273,7 +273,7 @@ interface ValuesDiscoveryProps {
 }
 
 export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryProps) {
-  const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-10 = questions, 11 = result, 12 = final
+  const [currentScreen, setCurrentScreen] = useState(-1); // -1 = new intro, 0 = original intro, 1-10 = questions, 11 = result, 12 = final
   const [answers, setAnswers] = useState<{ [key: number]: string }>({});
   const [result, setResult] = useState<ValuesResult | null>(null);
   const [randomizedQuestions, setRandomizedQuestions] = useState<ValuesQuestion[]>([]);
@@ -285,7 +285,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
   }, []);
 
   const handleStartQuiz = () => {
-    setCurrentScreen(1);
+    setCurrentScreen(0);
   };
 
   const handleBack = () => {
@@ -339,7 +339,11 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
   };
 
   const goBack = () => {
-    if (currentScreen === 1) {
+    if (currentScreen === -1) {
+      if (onBack) onBack();
+    } else if (currentScreen === 0) {
+      setCurrentScreen(-1);
+    } else if (currentScreen === 1) {
       setCurrentScreen(0);
     } else if (currentScreen > 1 && currentScreen <= 10) {
       setCurrentScreen(currentScreen - 1);
@@ -369,14 +373,61 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
     }
   };
 
-  // Intro Screen
-  if (currentScreen === 0) {
+  // NEW: Intro Screen
+  if (currentScreen === -1) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.centeredContent}>
+            <View style={styles.introCard}>
+              <View style={styles.introIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.introTitle}>Welcome to Day 5</Text>
+
+              <Text style={styles.introDescription}>
+                When we considered the alternative to living a life in dance on Day 3, we did it so that we can start to actively choose options that more closely align with who we are now. But do you really know what you actually align with? That's what we're doing today… getting in touch with what you actually value.
+              </Text>
+
+              <TouchableOpacity
+                style={styles.startButton}
+                onPress={handleStartQuiz}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.startButtonText}>Continue</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Original Intro Screen (now screen 0)
+  if (currentScreen === 0) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
             <View style={styles.backButton} />
@@ -401,7 +452,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
 
               <TouchableOpacity
                 style={styles.startButton}
-                onPress={handleStartQuiz}
+                onPress={() => setCurrentScreen(1)}
                 activeOpacity={0.8}
               >
                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
