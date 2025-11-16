@@ -33,7 +33,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
       setCurrentScreen(-1);
     } else if (currentScreen === 1) {
       setCurrentScreen(0);
-    } else if (currentScreen > 1 && currentScreen <= 5) {
+    } else if (currentScreen > 1 && currentScreen <= 6) {
       setCurrentScreen(currentScreen - 1);
     }
   };
@@ -49,6 +49,8 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     } else if (currentScreen === 4) {
       setCurrentScreen(5);
     } else if (currentScreen === 5) {
+      setCurrentScreen(6); // Go to new reflection screen instead of completing
+    } else if (currentScreen === 6) {
       onComplete();
     } else {
       setCurrentScreen(currentScreen + 1);
@@ -419,7 +421,61 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 You have the best time seeing old friends and celebrating this once in a lifetime event with the memories to prove it. You're still living the dream. How does that sound?
               </Text>
 
-              {/* Updated YouTube Short Button - Now shows thumbnail */}
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleContinue}
+                activeOpacity={0.8}
+              >
+                <View style={styles.continueButtonContent}>
+                  <Text style={styles.continueButtonText}>Continue to Reflection</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // NEW: Reflection Screen after Alternative
+  if (currentScreen === 6) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.reflectionCard}>
+              <View style={styles.reflectionIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.reflectionTitle}>Expanding Your Vision</Text>
+
+              <Text style={styles.reflectionText}>
+                This was just one specific example of an alternative path. As you continue to work on becoming an expansive dreamer and bust those myths, who knows what else you can apply the alternative to?
+              </Text>
+
+              <Text style={styles.reflectionText}>
+                Every choice you make opens up new possibilities. The wedding scenario shows how financial stability and work-life balance can transform your ability to show up for the people and experiences that matter most.
+              </Text>
+
+              <Text style={styles.reflectionText}>
+                Take a detour to see how our founder has done it, but don't forget to come back and mark this day as complete!
+              </Text>
+
+              {/* YouTube Short Thumbnail */}
               <TouchableOpacity
                 style={styles.videoThumbnailContainer}
                 onPress={openYouTubeShort}
@@ -437,9 +493,14 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 </View>
               </TouchableOpacity>
 
-              <Text style={styles.alternativeClosing}>
-                See you for more tomorrow.
-              </Text>
+              {/* Journal Callout */}
+              <View style={styles.journalCallout}>
+                <Text style={styles.journalCalloutTitle}>Your Personal Space</Text>
+                <Text style={styles.journalCalloutText}>
+                  There's no journal prompt today but feel free to use the journal tab at any time to jot down your thoughts.{"\n\n"}
+                  This app is for you! Use it how you'd like to!
+                </Text>
+              </View>
 
               <TouchableOpacity
                 style={styles.completeButton}
@@ -447,7 +508,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 activeOpacity={0.8}
               >
                 <View style={styles.completeButtonContent}>
-                  <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                  <Text style={styles.completeButtonText}>Mark Day 3 As Complete</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
               </TouchableOpacity>
@@ -613,6 +674,63 @@ const styles = StyleSheet.create({
     marginRight: 8,
     fontWeight: '600',
   },
+  // NEW: Reflection Screen Styles
+  reflectionCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  reflectionIconContainer: {
+    marginBottom: 30,
+  },
+  reflectionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 24,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 30,
+    fontWeight: '700',
+  },
+  reflectionText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  journalCallout: {
+    width: '100%',
+    backgroundColor: 'rgba(100, 124, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(100, 124, 144, 0.2)',
+  },
+  journalCalloutTitle: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  journalCalloutText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
   // Existing styles remain the same...
   introCard: {
     marginHorizontal: 24,
@@ -706,13 +824,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2DED0',
     backgroundColor: '#928490',
-  },
-  continueButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
-    color: '#E2DED0',
-    marginRight: 8,
-    fontWeight: '600',
   },
   choicesCard: {
     marginHorizontal: 24,
@@ -840,14 +951,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 20,
-  },
-  alternativeClosing: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
-    color: '#647C90',
-    textAlign: 'center',
-    marginBottom: 32,
-    fontWeight: '600',
   },
   completeButton: {
     borderRadius: 30,
