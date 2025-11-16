@@ -11,13 +11,13 @@ interface RoleplayScenarioProps {
 const { width, height } = Dimensions.get('window');
 
 export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenarioProps) {
-  const [currentScreen, setCurrentScreen] = useState(0);
+  const [currentScreen, setCurrentScreen] = useState(-1); // -1 = new welcome screen, 0 = intro, 1 = scenario, etc.
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
 
   const handleStartRoleplay = () => {
-    setCurrentScreen(1);
+    setCurrentScreen(0);
   };
 
   const handleBack = () => {
@@ -27,7 +27,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
   };
 
   const goBack = () => {
-    if (currentScreen === 1) {
+    if (currentScreen === -1) {
+      if (onBack) onBack();
+    } else if (currentScreen === 0) {
+      setCurrentScreen(-1);
+    } else if (currentScreen === 1) {
       setCurrentScreen(0);
     } else if (currentScreen > 1 && currentScreen <= 5) {
       setCurrentScreen(currentScreen - 1);
@@ -108,12 +112,74 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     }
   };
 
-  if (currentScreen === 0) {
+  // NEW: Day 3 Welcome Screen
+  if (currentScreen === -1) {
     return (
       <View style={styles.container}>
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.welcomeCard}>
+              <View style={styles.welcomeIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.welcomeTitle}>Welcome to Day 3!</Text>
+
+              <Text style={styles.welcomeDescription}>
+                You're doing something truly remarkable. Making time for your growth and future is one of the most powerful commitments you can make to yourself.
+              </Text>
+
+              <Text style={styles.welcomeDescription}>
+                By showing up today, you're proving that you're serious about creating the life you deserve - one that honors both your passion for dance and your dreams beyond it.
+              </Text>
+
+              <View style={styles.celebrationBox}>
+                <Text style={styles.celebrationTitle}>Celebrating Your Progress</Text>
+                <Text style={styles.celebrationItem}>• You've identified your dreamer type</Text>
+                <Text style={styles.celebrationItem}>• You've challenged industry myths</Text>
+                <Text style={styles.celebrationItem}>• You're building self-awareness</Text>
+                <Text style={styles.celebrationItem}>• You're prioritizing your future</Text>
+              </View>
+
+              <Text style={styles.welcomeFooter}>
+                Today, we'll explore what life could look like if you continued down the path of professional dance versus choosing a different route. Get ready to imagine new possibilities!
+              </Text>
+
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleStartRoleplay}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Let's Begin Day 3</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  if (currentScreen === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
             </TouchableOpacity>
             <View style={styles.backButton} />
@@ -138,7 +204,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
 
               <TouchableOpacity
                 style={styles.startButton}
-                onPress={handleStartRoleplay}
+                onPress={() => setCurrentScreen(1)}
                 activeOpacity={0.8}
               >
                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
@@ -461,6 +527,93 @@ const styles = StyleSheet.create({
   backButton: {
     width: 28,
   },
+  // NEW: Welcome Screen Styles
+  welcomeCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  welcomeIconContainer: {
+    marginBottom: 24,
+  },
+  welcomeTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 32,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '700',
+  },
+  welcomeDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  celebrationBox: {
+    width: '100%',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  celebrationTitle: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    marginBottom: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  celebrationItem: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#4E4F50',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  welcomeFooter: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#928490',
+    textAlign: 'center',
+    marginBottom: 30,
+    lineHeight: 22,
+  },
+  continueButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  continueButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  continueButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
+  },
+  // Existing styles remain the same...
   introCard: {
     marginHorizontal: 24,
     marginTop: 50,
@@ -542,10 +695,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 26,
     marginBottom: 32,
-  },
-  continueButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
   },
   continueButtonContent: {
     flexDirection: 'row',
