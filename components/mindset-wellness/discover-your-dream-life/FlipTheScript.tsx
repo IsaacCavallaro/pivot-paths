@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking } from 'react-native';
-import { ChevronRight, MessageCircle, ArrowLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking, TextInput, Alert } from 'react-native';
+import { ChevronRight, MessageCircle, ArrowLeft, PlusCircle } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -9,6 +11,12 @@ interface ScriptPair {
   oldScript: string;
   newScript: string;
   buttonText: string;
+}
+
+interface JournalEntry {
+  id: string;
+  date: string;
+  content: string;
 }
 
 const scriptPairs: ScriptPair[] = [
@@ -83,6 +91,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   const [currentPairIndex, setCurrentPairIndex] = useState(0);
   const [showNewScript, setShowNewScript] = useState(false);
   const [screenHistory, setScreenHistory] = useState<Array<{ pairIndex: number, showNew: boolean }>>([]);
+  const [journalEntry, setJournalEntry] = useState('');
 
   const handleBack = useCallback(() => {
     if (onBack) {
@@ -102,7 +111,8 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
         setShowNewScript(false);
         setScreenHistory([...screenHistory, { pairIndex: newPairIndex, showNew: false }]);
       } else {
-        setScreenHistory([...screenHistory, { pairIndex: -1, showNew: false }]);
+        // After all script pairs, go to reflection screen instead of final screen
+        setScreenHistory([...screenHistory, { pairIndex: -2, showNew: false }]);
       }
     } else {
       setShowNewScript(true);
@@ -127,7 +137,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     setScreenHistory(newHistory);
 
     const prevScreen = newHistory[newHistory.length - 1];
-    if (prevScreen.pairIndex === -1) {
+    if (prevScreen.pairIndex === -1 || prevScreen.pairIndex === -2) {
       return;
     }
 
@@ -152,7 +162,45 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     }
   };
 
-  // Intro Screen
+  const addJournalEntry = async () => {
+    const trimmed = journalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        content: trimmed,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setJournalEntry('');
+      Alert.alert('Success', 'Journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
+  // NEW: Intro Screen
   if (screenHistory.length === 0) {
     return (
       <View style={styles.container}>
@@ -176,9 +224,9 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
                 />
               </View>
 
-              <Text style={styles.introTitle}>Flip the Script</Text>
+              <Text style={styles.introTitle}>Look at you!</Text>
               <Text style={styles.introDescription}>
-                One of the scariest parts of leaving your dance career is answering the dreaded small-talk question, "So, what have you been up to?" … But what if we flipped the script and talked about our pivot with confidence?
+                You're almost at the end of this path and you've already dug through a lot. It's not easy and it's ok if this is all still really uncomfortable. You're taking action and you're turning up. The rest is a matter of time, trust me. Let's keep going, one small step at a time.
               </Text>
 
               <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
@@ -194,8 +242,69 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     );
   }
 
-  // Final Screen
+  // NEW: Reflection Screen
   const currentScreen = screenHistory[screenHistory.length - 1];
+  if (currentScreen.pairIndex === -2) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.centeredContent}>
+            <View style={styles.reflectionCard}>
+              {/* Header */}
+              <View style={styles.reflectionHeader}>
+                <Text style={styles.reflectionTitle}>Navigating Imposter Syndrome</Text>
+              </View>
+
+              {/* Introduction Text */}
+              <View style={styles.reflectionIntro}>
+                <Text style={styles.reflectionDescription}>
+                  A big part of flipping the script with confidence is navigating imposter syndrome. To end today, let's watch this 5-minute clip to dive deeper into imposter syndrome in dancers and how to get through it.
+                </Text>
+              </View>
+
+              {/* YouTube Video Player */}
+              <View style={styles.videoSection}>
+                <View style={styles.videoContainer}>
+                  <View style={styles.youtubePlayer}>
+                    <YoutubePlayer
+                      height={140}
+                      play={false}
+                      videoId={'w9Tzx-sZhTg'}
+                      webViewStyle={styles.youtubeWebView}
+                    />
+                  </View>
+                </View>
+              </View>
+
+              {/* Continue Button */}
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={() => setScreenHistory([...screenHistory, { pairIndex: -1, showNew: false }])}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Final Screen (Updated with journal entry)
   if (currentScreen.pairIndex === -1) {
     return (
       <View style={styles.container}>
@@ -220,36 +329,39 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
               </View>
 
               <View style={styles.finalHeader}>
-                <Text style={styles.finalHeading}>Own Your Story</Text>
+                <Text style={styles.finalHeading}>Now it's your turn</Text>
               </View>
 
               <View style={styles.finalTextContainer}>
                 <Text style={styles.finalText}>
-                  Reframing the way you speak about your transition can do wonders for your mental health throughout the journey. Own your story!
+                  Write your own script for how you'll talk about your transition. What feels authentic and empowering to you?
                 </Text>
               </View>
 
-              {/* Added YouTube Short Thumbnail */}
-              <TouchableOpacity
-                style={styles.videoThumbnailContainer}
-                onPress={openYouTubeShort}
-                activeOpacity={0.8}
-              >
-                <Image
-                  source={{ uri: 'https://img.youtube.com/vi/txScPvwXEcQ/maxresdefault.jpg' }}
-                  style={styles.videoThumbnail}
-                  resizeMode="cover"
-                />
-                <View style={styles.playButtonOverlay}>
-                  <View style={styles.playButton}>
-                    <Text style={styles.playIcon}>▶</Text>
-                  </View>
+              {/* Journal Entry Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Write your own empowering script here..."
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={journalEntry}
+                    onChangeText={setJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addJournalEntry}
+                  >
+                    <PlusCircle size={24} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Add to Journal</Text>
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
 
-              <Text style={styles.alternativeClosing}>
-                You're almost at the final step in this path. See you there.
-              </Text>
+                <Text style={styles.journalNote}>
+                  We'll keep these entries safe in your personal journal.
+                </Text>
+              </View>
 
               <View style={styles.finalButtonContainer}>
                 <TouchableOpacity
@@ -586,51 +698,118 @@ const styles = StyleSheet.create({
     borderColor: '#647C90',
     borderWidth: 2,
   },
-  // YouTube Thumbnail Styles
-  videoThumbnailContainer: {
+  // NEW: Reflection Screen Styles
+  reflectionCard: {
+    width: width * 0.85,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginVertical: 20,
+  },
+  reflectionHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  reflectionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 28,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '700',
+  },
+  reflectionIntro: {
+    marginBottom: 32,
+    padding: 20,
+    backgroundColor: 'rgba(146, 132, 144, 0.05)',
+    borderRadius: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#928490',
+  },
+  reflectionDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 16,
+  },
+  videoSection: {
+    marginBottom: 32,
+  },
+  videoContainer: {
     width: '100%',
     marginBottom: 25,
+  },
+  youtubePlayer: {
     borderRadius: 16,
     overflow: 'hidden',
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 5,
-    position: 'relative',
   },
-  videoThumbnail: {
-    width: '100%',
-    height: 200,
+  youtubeWebView: {
     borderRadius: 16,
   },
-  playButtonOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  // Journal Section Styles
+  journalSection: {
+    width: '100%',
+    marginBottom: 32,
   },
-  playButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FF0000', // YouTube red
-    justifyContent: 'center',
-    alignItems: 'center',
+  journalInputContainer: {
+    marginBottom: 16,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 16,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  playIcon: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginLeft: 4, // Slight offset to center the play icon
+  journalTextInput: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    minHeight: 100,
+    textAlignVertical: 'top',
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    borderRadius: 8,
+  },
+  journalAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  journalAddButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 16,
+    color: '#E2DED0',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  journalNote: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 14,
+    color: '#928490',
+    textAlign: 'center',
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
 });
