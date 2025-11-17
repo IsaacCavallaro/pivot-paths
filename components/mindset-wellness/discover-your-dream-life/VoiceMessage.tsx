@@ -67,12 +67,13 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
           >
             <View style={styles.card}>
               <View style={styles.introIconContainer}>
-                <View style={styles.headphonesIcon}>
-                  <Headphones size={40} color="#647C90" />
-                </View>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
               </View>
 
-              <Text style={styles.introTitle}>Prepare for Your Journey</Text>
+              <Text style={styles.introTitle}>Finish Line</Text>
 
               <Text style={styles.introDescription}>
                 You've come so far on this path of self-discovery. From identifying your dreamer type to flipping the script and uncovering your core values, you've been building the foundation for what comes next.
