@@ -5,7 +5,9 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
   FadeIn,
-  ZoomIn
+  ZoomIn,
+  FadeOut,
+  Layout
 } from 'react-native-reanimated';
 
 interface QuizQuestion {
@@ -284,6 +286,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const [result, setResult] = useState<DreamerResult | null>(null);
   const [journalEntry, setJournalEntry] = useState('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -317,8 +320,13 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     setAnswers(newAnswers);
   };
 
-  const handleContinue = () => {
-    if (selectedOption === null) return;
+  const handleContinue = async () => {
+    if (selectedOption === null || isTransitioning) return;
+
+    setIsTransitioning(true);
+
+    // Small delay for smooth transition
+    await new Promise(resolve => setTimeout(resolve, 150));
 
     if (currentScreen < 11) {
       setCurrentScreen(currentScreen + 1);
@@ -327,6 +335,8 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     } else {
       calculateResult(answers);
     }
+
+    setIsTransitioning(false);
   };
 
   const calculateResult = (finalAnswers: { [key: number]: string }) => {
@@ -894,7 +904,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     );
   }
 
-  // Question Screens
+  // Question Screens with smooth transitions
   const question = quizQuestions[currentScreen - 2];
   const progress = ((currentScreen - 1) / 10) * 100;
 
@@ -912,7 +922,10 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           <View style={styles.backButton} />
         </View>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+          <Animated.View
+            style={[styles.progressFill, { width: `${progress}%` }]}
+            layout={Layout.duration(300)}
+          />
         </View>
       </View>
 
@@ -922,9 +935,14 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          <View style={styles.questionCard}>
+          <Animated.View
+            style={styles.questionCard}
+            entering={FadeIn.duration(400)}
+            exiting={FadeOut.duration(300)}
+            layout={Layout.duration(400)}
+          >
             <Animated.Text
-              entering={FadeIn.delay(200).duration(600)}
+              entering={FadeIn.delay(200).duration(500)}
               style={styles.questionText}
             >
               {question.question}
@@ -934,7 +952,8 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               {question.options.map((option, index) => (
                 <Animated.View
                   key={option.id}
-                  entering={FadeIn.delay(300 + index * 100).duration(500)}
+                  entering={FadeIn.delay(300 + index * 100).duration(400)}
+                  layout={Layout.duration(300)}
                 >
                   <TouchableOpacity
                     style={[
@@ -943,6 +962,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                     ]}
                     onPress={() => handleAnswer(option.id, option.type)}
                     activeOpacity={0.8}
+                    disabled={isTransitioning}
                   >
                     <View style={styles.optionContent}>
                       {selectedOption === option.id && (
@@ -975,21 +995,22 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
             {/* Continue Button */}
             <Animated.View
-              entering={FadeIn.delay(800).duration(600)}
+              entering={FadeIn.delay(600).duration(400)}
+              layout={Layout.duration(300)}
             >
               <TouchableOpacity
                 style={[
                   styles.continueQuestionButton,
-                  selectedOption === null && styles.continueButtonDisabled
+                  (selectedOption === null || isTransitioning) && styles.continueButtonDisabled
                 ]}
                 onPress={handleContinue}
-                disabled={selectedOption === null}
+                disabled={selectedOption === null || isTransitioning}
                 activeOpacity={0.8}
               >
                 <View style={[
                   styles.continueQuestionButtonContent,
                   { backgroundColor: '#928490' },
-                  selectedOption === null && styles.continueButtonContentDisabled
+                  (selectedOption === null || isTransitioning) && styles.continueButtonContentDisabled
                 ]}>
                   <Text style={styles.continueQuestionButtonText}>
                     {currentScreen < 11 ? 'Continue' : 'See Results'}
@@ -998,7 +1019,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 </View>
               </TouchableOpacity>
             </Animated.View>
-          </View>
+          </Animated.View>
         </View>
       </ScrollView>
     </View>
