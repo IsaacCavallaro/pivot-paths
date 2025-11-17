@@ -1432,7 +1432,6 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     width: '100%',
-    marginBottom: 25,
   },
   youtubePlayer: {
     borderRadius: 16,
@@ -1583,7 +1582,6 @@ const styles = StyleSheet.create({
   },
   takeactionHeader: {
     alignItems: 'center',
-    marginBottom: 32,
   },
   takeactionIconContainer: {
     marginBottom: 16,
@@ -1641,8 +1639,8 @@ const styles = StyleSheet.create({
     color: '#4E4F50',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 20,
     fontWeight: '500',
+    marginBottom: 15,
   },
   reflectionQuestionsContainer: {
     marginBottom: 20,
