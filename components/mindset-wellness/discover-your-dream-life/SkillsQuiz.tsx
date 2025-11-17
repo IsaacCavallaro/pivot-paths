@@ -3,6 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, T
 import { ChevronRight, ArrowLeft, PlusCircle, Check } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Animated, {
+  FadeIn,
+  ZoomIn
+} from 'react-native-reanimated';
 
 interface QuizQuestion {
   id: number;
@@ -919,67 +923,81 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
       >
         <View style={styles.content}>
           <View style={styles.questionCard}>
-            <Text style={styles.questionText}>{question.question}</Text>
+            <Animated.Text
+              entering={FadeIn.delay(200).duration(600)}
+              style={styles.questionText}
+            >
+              {question.question}
+            </Animated.Text>
 
             <View style={styles.optionsContainer}>
-              {question.options.map((option) => (
-                <TouchableOpacity
+              {question.options.map((option, index) => (
+                <Animated.View
                   key={option.id}
-                  style={[
-                    styles.optionButton,
-                    selectedOption === option.id && styles.optionButtonSelected
-                  ]}
-                  onPress={() => handleAnswer(option.id, option.type)}
-                  activeOpacity={0.8}
+                  entering={FadeIn.delay(300 + index * 100).duration(500)}
                 >
-                  <View style={styles.optionContent}>
-                    {selectedOption === option.id && (
-                      <View style={styles.selectedIndicator}>
-                        <Check size={16} color="#E2DED0" />
-                      </View>
-                    )}
-                    {/* Fixed: Use View wrapper to handle both strings and JSX */}
-                    <View style={styles.optionTextContainer}>
-                      {typeof option.text === 'string' ? (
-                        <Text style={[
-                          styles.optionText,
-                          selectedOption === option.id && styles.optionTextSelected
-                        ]}>
-                          {option.text}
-                        </Text>
-                      ) : (
-                        // Render the JSX element directly with appropriate styling
-                        <View style={styles.jsxOptionWrapper}>
-                          {option.text}
-                        </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.optionButton,
+                      selectedOption === option.id && styles.optionButtonSelected
+                    ]}
+                    onPress={() => handleAnswer(option.id, option.type)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.optionContent}>
+                      {selectedOption === option.id && (
+                        <Animated.View
+                          entering={ZoomIn.duration(300)}
+                          style={styles.selectedIndicator}
+                        >
+                          <Check size={16} color="#E2DED0" />
+                        </Animated.View>
                       )}
+                      <View style={styles.optionTextContainer}>
+                        {typeof option.text === 'string' ? (
+                          <Text style={[
+                            styles.optionText,
+                            selectedOption === option.id && styles.optionTextSelected
+                          ]}>
+                            {option.text}
+                          </Text>
+                        ) : (
+                          <View style={styles.jsxOptionWrapper}>
+                            {option.text}
+                          </View>
+                        )}
+                      </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </Animated.View>
               ))}
             </View>
 
             {/* Continue Button */}
-            <TouchableOpacity
-              style={[
-                styles.continueQuestionButton,
-                selectedOption === null && styles.continueButtonDisabled
-              ]}
-              onPress={handleContinue}
-              disabled={selectedOption === null}
-              activeOpacity={0.8}
+            <Animated.View
+              entering={FadeIn.delay(800).duration(600)}
             >
-              <View style={[
-                styles.continueQuestionButtonContent,
-                { backgroundColor: '#928490' },
-                selectedOption === null && styles.continueButtonContentDisabled
-              ]}>
-                <Text style={styles.continueQuestionButtonText}>
-                  {currentScreen < 11 ? 'Continue' : 'See Results'}
-                </Text>
-                <ChevronRight size={16} color="#E2DED0" />
-              </View>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.continueQuestionButton,
+                  selectedOption === null && styles.continueButtonDisabled
+                ]}
+                onPress={handleContinue}
+                disabled={selectedOption === null}
+                activeOpacity={0.8}
+              >
+                <View style={[
+                  styles.continueQuestionButtonContent,
+                  { backgroundColor: '#928490' },
+                  selectedOption === null && styles.continueButtonContentDisabled
+                ]}>
+                  <Text style={styles.continueQuestionButtonText}>
+                    {currentScreen < 11 ? 'Continue' : 'See Results'}
+                  </Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
           </View>
         </View>
       </ScrollView>
