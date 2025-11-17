@@ -7,7 +7,6 @@ import Animated, {
   FadeIn,
   ZoomIn,
   FadeOut,
-  Layout
 } from 'react-native-reanimated';
 
 interface QuizQuestion {
@@ -467,9 +466,8 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           <View style={styles.content}>
             <Animated.View
               style={styles.welcomeCard}
-              entering={FadeIn.duration(500)}
-              exiting={FadeOut.duration(400)}
-              layout={Layout.duration(450)}
+              entering={FadeIn.duration(800).delay(100)}
+              exiting={FadeOut.duration(600)}
             >
               <View style={styles.welcomeIconContainer}>
                 <View style={[styles.welcomeIconGradient, { backgroundColor: '#928490' }]}>
@@ -481,35 +479,35 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               </View>
 
               <Animated.Text
-                entering={FadeIn.delay(200).duration(500)}
+                entering={FadeIn.delay(300).duration(800)}
                 style={styles.welcomeTitle}
               >
                 Welcome to Your Path
               </Animated.Text>
 
               <Animated.Text
-                entering={FadeIn.delay(300).duration(500)}
+                entering={FadeIn.delay(400).duration(800)}
                 style={styles.welcomeDescription}
               >
                 Taking this first step is something to be truly proud of. It takes courage to look inward and explore what might be holding you back from the future you deserve.
               </Animated.Text>
 
               <Animated.Text
-                entering={FadeIn.delay(400).duration(500)}
+                entering={FadeIn.delay(500).duration(800)}
                 style={styles.welcomeDescription}
               >
                 This is a safe space for vulnerability. Whatever comes up for you during this journey - uncertainty, fear, hope, excitement - it's all welcome here. Your feelings are valid, and your dreams matter.
               </Animated.Text>
 
               <Animated.Text
-                entering={FadeIn.delay(500).duration(500)}
+                entering={FadeIn.delay(600).duration(800)}
                 style={styles.welcomeDescription}
               >
                 By being here, you're already showing incredible strength. You're choosing to dream differently, and that's the bravest first step you can take.
               </Animated.Text>
 
               <Animated.View
-                entering={FadeIn.delay(600).duration(500)}
+                entering={FadeIn.delay(700).duration(800)}
                 style={styles.welcomeHighlight}
               >
                 <Text style={styles.welcomeHighlightText}>
@@ -518,7 +516,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               </Animated.View>
 
               <Animated.View
-                entering={FadeIn.delay(700).duration(500)}
+                entering={FadeIn.delay(800).duration(800)}
               >
                 <TouchableOpacity
                   style={styles.welcomeButton}
@@ -561,9 +559,8 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           <View style={styles.content}>
             <Animated.View
               style={styles.introCard}
-              entering={FadeIn.duration(500)}
-              exiting={FadeOut.duration(400)}
-              layout={Layout.duration(450)}
+              entering={FadeIn.duration(800).delay(100)}
+              exiting={FadeOut.duration(600)}
             >
               <View style={styles.introIconContainer}>
                 <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
@@ -575,21 +572,21 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               </View>
 
               <Animated.Text
-                entering={FadeIn.delay(200).duration(500)}
+                entering={FadeIn.delay(300).duration(800)}
                 style={styles.introTitle}
               >
                 What kind of dreamer are you?
               </Animated.Text>
 
               <Animated.Text
-                entering={FadeIn.delay(300).duration(500)}
+                entering={FadeIn.delay(400).duration(800)}
                 style={styles.introDescription}
               >
                 It's a skill to dream big. Sure, we had dance dreams and achieved them, but when we start dreaming on our own terms, it can start to fall apart. To help you dream bigger, let's start by figuring out your "Dreamer Type" to unlock what could be holding you back.
               </Animated.Text>
 
               <Animated.View
-                entering={FadeIn.delay(500).duration(500)}
+                entering={FadeIn.delay(600).duration(800)}
               >
                 <TouchableOpacity
                   style={styles.startButton}
@@ -632,9 +629,8 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           <View style={styles.content}>
             <Animated.View
               style={styles.expansiveDreamerCard}
-              entering={FadeIn.duration(500)}
-              exiting={FadeOut.duration(400)}
-              layout={Layout.duration(450)}
+              entering={FadeIn.duration(800).delay(100)}
+              exiting={FadeOut.duration(600)}
             >
               <View style={styles.expansiveIconContainer}>
                 <Image
@@ -644,42 +640,42 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               </View>
 
               <Animated.Text
-                entering={FadeIn.delay(200).duration(500)}
+                entering={FadeIn.delay(300).duration(800)}
                 style={styles.expansiveTitle}
               >
                 Here's What You Could Be:
               </Animated.Text>
 
               <Animated.Text
-                entering={FadeIn.delay(300).duration(500)}
+                entering={FadeIn.delay(400).duration(800)}
                 style={styles.expansiveTitleBold}
               >
                 The Expansive Dreamer
               </Animated.Text>
 
               <Animated.Text
-                entering={FadeIn.delay(400).duration(500)}
+                entering={FadeIn.delay(500).duration(800)}
                 style={styles.expansiveDescription}
               >
                 The Expansive Dreamer is someone who allows their imagination to be bold <Text style={{ fontStyle: 'italic' }}>without apology</Text>.
               </Animated.Text>
 
               <Animated.Text
-                entering={FadeIn.delay(500).duration(500)}
+                entering={FadeIn.delay(600).duration(800)}
                 style={styles.expansiveDescription}
               >
                 This dreamer understands that their past experiences in dance have given them unique strengths: discipline, creativity, resilience, and the ability to envision something before it exists. They use these strengths to build a future that excites them on their own terms.
               </Animated.Text>
 
               <Animated.Text
-                entering={FadeIn.delay(600).duration(500)}
+                entering={FadeIn.delay(700).duration(800)}
                 style={styles.expansiveDescription}
               >
                 The Expansive Dreamer doesn't let fear of the unknown stop them. Instead, they see possibility where others see obstacles, and they trust that each step forward reveals the next.
               </Animated.Text>
 
               <Animated.View
-                entering={FadeIn.delay(800).duration(500)}
+                entering={FadeIn.delay(900).duration(800)}
               >
                 <TouchableOpacity
                   style={styles.continueButton}
@@ -764,23 +760,16 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           <View style={styles.content}>
             <Animated.View
               style={styles.takeactionCard}
-              entering={FadeIn.duration(500)}
-              exiting={FadeOut.duration(400)}
-              layout={Layout.duration(450)}
+              entering={FadeIn.duration(800).delay(100)}
+              exiting={FadeOut.duration(600)}
             >
               {/* Header with Icon */}
-              <Animated.View
-                entering={FadeIn.delay(200).duration(500)}
-                style={styles.takeactionHeader}
-              >
+              <View style={styles.takeactionHeader}>
                 <Text style={styles.takeactionTitle}>Take Action</Text>
-              </Animated.View>
+              </View>
 
               {/* Introduction Text */}
-              <Animated.View
-                entering={FadeIn.delay(300).duration(500)}
-                style={styles.takeactionIntro}
-              >
+              <View style={styles.takeactionIntro}>
                 <Text style={styles.takeactionDescription}>
                   Do you feel that the <Text style={styles.highlightText}>{result.title.toLowerCase()}</Text> describes you? Or are you bothered by the results? Whatever's coming up for you, go with it. We got you!
                 </Text>
@@ -792,13 +781,10 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 <Text style={styles.takeactionDescription}>
                   Let's hear from a dancer who gave herself permission to be the expansive dreamer and learn from her.
                 </Text>
-              </Animated.View>
+              </View>
 
               {/* Reflection Section */}
-              <Animated.View
-                entering={FadeIn.delay(400).duration(500)}
-                style={styles.reflectionSection}
-              >
+              <View style={styles.reflectionSection}>
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Your Reflection Journey</Text>
                   <View style={styles.sectionDivider} />
@@ -811,30 +797,22 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 {/* Dynamic Reflection Questions */}
                 <View style={styles.reflectionQuestionsContainer}>
                   {reflectionQuestions.map((question, index) => (
-                    <Animated.View
-                      key={index}
-                      entering={FadeIn.delay(500 + index * 100).duration(500)}
-                    >
-                      <View style={styles.reflectionQuestionCard}>
-                        <View style={styles.questionNumber}>
-                          <Text style={styles.questionNumberText}>{index + 1}</Text>
-                        </View>
-                        <Text style={styles.reflectionQuestion}>{question}</Text>
+                    <View key={index} style={styles.reflectionQuestionCard}>
+                      <View style={styles.questionNumber}>
+                        <Text style={styles.questionNumberText}>{index + 1}</Text>
                       </View>
-                    </Animated.View>
+                      <Text style={styles.reflectionQuestion}>{question}</Text>
+                    </View>
                   ))}
                 </View>
 
                 <Text style={styles.reflectionInstruction}>
                   As you're watching, write your reflections as a journal entry below.
                 </Text>
-              </Animated.View>
+              </View>
 
               {/* YouTube Video Player */}
-              <Animated.View
-                entering={FadeIn.delay(800).duration(500)}
-                style={styles.videoSection}
-              >
+              <View style={styles.videoSection}>
                 <View style={styles.videoHeader}>
                   <Text style={styles.videoTitle}>Watch & Learn</Text>
                 </View>
@@ -848,13 +826,10 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                     />
                   </View>
                 </View>
-              </Animated.View>
+              </View>
 
               {/* Journal Entry Section */}
-              <Animated.View
-                entering={FadeIn.delay(900).duration(500)}
-                style={styles.journalSection}
-              >
+              <View style={styles.journalSection}>
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Journal Your Thoughts</Text>
                   <View style={styles.sectionDivider} />
@@ -881,35 +856,28 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 <Text style={styles.journalNote}>
                   We'll keep these entries safe in your personal journal which you can view at the end of today's progress.
                 </Text>
-              </Animated.View>
+              </View>
 
               {/* Inspirational Quote */}
-              <Animated.View
-                entering={FadeIn.delay(1000).duration(500)}
-                style={styles.quoteContainer}
-              >
+              <View style={styles.quoteContainer}>
                 <Text style={styles.quoteSymbol}>"</Text>
                 <Text style={styles.takeactionQuote}>
                   The only limits that exist are the ones you place on yourself.
                 </Text>
-              </Animated.View>
+              </View>
 
               {/* Continue Button */}
-              <Animated.View
-                entering={FadeIn.delay(1100).duration(500)}
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={() => handleScreenChange(15)}
+                activeOpacity={0.8}
+                disabled={isTransitioning}
               >
-                <TouchableOpacity
-                  style={styles.continueButton}
-                  onPress={() => handleScreenChange(15)}
-                  activeOpacity={0.8}
-                  disabled={isTransitioning}
-                >
-                  <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                    <Text style={styles.continueButtonText}>Continue Your Journey</Text>
-                    <ChevronRight size={20} color="#E2DED0" />
-                  </View>
-                </TouchableOpacity>
-              </Animated.View>
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Continue Your Journey</Text>
+                  <ChevronRight size={20} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
             </Animated.View>
           </View>
         </ScrollView>
@@ -939,46 +907,30 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           <View style={styles.content}>
             <Animated.View
               style={styles.congratulationsCard}
-              entering={FadeIn.duration(500)}
-              exiting={FadeOut.duration(400)}
-              layout={Layout.duration(450)}
+              entering={FadeIn.duration(800).delay(100)}
+              exiting={FadeOut.duration(600)}
             >
-              <Animated.Text
-                entering={FadeIn.delay(200).duration(500)}
-                style={styles.congratulationsTitle}
-              >
-                Congratulations!
-              </Animated.Text>
+              <Text style={styles.congratulationsTitle}>Congratulations!</Text>
 
-              <Animated.Text
-                entering={FadeIn.delay(300).duration(500)}
-                style={styles.congratulationsDescription}
-              >
+              <Text style={styles.congratulationsDescription}>
                 You've taken the first step toward becoming an Expansive Dreamer. By understanding your current dreaming style, you're already opening yourself up to new possibilities.
-              </Animated.Text>
+              </Text>
 
-              <Animated.Text
-                entering={FadeIn.delay(500).duration(500)}
-                style={styles.congratulationsClosing}
-              >
+              <Text style={styles.congratulationsClosing}>
                 Your expansive future awaits!
-              </Animated.Text>
+              </Text>
 
-              <Animated.View
-                entering={FadeIn.delay(700).duration(500)}
+              <TouchableOpacity
+                style={styles.completeButton}
+                onPress={handleComplete}
+                activeOpacity={0.8}
+                disabled={isTransitioning}
               >
-                <TouchableOpacity
-                  style={styles.completeButton}
-                  onPress={handleComplete}
-                  activeOpacity={0.8}
-                  disabled={isTransitioning}
-                >
-                  <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                    <Text style={styles.completeButtonText}>Mark as Complete</Text>
-                    <ChevronRight size={16} color="#E2DED0" />
-                  </View>
-                </TouchableOpacity>
-              </Animated.View>
+                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.completeButtonText}>Mark as Complete</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
             </Animated.View>
           </View>
         </ScrollView>
@@ -1008,46 +960,27 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           <View style={styles.content}>
             <Animated.View
               style={styles.resultCard}
-              entering={FadeIn.duration(500)}
-              exiting={FadeOut.duration(400)}
-              layout={Layout.duration(450)}
+              entering={FadeIn.duration(800).delay(100)}
+              exiting={FadeOut.duration(600)}
             >
-              <Animated.Text
-                entering={FadeIn.delay(200).duration(500)}
-                style={styles.titleText}
-              >
-                {result.title}
-              </Animated.Text>
+              <Text style={styles.titleText}>{result.title}</Text>
+              <Text style={styles.resultDescription}>{result.description}</Text>
 
-              <Animated.Text
-                entering={FadeIn.delay(300).duration(500)}
-                style={styles.resultDescription}
-              >
-                {result.description}
-              </Animated.Text>
-
-              <Animated.View
-                entering={FadeIn.delay(500).duration(500)}
-                style={styles.resultSubtitleContainer}
-              >
+              <View style={styles.resultSubtitleContainer}>
                 <Text style={styles.resultSubtitle}>{result.subtitle}</Text>
-              </Animated.View>
+              </View>
 
-              <Animated.View
-                entering={FadeIn.delay(700).duration(500)}
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleContinueToExpansiveDreamer}
+                activeOpacity={0.8}
+                disabled={isTransitioning}
               >
-                <TouchableOpacity
-                  style={styles.continueButton}
-                  onPress={handleContinueToExpansiveDreamer}
-                  activeOpacity={0.8}
-                  disabled={isTransitioning}
-                >
-                  <View style={[styles.continueButtonContent, { backgroundColor: result.color }]}>
-                    <Text style={styles.continueButtonText}>Continue</Text>
-                    <ChevronRight size={16} color="#E2DED0" />
-                  </View>
-                </TouchableOpacity>
-              </Animated.View>
+                <View style={[styles.continueButtonContent, { backgroundColor: result.color }]}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
             </Animated.View>
           </View>
         </ScrollView>
@@ -1073,10 +1006,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           <View style={styles.backButton} />
         </View>
         <View style={styles.progressBar}>
-          <Animated.View
-            style={[styles.progressFill, { width: `${progress}%` }]}
-            layout={Layout.duration(300)}
-          />
+          <View style={[styles.progressFill, { width: `${progress}%` }]} />
         </View>
       </View>
 
@@ -1088,12 +1018,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
         <View style={styles.content}>
           <Animated.View
             style={styles.questionCard}
-            entering={FadeIn.duration(400)}
-            exiting={FadeOut.duration(300)}
-            layout={Layout.duration(400)}
+            entering={FadeIn.duration(800).delay(100)}
+            exiting={FadeOut.duration(600)}
           >
             <Animated.Text
-              entering={FadeIn.delay(200).duration(500)}
+              entering={FadeIn.delay(300).duration(800)}
               style={styles.questionText}
             >
               {question.question}
@@ -1103,8 +1032,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               {question.options.map((option, index) => (
                 <Animated.View
                   key={option.id}
-                  entering={FadeIn.delay(300 + index * 100).duration(400)}
-                  layout={Layout.duration(300)}
+                  entering={FadeIn.delay(400 + index * 150).duration(800)}
                 >
                   <TouchableOpacity
                     style={[
@@ -1118,7 +1046,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                     <View style={styles.optionContent}>
                       {selectedOption === option.id && (
                         <Animated.View
-                          entering={ZoomIn.duration(300)}
+                          entering={ZoomIn.duration(500)}
                           style={styles.selectedIndicator}
                         >
                           <Check size={16} color="#E2DED0" />
@@ -1146,8 +1074,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
             {/* Continue Button */}
             <Animated.View
-              entering={FadeIn.delay(600).duration(400)}
-              layout={Layout.duration(300)}
+              entering={FadeIn.delay(800).duration(800)}
             >
               <TouchableOpacity
                 style={[
@@ -1177,6 +1104,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   );
 }
 
+// ... (styles remain exactly the same)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
