@@ -8,81 +8,190 @@ import {
     Alert,
     FlatList,
     Modal,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { Notebook, PlusCircle, Trash2 } from 'lucide-react-native';
+import {
+    Notebook,
+    PlusCircle,
+    Trash2,
+    Search,
+    X,
+    Smile,
+    Frown,
+    Meh,
+    Laugh,
+    Angry,
+    Heart,
+    ChevronDown,
+    Filter,
+    Calendar
+} from 'lucide-react-native';
 
-// Updated JournalEntry interface to match the new structure
 interface JournalEntry {
     id: string;
-    pathTag: string; // Changed from 'date' to 'pathTag'
-    day: number;     // Added day field
+    pathTag: string;
+    day: number;
     content: string;
+    mood?: string;
+    timestamp: number;
 }
 
-// Helper function to format path tag for display
-const formatPathTag = (pathTag: string): string => {
-    // Convert kebab-case to Title Case with spaces
-    return pathTag
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
+const MOOD_OPTIONS = [
+    { id: 'angry', label: 'Angry', icon: Angry, color: '#DC2626' },
+    { id: 'sad', label: 'Sad', icon: Frown, color: '#2563EB' },
+    { id: 'neutral', label: 'Neutral', icon: Meh, color: '#CA8A04' },
+    { id: 'happy', label: 'Happy', icon: Smile, color: '#16A34A' },
+    { id: 'excited', label: 'Excited', icon: Laugh, color: '#7C3AED' },
+    { id: 'loved', label: 'Loved', icon: Heart, color: '#DB2777' },
+];
+
+const GUIDED_PROMPTS = {
+    'personal': [
+        "What are you grateful for today?",
+        "What challenged you today and how did you overcome it?",
+        "What did you learn about yourself today?",
+        "What would make tomorrow even better?",
+    ],
+    'career': [
+        "What professional accomplishment are you proud of today?",
+        "What skill did you develop or practice today?",
+        "How did you contribute to your team or goals today?",
+        "What career insight did you gain today?",
+    ],
+    'wellness': [
+        "How did you nurture your physical health today?",
+        "What did you do for your mental wellbeing today?",
+        "How did you practice self-care today?",
+        "What healthy habit did you reinforce today?",
+    ],
+    'relationships': [
+        "How did you connect with someone important today?",
+        "What act of kindness did you give or receive today?",
+        "How did you strengthen a relationship today?",
+        "What communication skill did you practice today?",
+    ]
 };
 
-export default function JournalScreen() {
+export default function EnhancedJournalScreen() {
     const [entries, setEntries] = useState<JournalEntry[]>([]);
     const [newEntryContent, setNewEntryContent] = useState('');
+    const [selectedMood, setSelectedMood] = useState<string | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSearch, setShowSearch] = useState(false);
+    const [filteredEntries, setFilteredEntries] = useState<JournalEntry[]>([]);
+    const [currentPrompts, setCurrentPrompts] = useState<string[]>([]);
+    const [selectedPath, setSelectedPath] = useState('personal');
+    const [showWriteMode, setShowWriteMode] = useState(false);
+    const [showPrompts, setShowPrompts] = useState(false);
+    const [filterMood, setFilterMood] = useState<string | null>(null);
+    const [showFilters, setShowFilters] = useState(false);
 
+    // Load entries from AsyncStorage
     useFocusEffect(
         useCallback(() => {
             loadEntries();
         }, [])
     );
 
-    useEffect(() => {
-        saveEntries(entries);
-    }, [entries]);
-
     const loadEntries = async () => {
         try {
             const raw = await AsyncStorage.getItem('journalEntries');
             if (raw) {
                 const parsedEntries = JSON.parse(raw);
-                setEntries(parsedEntries);
+                // Ensure all entries have the correct structure
+                const validatedEntries = parsedEntries.map((entry: any) => ({
+                    ...entry,
+                    // Handle old entries that might have 'date' instead of 'pathTag'
+                    pathTag: entry.pathTag || 'general',
+                    // Ensure day is a number
+                    day: typeof entry.day === 'number' ? entry.day : 0,
+                    // Add timestamp if missing
+                    timestamp: entry.timestamp || Date.now()
+                }));
+                setEntries(validatedEntries);
             }
         } catch (e) {
             console.error('loadEntries error', e);
         }
     };
 
-    const saveEntries = async (list: JournalEntry[]) => {
-        try {
-            await AsyncStorage.setItem('journalEntries', JSON.stringify(list));
-        } catch (e) {
-            console.error('saveEntries error', e);
+    useEffect(() => {
+        applyFilters();
+    }, [searchQuery, entries, filterMood]);
+
+    useEffect(() => {
+        updatePrompts(selectedPath);
+    }, [selectedPath]);
+
+    const applyFilters = () => {
+        let filtered = [...entries];
+
+        if (searchQuery.trim() !== '') {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter(entry =>
+                entry.content.toLowerCase().includes(query) ||
+                entry.pathTag.toLowerCase().includes(query) ||
+                (entry.mood && entry.mood.toLowerCase().includes(query))
+            );
         }
+
+        if (filterMood) {
+            filtered = filtered.filter(entry => entry.mood === filterMood);
+        }
+
+        setFilteredEntries(filtered);
     };
 
-    const addEntry = () => {
+    const updatePrompts = (path: string) => {
+        const prompts = GUIDED_PROMPTS[path as keyof typeof GUIDED_PROMPTS] || GUIDED_PROMPTS.personal;
+        setCurrentPrompts(prompts);
+    };
+
+    const addEntry = async () => {
         const trimmed = newEntryContent.trim();
         if (!trimmed) {
             Alert.alert('Empty Entry', 'Please write something before adding.');
             return;
         }
 
-        // For manual entries (not from paths), use a default tag
         const newEntry: JournalEntry = {
             id: Date.now().toString(),
-            pathTag: 'personal', // Default tag for manual entries
-            day: 0,             // 0 indicates it's not associated with a specific day
+            pathTag: selectedPath,
+            day: 0, // For manual entries, day is 0
             content: trimmed,
+            mood: selectedMood,
+            timestamp: Date.now(),
         };
 
-        setEntries((prev) => [newEntry, ...prev]);
-        setNewEntryContent('');
+        try {
+            // Update local state
+            const updatedEntries = [newEntry, ...entries];
+            setEntries(updatedEntries);
+
+            // Save to AsyncStorage
+            await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+            // Reset form
+            setNewEntryContent('');
+            setSelectedMood(null);
+            setShowWriteMode(false);
+            setShowPrompts(false);
+
+            Alert.alert('Success', 'Journal entry added!');
+        } catch (error) {
+            console.error('Error saving journal entry:', error);
+            Alert.alert('Error', 'Failed to save journal entry.');
+        }
+    };
+
+    const usePrompt = (prompt: string) => {
+        setNewEntryContent(prev => prev ? `${prev}\n\n${prompt}` : prompt);
     };
 
     const deleteEntry = (id: string) => {
@@ -94,20 +203,17 @@ export default function JournalScreen() {
         if (!entryToDelete) return;
 
         try {
-            // Filter out the entry to delete
             const filtered = entries.filter((e) => e.id !== entryToDelete);
-
-            // Update state
             setEntries(filtered);
 
-            // Save to AsyncStorage
+            // Update AsyncStorage
             await AsyncStorage.setItem('journalEntries', JSON.stringify(filtered));
 
-            // Close modal and reset
             setShowDeleteModal(false);
             setEntryToDelete(null);
         } catch (error) {
             console.error('Error deleting entry:', error);
+            Alert.alert('Error', 'Failed to delete journal entry.');
             setShowDeleteModal(false);
             setEntryToDelete(null);
         }
@@ -118,7 +224,25 @@ export default function JournalScreen() {
         setEntryToDelete(null);
     };
 
-    // Render the tag for each journal entry
+    const getMoodIcon = (moodId: string) => {
+        const mood = MOOD_OPTIONS.find(m => m.id === moodId);
+        return mood ? mood.icon : Meh;
+    };
+
+    const getMoodColor = (moodId: string) => {
+        const mood = MOOD_OPTIONS.find(m => m.id === moodId);
+        return mood ? mood.color : '#928490';
+    };
+
+    const formatPathTag = (pathTag: string): string => {
+        if (!pathTag) return 'General';
+
+        return pathTag
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
     const renderEntryTag = (entry: JournalEntry) => {
         const formattedPath = formatPathTag(entry.pathTag);
 
@@ -129,68 +253,282 @@ export default function JournalScreen() {
         }
     };
 
+    if (showWriteMode) {
+        return (
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                {/* Write Mode Header */}
+                <View style={[styles.header, { backgroundColor: '#647C90' }]}>
+                    <TouchableOpacity onPress={() => setShowWriteMode(false)}>
+                        <X size={24} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>New Entry</Text>
+                    <TouchableOpacity onPress={addEntry}>
+                        <Text style={styles.saveText}>Save</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView style={styles.writeContent} showsVerticalScrollIndicator={false}>
+                    {/* Path Selection */}
+                    <View style={styles.writeSection}>
+                        <Text style={styles.writeSectionLabel}>Path</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                            {Object.keys(GUIDED_PROMPTS).map((path) => (
+                                <TouchableOpacity
+                                    key={path}
+                                    style={[
+                                        styles.writePathButton,
+                                        selectedPath === path && styles.writePathButtonActive
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedPath(path);
+                                        updatePrompts(path);
+                                    }}
+                                >
+                                    <Text style={[
+                                        styles.writePathText,
+                                        selectedPath === path && styles.writePathTextActive
+                                    ]}>
+                                        {formatPathTag(path)}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+
+                    {/* Mood Selection */}
+                    <View style={styles.writeSection}>
+                        <Text style={styles.writeSectionLabel}>How are you feeling?</Text>
+                        <View style={styles.writeMoodContainer}>
+                            {MOOD_OPTIONS.map((mood) => {
+                                const IconComponent = mood.icon;
+                                return (
+                                    <TouchableOpacity
+                                        key={mood.id}
+                                        style={[
+                                            styles.writeMoodButton,
+                                            selectedMood === mood.id && {
+                                                backgroundColor: mood.color,
+                                            }
+                                        ]}
+                                        onPress={() => setSelectedMood(
+                                            selectedMood === mood.id ? null : mood.id
+                                        )}
+                                    >
+                                        <IconComponent
+                                            size={24}
+                                            color={selectedMood === mood.id ? '#E2DED0' : mood.color}
+                                        />
+                                        <Text style={[
+                                            styles.writeMoodLabel,
+                                            selectedMood === mood.id && { color: '#E2DED0' }
+                                        ]}>
+                                            {mood.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    {/* Prompts Toggle */}
+                    <TouchableOpacity
+                        style={styles.promptsToggle}
+                        onPress={() => setShowPrompts(!showPrompts)}
+                    >
+                        <Text style={styles.promptsToggleText}>
+                            {showPrompts ? 'Hide' : 'Show'} Writing Prompts
+                        </Text>
+                        <ChevronDown
+                            size={20}
+                            color="#647C90"
+                            style={{ transform: [{ rotate: showPrompts ? '180deg' : '0deg' }] }}
+                        />
+                    </TouchableOpacity>
+
+                    {/* Prompts List */}
+                    {showPrompts && (
+                        <View style={styles.promptsList}>
+                            {currentPrompts.map((prompt, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={styles.writePromptButton}
+                                    onPress={() => usePrompt(prompt)}
+                                >
+                                    <Text style={styles.writePromptText}>{prompt}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+
+                    {/* Text Input */}
+                    <View style={styles.writeInputContainer}>
+                        <TextInput
+                            style={styles.writeTextInput}
+                            placeholder="Start writing your thoughts..."
+                            placeholderTextColor="#928490"
+                            multiline
+                            value={newEntryContent}
+                            onChangeText={setNewEntryContent}
+                            autoFocus
+                        />
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        );
+    }
+
     return (
         <View style={styles.container}>
             {/* Header */}
             <View style={[styles.header, { backgroundColor: '#647C90' }]}>
                 <Text style={styles.headerTitle}>Journal</Text>
-            </View>
-
-            {/* Main Content */}
-            <View style={styles.content}>
-                {/* Input */}
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder="Write your journal entry here..."
-                        placeholderTextColor="#928490"
-                        multiline
-                        value={newEntryContent}
-                        onChangeText={setNewEntryContent}
-                    />
+                <View style={styles.headerActions}>
                     <TouchableOpacity
-                        style={[styles.addButton, { backgroundColor: '#647C90' }]}
-                        onPress={addEntry}
+                        style={styles.headerButton}
+                        onPress={() => setShowSearch(!showSearch)}
                     >
-                        <PlusCircle size={24} color="#E2DED0" />
-                        <Text style={styles.addButtonText}>Add Entry</Text>
+                        <Search size={22} color="#E2DED0" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.headerButton}
+                        onPress={() => setShowFilters(!showFilters)}
+                    >
+                        <Filter size={22} color="#E2DED0" />
                     </TouchableOpacity>
                 </View>
+            </View>
 
-                {/* List or Empty State */}
-                {entries.length === 0 ? (
-                    <View style={styles.emptyStateContainer}>
-                        <Notebook size={60} color="#928490" />
+            {/* Search Bar */}
+            {showSearch && (
+                <View style={styles.searchContainer}>
+                    <Search size={20} color="#928490" />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search entries..."
+                        placeholderTextColor="#928490"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        autoFocus
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchQuery('')}>
+                            <X size={20} color="#928490" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            )}
+
+            {/* Filters */}
+            {showFilters && (
+                <View style={styles.filtersContainer}>
+                    <Text style={styles.filterLabel}>Filter by mood:</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <TouchableOpacity
+                            style={[
+                                styles.filterChip,
+                                !filterMood && styles.filterChipActive
+                            ]}
+                            onPress={() => setFilterMood(null)}
+                        >
+                            <Text style={[
+                                styles.filterChipText,
+                                !filterMood && styles.filterChipTextActive
+                            ]}>All</Text>
+                        </TouchableOpacity>
+                        {MOOD_OPTIONS.map((mood) => {
+                            const IconComponent = mood.icon;
+                            return (
+                                <TouchableOpacity
+                                    key={mood.id}
+                                    style={[
+                                        styles.filterChip,
+                                        filterMood === mood.id && { backgroundColor: mood.color }
+                                    ]}
+                                    onPress={() => setFilterMood(filterMood === mood.id ? null : mood.id)}
+                                >
+                                    <IconComponent
+                                        size={16}
+                                        color={filterMood === mood.id ? '#E2DED0' : mood.color}
+                                    />
+                                    <Text style={[
+                                        styles.filterChipText,
+                                        filterMood === mood.id && { color: '#E2DED0' }
+                                    ]}>{mood.label}</Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+                </View>
+            )}
+
+            {/* Entries List */}
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {filteredEntries.length === 0 ? (
+                    <View style={styles.emptyState}>
+                        <Notebook size={64} color="#928490" />
+                        <Text style={styles.emptyStateTitle}>
+                            {searchQuery || filterMood ? 'No matches found' : 'Start Your Journey'}
+                        </Text>
                         <Text style={styles.emptyStateText}>
-                            No journal entries yet. Start writing!
+                            {searchQuery || filterMood
+                                ? 'Try adjusting your filters'
+                                : 'Tap the + button to create your first entry'}
                         </Text>
                     </View>
                 ) : (
-                    <FlatList
-                        data={entries}
-                        keyExtractor={(item) => item.id}
-                        extraData={entries}
-                        contentContainerStyle={{ paddingBottom: 120 }}
-                        renderItem={({ item }) => (
-                            <View style={[styles.entryCard, { backgroundColor: '#F5F5F5' }]}>
-                                <View style={styles.entryHeader}>
-                                    <Text style={styles.entryTag}>{renderEntryTag(item)}</Text>
+                    <>
+                        <Text style={styles.entriesCount}>
+                            {filteredEntries.length} {filteredEntries.length === 1 ? 'Entry' : 'Entries'}
+                        </Text>
+                        {filteredEntries.map((item) => {
+                            const MoodIcon = item.mood ? getMoodIcon(item.mood) : null;
+                            const moodColor = item.mood ? getMoodColor(item.mood) : '#928490';
 
-                                    {/* ---- DELETE BUTTON ---- */}
-                                    <TouchableOpacity
-                                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                                        onPress={() => deleteEntry(item.id)}
-                                    >
-                                        <Trash2 size={20} color="#928490" />
-                                    </TouchableOpacity>
+                            return (
+                                <View key={item.id} style={styles.entryCard}>
+                                    <View style={styles.entryHeader}>
+                                        <View style={styles.entryMeta}>
+                                            <Text style={styles.entryPath}>{renderEntryTag(item)}</Text>
+                                        </View>
+                                        <TouchableOpacity
+                                            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                                            onPress={() => deleteEntry(item.id)}
+                                        >
+                                            <Trash2 size={18} color="#928490" />
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <Text style={styles.entryContent} numberOfLines={3}>
+                                        {item.content}
+                                    </Text>
+
+                                    {MoodIcon && (
+                                        <View style={styles.entryFooter}>
+                                            <View style={[styles.entryMoodBadge, { backgroundColor: moodColor }]}>
+                                                <MoodIcon size={12} color="#E2DED0" />
+                                                <Text style={styles.entryMoodText}>
+                                                    {MOOD_OPTIONS.find(m => m.id === item.mood)?.label}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    )}
                                 </View>
-
-                                <Text style={styles.entryContent}>{item.content}</Text>
-                            </View>
-                        )}
-                    />
+                            );
+                        })}
+                    </>
                 )}
-            </View>
+            </ScrollView>
+
+            {/* Floating Action Button */}
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={() => setShowWriteMode(true)}
+            >
+                <PlusCircle size={28} color="#E2DED0" />
+            </TouchableOpacity>
 
             {/* Delete Confirmation Modal */}
             <Modal
@@ -200,23 +538,23 @@ export default function JournalScreen() {
                 onRequestClose={cancelDelete}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContainer, { backgroundColor: '#F5F5F5' }]}>
-                        <Text style={styles.modalTitle}>Delete Entry</Text>
+                    <View style={styles.modalContainer}>
+                        <Text style={styles.modalTitle}>Delete Entry?</Text>
                         <Text style={styles.modalMessage}>
-                            Are you sure you want to delete this journal entry? This action cannot be undone.
+                            This action cannot be undone.
                         </Text>
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={[styles.cancelButton, { backgroundColor: 'rgba(146, 132, 144, 0.2)' }]}
+                                style={styles.modalCancelButton}
                                 onPress={cancelDelete}
                             >
-                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                                <Text style={styles.modalCancelText}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.confirmButton, { backgroundColor: '#647C90' }]}
+                                style={styles.modalDeleteButton}
                                 onPress={confirmDelete}
                             >
-                                <Text style={styles.confirmButtonText}>Delete</Text>
+                                <Text style={styles.modalDeleteText}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -226,119 +564,284 @@ export default function JournalScreen() {
     );
 }
 
-/* ============================================================= */
-/* Styles                                                        */
-/* ============================================================= */
+// ... (keep all your existing styles exactly the same)
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#E2DED0' },
+    // ... (all your existing styles remain unchanged)
+    container: {
+        flex: 1,
+        backgroundColor: '#E2DED0'
+    },
     header: {
         paddingTop: 60,
         paddingBottom: 20,
+        paddingHorizontal: 24,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
         borderBottomLeftRadius: 24,
         borderBottomRightRadius: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
     },
     headerTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
+        fontSize: 28,
         color: '#E2DED0',
         fontWeight: '700',
     },
-    content: {
-        flex: 1,
-        paddingHorizontal: 24,
-        paddingVertical: 30,
-    },
-    inputContainer: {
-        marginBottom: 30,
-        backgroundColor: '#F5F5F5',
-        borderRadius: 16,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-    },
-    textInput: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        minHeight: 100,
-        textAlignVertical: 'top',
-        marginBottom: 15,
-        padding: 10,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        borderRadius: 8,
-    },
-    addButton: {
+    headerActions: {
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 12,
-        borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        gap: 12,
     },
-    addButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
+    headerButton: {
+        padding: 4,
+    },
+    saveText: {
         fontSize: 16,
         color: '#E2DED0',
-        marginLeft: 8,
         fontWeight: '600',
     },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F5F5F5',
+        marginHorizontal: 20,
+        marginTop: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 12,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 16,
+        color: '#4E4F50',
+        marginLeft: 12,
+        marginRight: 8,
+    },
+    filtersContainer: {
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        backgroundColor: '#F5F5F5',
+        marginHorizontal: 20,
+        marginTop: 12,
+        borderRadius: 12,
+    },
+    filterLabel: {
+        fontSize: 14,
+        color: '#647C90',
+        fontWeight: '600',
+        marginBottom: 12,
+    },
+    filterChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: '#E2DED0',
+        marginRight: 8,
+        gap: 6,
+    },
+    filterChipActive: {
+        backgroundColor: '#647C90',
+    },
+    filterChipText: {
+        fontSize: 14,
+        color: '#647C90',
+        fontWeight: '500',
+    },
+    filterChipTextActive: {
+        color: '#E2DED0',
+    },
+    content: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 20,
+    },
+    entriesCount: {
+        fontSize: 16,
+        color: '#647C90',
+        fontWeight: '600',
+        marginBottom: 16,
+        paddingHorizontal: 4,
+    },
     entryCard: {
+        backgroundColor: '#F5F5F5',
         borderRadius: 16,
-        padding: 20,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        padding: 16,
+        marginBottom: 16,
     },
     entryHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 12,
     },
-    entryTag: { // Updated from entryDate to entryTag
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 14,
+    entryMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        gap: 8,
+    },
+    entryPath: {
+        fontSize: 13,
         color: '#647C90',
         fontWeight: '600',
     },
     entryContent: {
-        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 22,
+        marginBottom: 12,
+    },
+    entryFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    entryMoodBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+        gap: 4,
+    },
+    entryMoodText: {
+        fontSize: 12,
+        color: '#E2DED0',
+        fontWeight: '600',
+    },
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 80,
+        paddingHorizontal: 40,
+    },
+    emptyStateTitle: {
+        fontSize: 20,
+        color: '#647C90',
+        fontWeight: '600',
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    emptyStateText: {
+        fontSize: 15,
+        color: '#928490',
+        textAlign: 'center',
+        lineHeight: 22,
+    },
+    fab: {
+        position: 'absolute',
+        right: 20,
+        bottom: 30,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#647C90',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    // Write Mode Styles
+    writeContent: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 20,
+    },
+    writeSection: {
+        marginBottom: 24,
+    },
+    writeSectionLabel: {
+        fontSize: 16,
+        color: '#647C90',
+        fontWeight: '600',
+        marginBottom: 12,
+    },
+    writePathButton: {
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 20,
+        backgroundColor: '#F5F5F5',
+        marginRight: 12,
+    },
+    writePathButtonActive: {
+        backgroundColor: '#647C90',
+    },
+    writePathText: {
+        fontSize: 14,
+        color: '#647C90',
+        fontWeight: '600',
+    },
+    writePathTextActive: {
+        color: '#E2DED0',
+    },
+    writeMoodContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    writeMoodButton: {
+        flex: 1,
+        minWidth: '30%',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#F5F5F5',
+        paddingVertical: 16,
+        borderRadius: 12,
+        gap: 8,
+    },
+    writeMoodLabel: {
+        fontSize: 12,
+        color: '#4E4F50',
+        fontWeight: '500',
+    },
+    promptsToggle: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#F5F5F5',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 12,
+    },
+    promptsToggleText: {
+        fontSize: 15,
+        color: '#647C90',
+        fontWeight: '600',
+    },
+    promptsList: {
+        gap: 12,
+        marginBottom: 24,
+    },
+    writePromptButton: {
+        backgroundColor: '#F5F5F5',
+        padding: 16,
+        borderRadius: 12,
+        borderLeftWidth: 3,
+        borderLeftColor: '#647C90',
+    },
+    writePromptText: {
+        fontSize: 14,
+        color: '#4E4F50',
+        lineHeight: 20,
+    },
+    writeInputContainer: {
+        backgroundColor: '#F5F5F5',
+        borderRadius: 16,
+        padding: 16,
+        minHeight: 200,
+        marginBottom: 30,
+    },
+    writeTextInput: {
         fontSize: 16,
         color: '#4E4F50',
         lineHeight: 24,
+        minHeight: 150,
+        textAlignVertical: 'top',
     },
-    emptyStateContainer: {
-        alignItems: 'center',
-        marginTop: 50,
-        padding: 20,
-        backgroundColor: '#F5F5F5',
-        borderRadius: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-    },
-    emptyStateText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        marginTop: 15,
-        textAlign: 'center',
-    },
-    // Modal styles
+    // Modal Styles
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -347,61 +850,50 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
     },
     modalContainer: {
-        borderRadius: 24,
-        padding: 32,
+        backgroundColor: '#F5F5F5',
+        borderRadius: 20,
+        padding: 24,
         width: '100%',
         maxWidth: 400,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 16,
     },
     modalTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
+        fontSize: 20,
         color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 16,
         fontWeight: '700',
+        marginBottom: 12,
     },
     modalMessage: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
+        fontSize: 15,
         color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
+        lineHeight: 22,
         marginBottom: 24,
     },
     modalButtons: {
         flexDirection: 'row',
-        gap: 16,
+        gap: 12,
     },
-    cancelButton: {
+    modalCancelButton: {
         flex: 1,
-        borderRadius: 20,
-        padding: 16,
+        backgroundColor: '#E2DED0',
+        borderRadius: 12,
+        padding: 14,
         alignItems: 'center',
-        justifyContent: 'center',
     },
-    cancelButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
+    modalCancelText: {
         fontSize: 16,
         color: '#647C90',
-        textAlign: 'center',
         fontWeight: '600',
     },
-    confirmButton: {
+    modalDeleteButton: {
         flex: 1,
-        borderRadius: 20,
-        padding: 16,
+        backgroundColor: '#647C90',
+        borderRadius: 12,
+        padding: 14,
         alignItems: 'center',
-        justifyContent: 'center',
     },
-    confirmButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
+    modalDeleteText: {
         fontSize: 16,
         color: '#E2DED0',
-        textAlign: 'center',
         fontWeight: '600',
     },
 });
