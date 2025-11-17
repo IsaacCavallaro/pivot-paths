@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
 import { ChevronRight, ArrowLeft, PlusCircle } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -88,6 +88,8 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
   const [journalEntry, setJournalEntry] = useState('');
   const [animatedValues] = useState(() => new Map());
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
   useEffect(() => {
     const loadQuizResult = async () => {
       try {
@@ -101,6 +103,13 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     };
     loadQuizResult();
   }, []);
+
+  // Scroll to top whenever screen changes
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: false });
+    }
+  }, [currentScreen]);
 
   const handleBack = () => {
     onBack?.();
@@ -336,7 +345,12 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollViewContent}
+        >
           <View style={styles.content}>
             <View style={styles.welcomeCard}>
               <View style={styles.welcomeIconContainer}>
@@ -426,7 +440,12 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollViewContent}
+        >
           <View style={styles.content}>
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
@@ -475,7 +494,12 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollViewContent}
+        >
           <View style={styles.content}>
             <View style={styles.reflectionCard}>
               <View style={styles.reflectionIconContainer}>
@@ -563,7 +587,12 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollViewContent}
+        >
           <View style={styles.content}>
             <View style={styles.reflectionCard}>
               <View style={styles.reflectionIconContainer}>
@@ -586,7 +615,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               </Text>
 
               <Text style={styles.reflectionText}>
-                Take a detour and check out the myths our founder had to unlearn. But don’t forget to come back and mark this day as complete!
+                Take a detour and check out the myths our founder had to unlearn. But don't forget to come back and mark this day as complete!
               </Text>
 
               {/* Added YouTube Short Thumbnail */}
@@ -649,7 +678,12 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollViewContent}
+      >
         <View style={styles.content}>
           <View style={styles.gameCard}>
             <Text style={styles.gameTitle}>Myth Buster</Text>
@@ -729,6 +763,9 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     marginTop: 100,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
   },
   content: {
     paddingBottom: 30,

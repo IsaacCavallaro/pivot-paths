@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions, Modal, Linking } from 'react-native';
-import { ChevronRight, ArrowLeft, X } from 'lucide-react-native';
+import { ChevronRight, ArrowLeft, X, Check } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
 interface RoleplayScenarioProps {
@@ -50,12 +50,15 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
 
   const handleChoiceSelect = (choiceNumber: number) => {
     setSelectedChoice(choiceNumber);
-    setCurrentScreen(3);
+    // REMOVED: setCurrentScreen(3); - Don't navigate automatically
     scrollToTop();
   };
 
   const handleContinue = () => {
-    if (currentScreen === 3) {
+    if (currentScreen === 2 && selectedChoice !== null) {
+      // Only navigate from choices screen if a choice is selected
+      setCurrentScreen(3);
+    } else if (currentScreen === 3) {
       setCurrentScreen(4);
     } else if (currentScreen === 4) {
       setCurrentScreen(5);
@@ -274,8 +277,8 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 onPress={handleContinue}
                 activeOpacity={0.8}
               >
-                <View style={styles.continueButtonContent}>
-                  <Text style={styles.continueButtonText}>What will you do?</Text>
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
               </TouchableOpacity>
@@ -309,35 +312,96 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
 
               <View style={styles.choicesContainer}>
                 <TouchableOpacity
-                  style={styles.choiceButton}
+                  style={[
+                    styles.choiceButton,
+                    selectedChoice === 1 && styles.choiceButtonSelected
+                  ]}
                   onPress={() => handleChoiceSelect(1)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.choiceText}>
-                    Respectfully decline the invitation. Your dance career comes first. It's a no-brainer.
-                  </Text>
+                  <View style={styles.choiceContent}>
+                    {selectedChoice === 1 && (
+                      <View style={styles.selectedIndicator}>
+                        <Check size={16} color="#E2DED0" />
+                      </View>
+                    )}
+                    <Text style={[
+                      styles.choiceText,
+                      selectedChoice === 1 && styles.choiceTextSelected
+                    ]}>
+                      Respectfully decline the invitation. Your dance career comes first. It's a no-brainer.
+                    </Text>
+                  </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.choiceButton}
+                  style={[
+                    styles.choiceButton,
+                    selectedChoice === 2 && styles.choiceButtonSelected
+                  ]}
                   onPress={() => handleChoiceSelect(2)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.choiceText}>
-                    You can't <Text style={{ fontStyle: 'italic' }}>really</Text> afford it but you plan to go, of course. That's what swings are for! You'll think about the financial consequences later…
-                  </Text>
+                  <View style={styles.choiceContent}>
+                    {selectedChoice === 2 && (
+                      <View style={styles.selectedIndicator}>
+                        <Check size={16} color="#E2DED0" />
+                      </View>
+                    )}
+                    <Text style={[
+                      styles.choiceText,
+                      selectedChoice === 2 && styles.choiceTextSelected
+                    ]}>
+                      You can't <Text style={{ fontStyle: 'italic' }}>really</Text> afford it but you plan to go, of course. That's what swings are for! You'll think about the financial consequences later…
+                    </Text>
+                  </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.choiceButton}
+                  style={[
+                    styles.choiceButton,
+                    selectedChoice === 3 && styles.choiceButtonSelected
+                  ]}
                   onPress={() => handleChoiceSelect(3)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.choiceText}>
-                    You have enough savings to cover the trip but you're nervous to ask your director for the time off so early into the contract.
-                  </Text>
+                  <View style={styles.choiceContent}>
+                    {selectedChoice === 3 && (
+                      <View style={styles.selectedIndicator}>
+                        <Check size={16} color="#E2DED0" />
+                      </View>
+                    )}
+                    <Text style={[
+                      styles.choiceText,
+                      selectedChoice === 3 && styles.choiceTextSelected
+                    ]}>
+                      You have enough savings to cover the trip but you're nervous to ask your director for the time off so early into the contract.
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
+
+              {/* Continue Button */}
+              <TouchableOpacity
+                style={[
+                  styles.continueQuestionButton,
+                  selectedChoice === null && styles.continueButtonDisabled
+                ]}
+                onPress={handleContinue}
+                disabled={selectedChoice === null}
+                activeOpacity={0.8}
+              >
+                <View style={[
+                  styles.continueQuestionButtonContent,
+                  { backgroundColor: '#928490' },
+                  selectedChoice === null && styles.continueButtonContentDisabled
+                ]}>
+                  <Text style={styles.continueQuestionButtonText}>
+                    Continue
+                  </Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -373,7 +437,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 onPress={handleContinue}
                 activeOpacity={0.8}
               >
-                <View style={styles.continueButtonContent}>
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
                   <Text style={styles.continueButtonText}>Continue</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
@@ -413,7 +477,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 onPress={handleContinue}
                 activeOpacity={0.8}
               >
-                <View style={styles.continueButtonContent}>
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
                   <Text style={styles.continueButtonText}>See the Alternative</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
@@ -469,7 +533,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 onPress={handleContinue}
                 activeOpacity={0.8}
               >
-                <View style={styles.continueButtonContent}>
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
                   <Text style={styles.continueButtonText}>Continue to Reflection</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
@@ -554,7 +618,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 onPress={onComplete}
                 activeOpacity={0.8}
               >
-                <View style={styles.completeButtonContent}>
+                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
                   <Text style={styles.completeButtonText}>Mark Day 3 As Complete</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
@@ -894,13 +958,24 @@ const styles = StyleSheet.create({
   },
   choicesContainer: {
     gap: 16,
+    marginBottom: 24,
   },
+  // UPDATED: Choice button styles with visual feedback
   choiceButton: {
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
     borderRadius: 16,
-    padding: 20,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
     borderWidth: 2,
     borderColor: 'transparent',
+  },
+  choiceButtonSelected: {
+    backgroundColor: 'rgba(146, 132, 144, 0.3)',
+    borderColor: '#928490',
+    borderWidth: 2,
+  },
+  choiceContent: {
+    padding: 20,
+    paddingRight: 50, // Extra padding for the checkmark
   },
   choiceText: {
     fontFamily: 'Montserrat-Regular',
@@ -908,6 +983,49 @@ const styles = StyleSheet.create({
     color: '#4E4F50',
     lineHeight: 24,
     textAlign: 'center',
+  },
+  choiceTextSelected: {
+    color: '#4E4F50',
+    fontWeight: '600',
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#928490',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // NEW: Continue button styles for choices screen
+  continueQuestionButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  continueQuestionButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  continueButtonDisabled: {
+    opacity: 0.5,
+  },
+  continueButtonContentDisabled: {
+    backgroundColor: '#B8B8B8',
+  },
+  continueQuestionButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
   },
   responseCard: {
     marginHorizontal: 24,
