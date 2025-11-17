@@ -1281,7 +1281,6 @@ const styles = StyleSheet.create({
     color: '#647C90',
     textAlign: 'center',
     marginBottom: 32,
-    marginTop: 20,
     fontWeight: '600',
   },
   finalHeader: {
@@ -1333,7 +1332,6 @@ const styles = StyleSheet.create({
   finalButtonContainer: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 20,
   },
   finalScrollContent: {
     flexGrow: 1,
