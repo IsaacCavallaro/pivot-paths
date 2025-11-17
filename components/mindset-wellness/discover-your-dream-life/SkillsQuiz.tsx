@@ -24,8 +24,10 @@ interface DreamerResult {
 
 interface JournalEntry {
   id: string;
-  date: string;
+  pathTag: string;
+  day: string;
   content: string;
+
 }
 
 const quizQuestions: QuizQuestion[] = [
@@ -370,11 +372,8 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     try {
       const newEntry: JournalEntry = {
         id: Date.now().toString(),
-        date: new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        }),
+        pathTag: 'discover-dream-life', // Hardcoded for this specific path
+        day: '1',                         // Hardcoded for day 1
         content: trimmed,
       };
 

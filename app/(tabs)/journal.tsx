@@ -13,11 +13,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { Notebook, PlusCircle, Trash2 } from 'lucide-react-native';
 
+// Updated JournalEntry interface to match the new structure
 interface JournalEntry {
     id: string;
-    date: string;
+    pathTag: string; // Changed from 'date' to 'pathTag'
+    day: number;     // Added day field
     content: string;
 }
+
+// Helper function to format path tag for display
+const formatPathTag = (pathTag: string): string => {
+    // Convert kebab-case to Title Case with spaces
+    return pathTag
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+};
 
 export default function JournalScreen() {
     const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -38,7 +49,10 @@ export default function JournalScreen() {
     const loadEntries = async () => {
         try {
             const raw = await AsyncStorage.getItem('journalEntries');
-            if (raw) setEntries(JSON.parse(raw));
+            if (raw) {
+                const parsedEntries = JSON.parse(raw);
+                setEntries(parsedEntries);
+            }
         } catch (e) {
             console.error('loadEntries error', e);
         }
@@ -59,13 +73,11 @@ export default function JournalScreen() {
             return;
         }
 
+        // For manual entries (not from paths), use a default tag
         const newEntry: JournalEntry = {
             id: Date.now().toString(),
-            date: new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-            }),
+            pathTag: 'personal', // Default tag for manual entries
+            day: 0,             // 0 indicates it's not associated with a specific day
             content: trimmed,
         };
 
@@ -104,6 +116,17 @@ export default function JournalScreen() {
     const cancelDelete = () => {
         setShowDeleteModal(false);
         setEntryToDelete(null);
+    };
+
+    // Render the tag for each journal entry
+    const renderEntryTag = (entry: JournalEntry) => {
+        const formattedPath = formatPathTag(entry.pathTag);
+
+        if (entry.day > 0) {
+            return `${formattedPath} • Day ${entry.day}`;
+        } else {
+            return formattedPath;
+        }
     };
 
     return (
@@ -151,7 +174,7 @@ export default function JournalScreen() {
                         renderItem={({ item }) => (
                             <View style={[styles.entryCard, { backgroundColor: '#F5F5F5' }]}>
                                 <View style={styles.entryHeader}>
-                                    <Text style={styles.entryDate}>{item.date}</Text>
+                                    <Text style={styles.entryTag}>{renderEntryTag(item)}</Text>
 
                                     {/* ---- DELETE BUTTON ---- */}
                                     <TouchableOpacity
@@ -285,7 +308,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 10,
     },
-    entryDate: {
+    entryTag: { // Updated from entryDate to entryTag
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 14,
         color: '#647C90',
