@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
-import { ChevronRight, ArrowLeft, PlusCircle, Check } from 'lucide-react-native';
+import { ChevronRight, ArrowLeft, PlusCircle, Check, Smile, Frown, Meh, Laugh, Angry, Heart } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -27,8 +27,17 @@ interface JournalEntry {
   pathTag: string;
   day: string;
   content: string;
-
+  mood?: string;
 }
+
+const MOOD_OPTIONS = [
+  { id: 'angry', label: 'Angry', icon: Angry, color: '#DC2626' },
+  { id: 'sad', label: 'Sad', icon: Frown, color: '#2563EB' },
+  { id: 'neutral', label: 'Neutral', icon: Meh, color: '#CA8A04' },
+  { id: 'happy', label: 'Happy', icon: Smile, color: '#16A34A' },
+  { id: 'excited', label: 'Excited', icon: Laugh, color: '#7C3AED' },
+  { id: 'loved', label: 'Loved', icon: Heart, color: '#DB2777' },
+];
 
 const quizQuestions: QuizQuestion[] = [
   {
@@ -279,6 +288,8 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const [journalEntry, setJournalEntry] = useState('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [morningJournalEntry, setMorningJournalEntry] = useState('');
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -362,6 +373,43 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     handleScreenChange(14);
   };
 
+  const addMorningJournalEntry = async () => {
+    const trimmed = morningJournalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        pathTag: 'discover-dream-life',
+        day: '1',
+        content: trimmed,
+        mood: selectedMood,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setMorningJournalEntry('');
+      setSelectedMood(null);
+      Alert.alert('Success', 'Morning journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
   const addJournalEntry = async () => {
     const trimmed = journalEntry.trim();
     if (!trimmed) {
@@ -372,8 +420,8 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     try {
       const newEntry: JournalEntry = {
         id: Date.now().toString(),
-        pathTag: 'discover-dream-life', // Hardcoded for this specific path
-        day: '1',                         // Hardcoded for day 1
+        pathTag: 'discover-dream-life',
+        day: '1',
         content: trimmed,
       };
 
@@ -395,6 +443,10 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
       console.error('Error saving journal entry:', error);
       Alert.alert('Error', 'Failed to save journal entry.');
     }
+  };
+
+  const usePrompt = (prompt: string) => {
+    setMorningJournalEntry(prev => prev ? `${prev}\n\n${prompt}` : prompt);
   };
 
   const handleComplete = async () => {
@@ -434,7 +486,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     }
   };
 
-  // Welcome Screen
+  // Welcome Screen with Journal Prompt
   if (currentScreen === 0) {
     return (
       <View style={styles.container}>
@@ -472,17 +524,78 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 Taking this first step is something to be truly proud of. It takes courage to look inward and explore what might be holding you back from the future you deserve.
               </Text>
 
-              <Text style={styles.welcomeDescription}>
-                This is a safe space for vulnerability. Whatever comes up for you during this journey - uncertainty, fear, hope, excitement - it's all welcome here. Your feelings are valid, and your dreams matter.
-              </Text>
+              {/* Morning Journal Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  {/* <Text style={styles.sectionTitle}>Start Your Day</Text> */}
+                  <View style={styles.sectionDivider} />
+                </View>
 
-              <Text style={styles.welcomeDescription}>
-                By being here, you're already showing incredible strength. You're choosing to dream differently, and that's the bravest first step you can take.
-              </Text>
+                <Text style={styles.journalInstruction}>
+                  Before we being, let's take a moment to check in with yourself. How are you feeling as you begin this journey?
+                </Text>
+
+                {/* Mood Selection */}
+                <View style={styles.moodSection}>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedMood(
+                            selectedMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Journal Input */}
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Enter your journal entry here"
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={morningJournalEntry}
+                    onChangeText={setMorningJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addMorningJournalEntry}
+                  >
+                    <PlusCircle size={20} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Save Morning Entry</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entires save in the journal tab for you to review later.
+                </Text>
+              </View>
 
               <View style={styles.welcomeHighlight}>
                 <Text style={styles.welcomeHighlightText}>
-                  Congratulations on giving yourself permission to indentify as something more than a dancer.
+                  Congratulations on giving yourself permission to identify as something more than a dancer.
                 </Text>
               </View>
 
@@ -844,6 +957,75 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 You've taken the first step toward becoming an Expansive Dreamer. By understanding your current dreaming style, you're already opening yourself up to new possibilities.
               </Text>
 
+              {/* End of Day Journal Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  {/* <Text style={styles.sectionTitle}>Start Your Day</Text> */}
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.journalInstruction}>
+                  Before we bring today's session to a close, let's take a moment to check in with yourself againn. How are you feeling after taking these first steps towards a new chapter?
+                </Text>
+
+                {/* Mood Selection */}
+                <View style={styles.moodSection}>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedMood(
+                            selectedMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Journal Input */}
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Enter your journal entry here"
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={morningJournalEntry}
+                    onChangeText={setMorningJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addMorningJournalEntry}
+                  >
+                    <PlusCircle size={20} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Save Entry</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entires save in the journal tab for you to review later.
+                </Text>
+              </View>
+
               <Text style={styles.congratulationsClosing}>
                 Your expansive future awaits!
               </Text>
@@ -1013,7 +1195,6 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   );
 }
 
-// ... (styles remain exactly the same)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -1156,6 +1337,104 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     marginRight: 8,
     fontWeight: '600',
+  },
+  // New styles for the journal section on welcome screen
+  journalSection: {
+    width: '100%',
+    marginBottom: 24,
+    padding: 20,
+    backgroundColor: 'rgba(146, 132, 144, 0.08)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  journalInstruction: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#647C90',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 16,
+    fontWeight: '500',
+  },
+  moodSection: {
+    marginBottom: 16,
+  },
+  moodLabel: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  moodContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  moodButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    minWidth: 70,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  moodLabelText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 12,
+    color: '#4E4F50',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  journalInputContainer: {
+    marginBottom: 12,
+  },
+  journalTextInput: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.3)',
+  },
+  journalAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  journalAddButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#E2DED0',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  journalNote: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 12,
+    color: '#928490',
+    textAlign: 'center',
+    lineHeight: 18,
+    fontStyle: 'italic',
   },
   // Intro Screen Styles
   introCard: {
@@ -1486,126 +1765,23 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   // Journal Section Styles
-  journalSection: {
-    width: '100%',
-    marginBottom: 32,
-  },
-  journalTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 20,
-    color: '#647C90',
-    textAlign: 'center',
-    marginBottom: 16,
-    fontWeight: '700',
-  },
-  journalInputContainer: {
-    marginBottom: 16,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  journalTextInput: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    minHeight: 100,
-    textAlignVertical: 'top',
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
-    borderRadius: 8,
-  },
-  journalAddButton: {
-    flexDirection: 'row',
+  sectionHeader: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  journalAddButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
-    color: '#E2DED0',
-    marginLeft: 8,
-    fontWeight: '600',
-  },
-  journalNote: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 14,
-    color: '#928490',
-    textAlign: 'center',
-    lineHeight: 20,
-    fontStyle: 'italic',
-  },
-  // Congratulations Screen Styles
-  congratulationsCard: {
-    marginHorizontal: 24,
-    marginTop: 50,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  congratulationsIconContainer: {
-    marginBottom: 32,
-  },
-  congratulationsTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 32,
-    color: '#928490',
-    textAlign: 'center',
-    marginBottom: 24,
-    fontWeight: '700',
-  },
-  congratulationsDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    textAlign: 'center',
-    lineHeight: 24,
     marginBottom: 20,
   },
-  congratulationsClosing: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 20,
+  sectionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 22,
     color: '#647C90',
     textAlign: 'center',
-    marginBottom: 32,
-    fontWeight: '600',
+    marginBottom: 12,
+    fontWeight: '700',
   },
-  completeButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-  completeButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#E2DED0',
-  },
-  completeButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
-    color: '#E2DED0',
-    marginRight: 8,
-    fontWeight: '600',
+  sectionDivider: {
+    width: 60,
+    height: 3,
+    backgroundColor: '#928490',
+    borderRadius: 2,
   },
   takeactionHeader: {
     alignItems: 'center',
@@ -1641,24 +1817,6 @@ const styles = StyleSheet.create({
   },
   reflectionSection: {
     marginBottom: 32,
-  },
-  sectionHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 22,
-    color: '#647C90',
-    textAlign: 'center',
-    marginBottom: 12,
-    fontWeight: '700',
-  },
-  sectionDivider: {
-    width: 60,
-    height: 3,
-    backgroundColor: '#928490',
-    borderRadius: 2,
   },
   reflectionInstruction: {
     fontFamily: 'Montserrat-Medium',
@@ -1747,5 +1905,67 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 26,
     fontStyle: 'italic',
+  },
+  // Congratulations Screen Styles
+  congratulationsCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  congratulationsIconContainer: {
+    marginBottom: 32,
+  },
+  congratulationsTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 32,
+    color: '#928490',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '700',
+  },
+  congratulationsDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  congratulationsClosing: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 20,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 32,
+    fontWeight: '600',
+  },
+  completeButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  completeButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  completeButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
   },
 });
