@@ -99,6 +99,16 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
 
+  // ADD THIS: Ref for ScrollView to control scroll position
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // ADD THIS: Function to scroll to top
+  const scrollToTop = useCallback(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: false });
+    }
+  }, []);
+
   const handleBack = useCallback(() => {
     if (onBack) {
       onBack();
@@ -107,6 +117,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 
   const handleStartGame = () => {
     setScreenHistory([{ pairIndex: 0, showNew: false }]);
+    scrollToTop(); // ADD THIS
   };
 
   const flipCard = useCallback(() => {
@@ -191,6 +202,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
           }, 50);
 
           setScreenHistory(prev => [...prev, { pairIndex: newPairIndex, showNew: false }]);
+          scrollToTop(); // ADD THIS
         });
       } else {
         // Smooth transition to reflection screen
@@ -201,12 +213,13 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
         }).start(() => {
           setScreenHistory(prev => [...prev, { pairIndex: -2, showNew: false }]);
           fadeAnim.setValue(1);
+          scrollToTop(); // ADD THIS
         });
       }
     } else {
       flipCard();
     }
-  }, [showNewScript, currentPairIndex, flipCard, fadeAnim, flipAnim, cardScale, progressAnim]);
+  }, [showNewScript, currentPairIndex, flipCard, fadeAnim, flipAnim, cardScale, progressAnim, scrollToTop]);
 
   const handleComplete = () => {
     // Add a subtle scale animation on complete
@@ -234,6 +247,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
       flipAnim.setValue(0);
       fadeAnim.setValue(1);
       cardScale.setValue(1);
+      scrollToTop(); // ADD THIS
       return;
     }
 
@@ -261,6 +275,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
         duration: 300,
         useNativeDriver: true,
       }).start();
+      scrollToTop(); // ADD THIS
     });
   };
 
@@ -379,7 +394,14 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
+        >
           <View style={styles.centeredContent}>
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
@@ -422,7 +444,14 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
+        >
           <View style={styles.centeredContent}>
             <View style={styles.reflectionCard}>
               {/* Header */}
@@ -454,7 +483,10 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
               {/* Continue Button */}
               <TouchableOpacity
                 style={styles.continueButton}
-                onPress={() => setScreenHistory(prev => [...prev, { pairIndex: -1, showNew: false }])}
+                onPress={() => {
+                  setScreenHistory(prev => [...prev, { pairIndex: -1, showNew: false }]);
+                  scrollToTop();
+                }}
                 activeOpacity={0.8}
               >
                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
@@ -483,7 +515,14 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
+        >
           <View style={styles.centeredContent}>
             <View style={styles.finalCard}>
               <View style={styles.finalIconContainer}>
@@ -568,7 +607,14 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+        onContentSizeChange={() => scrollToTop()}
+        onLayout={() => scrollToTop()}
+      >
         <View style={styles.centeredContent}>
           <View style={styles.flipContainer}>
             {/* Front of card (old script view) */}
@@ -646,7 +692,6 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   );
 }
 
-// ... (styles remain exactly the same)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
