@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking, TextInput, Alert } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking, TextInput, Alert, Animated } from 'react-native';
 import { ChevronRight, MessageCircle, ArrowLeft, PlusCircle } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -93,6 +93,12 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   const [screenHistory, setScreenHistory] = useState<Array<{ pairIndex: number, showNew: boolean }>>([]);
   const [journalEntry, setJournalEntry] = useState('');
 
+  // Enhanced animation values with useRef for better performance
+  const flipAnim = useRef(new Animated.Value(0)).current;
+  const cardScale = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+
   const handleBack = useCallback(() => {
     if (onBack) {
       onBack();
@@ -103,25 +109,121 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     setScreenHistory([{ pairIndex: 0, showNew: false }]);
   };
 
-  const handleContinue = () => {
+  const flipCard = useCallback(() => {
+    // Reset animations first
+    flipAnim.setValue(0);
+    cardScale.setValue(1);
+    fadeAnim.setValue(1);
+
+    // Scale down slightly before flip for more natural feel
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(cardScale, {
+          toValue: 0.95,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0.8,
+          duration: 150,
+          useNativeDriver: true,
+        })
+      ]),
+      Animated.parallel([
+        Animated.timing(flipAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardScale, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        })
+      ])
+    ]).start(() => {
+      setShowNewScript(true);
+      // FIX: Use functional update to get the current value
+      setScreenHistory(prev => [...prev, { pairIndex: currentPairIndex, showNew: true }]);
+    });
+  }, [currentPairIndex, flipAnim, cardScale, fadeAnim]);
+
+  const handleContinue = useCallback(() => {
     if (showNewScript) {
       if (currentPairIndex < scriptPairs.length - 1) {
-        const newPairIndex = currentPairIndex + 1;
-        setCurrentPairIndex(newPairIndex);
-        setShowNewScript(false);
-        setScreenHistory([...screenHistory, { pairIndex: newPairIndex, showNew: false }]);
+        // Fade out current card
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          const newPairIndex = currentPairIndex + 1;
+
+          // Reset all animations BEFORE updating state
+          flipAnim.setValue(0);
+          fadeAnim.setValue(0);
+          cardScale.setValue(1);
+
+          // Update state
+          setCurrentPairIndex(newPairIndex);
+          setShowNewScript(false);
+
+          // Animate in the next card with a slight delay
+          setTimeout(() => {
+            Animated.parallel([
+              Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+              }),
+              Animated.spring(progressAnim, {
+                toValue: (newPairIndex + 1) / scriptPairs.length,
+                tension: 50,
+                friction: 7,
+                useNativeDriver: false,
+              })
+            ]).start();
+          }, 50);
+
+          setScreenHistory(prev => [...prev, { pairIndex: newPairIndex, showNew: false }]);
+        });
       } else {
-        // After all script pairs, go to reflection screen instead of final screen
-        setScreenHistory([...screenHistory, { pairIndex: -2, showNew: false }]);
+        // Smooth transition to reflection screen
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }).start(() => {
+          setScreenHistory(prev => [...prev, { pairIndex: -2, showNew: false }]);
+          fadeAnim.setValue(1);
+        });
       }
     } else {
-      setShowNewScript(true);
-      setScreenHistory([...screenHistory, { pairIndex: currentPairIndex, showNew: true }]);
+      flipCard();
     }
-  };
+  }, [showNewScript, currentPairIndex, flipCard, fadeAnim, flipAnim, cardScale, progressAnim]);
 
   const handleComplete = () => {
-    onComplete();
+    // Add a subtle scale animation on complete
+    Animated.sequence([
+      Animated.timing(cardScale, {
+        toValue: 1.02,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardScale, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      onComplete();
+    });
   };
 
   const goBack = () => {
@@ -129,6 +231,9 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
       setScreenHistory([]);
       setCurrentPairIndex(0);
       setShowNewScript(false);
+      flipAnim.setValue(0);
+      fadeAnim.setValue(1);
+      cardScale.setValue(1);
       return;
     }
 
@@ -141,8 +246,22 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
       return;
     }
 
-    setCurrentPairIndex(prevScreen.pairIndex);
-    setShowNewScript(prevScreen.showNew);
+    // Animate the transition back
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setCurrentPairIndex(prevScreen.pairIndex);
+      setShowNewScript(prevScreen.showNew);
+      // Reset flip animation based on whether we're going back to new or old script
+      flipAnim.setValue(prevScreen.showNew ? 1 : 0);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    });
   };
 
   // Function to open YouTube Short
@@ -199,6 +318,52 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
       Alert.alert('Error', 'Failed to save journal entry.');
     }
   };
+
+  // Enhanced flip animation interpolations with perspective
+  const frontInterpolate = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
+
+  const backInterpolate = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['180deg', '360deg'],
+  });
+
+  // Add perspective for more realistic 3D effect
+  const frontAnimatedStyle = {
+    transform: [
+      { perspective: 1000 },
+      { rotateY: frontInterpolate },
+      { scale: cardScale }
+    ],
+    opacity: fadeAnim
+  };
+
+  const backAnimatedStyle = {
+    transform: [
+      { perspective: 1000 },
+      { rotateY: backInterpolate },
+      { scale: cardScale }
+    ],
+    opacity: fadeAnim
+  };
+
+  // Progress animation interpolation
+  const progressWidth = progressAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
+
+  // Update progress when currentPairIndex changes
+  React.useEffect(() => {
+    Animated.spring(progressAnim, {
+      toValue: (currentPairIndex + 1) / scriptPairs.length,
+      tension: 50,
+      friction: 7,
+      useNativeDriver: false,
+    }).start();
+  }, [currentPairIndex]);
 
   // NEW: Intro Screen
   if (screenHistory.length === 0) {
@@ -289,7 +454,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
               {/* Continue Button */}
               <TouchableOpacity
                 style={styles.continueButton}
-                onPress={() => setScreenHistory([...screenHistory, { pairIndex: -1, showNew: false }])}
+                onPress={() => setScreenHistory(prev => [...prev, { pairIndex: -1, showNew: false }])}
                 activeOpacity={0.8}
               >
                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
@@ -384,7 +549,6 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 
   // Script Screens
   const currentPair = scriptPairs[currentPairIndex];
-  const progress = ((currentPairIndex + 1) / scriptPairs.length) * 100;
 
   return (
     <View style={styles.container}>
@@ -400,35 +564,81 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
           <View style={styles.backButton} />
         </View>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+          <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
         </View>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.centeredContent}>
-          <View style={styles.choiceCard}>
-            <Text style={styles.scriptLabel}>
-              {showNewScript ? 'What I could say instead:' : 'What I used to say:'}
-            </Text>
-
-            <View style={showNewScript ? styles.newScriptCard : styles.oldScriptCard}>
-              <Text style={showNewScript ? styles.newScriptText : styles.oldScriptText}>
-                "{showNewScript ? currentPair.newScript : currentPair.oldScript}"
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.continueButton}
-              onPress={handleContinue}
-              activeOpacity={0.8}
+          <View style={styles.flipContainer}>
+            {/* Front of card (old script view) */}
+            <Animated.View
+              style={[
+                styles.choiceCard,
+                styles.cardFace,
+                frontAnimatedStyle,
+              ]}
             >
-              <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                <Text style={styles.continueButtonText}>
-                  {showNewScript ? currentPair.buttonText : 'See the alternative'}
-                </Text>
-                <ChevronRight size={16} color="#E2DED0" />
+              <Text style={styles.scriptLabel}>
+                What I used to say:
+              </Text>
+
+              <View style={styles.scriptCard}>
+                <View style={styles.oldScriptCard}>
+                  <Text style={styles.oldScriptText}>
+                    "{currentPair.oldScript}"
+                  </Text>
+                </View>
               </View>
-            </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleContinue}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>
+                    Flip the script!
+                  </Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Back of card (new script view) */}
+            <Animated.View
+              style={[
+                styles.choiceCard,
+                styles.cardFace,
+                styles.cardBack,
+                backAnimatedStyle,
+              ]}
+            >
+              <Text style={styles.scriptLabel}>
+                What I could say instead:
+              </Text>
+
+              <View style={styles.scriptCard}>
+                <View style={styles.newScriptCard}>
+                  <Text style={styles.newScriptText}>
+                    "{currentPair.newScript}"
+                  </Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleContinue}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>
+                    {currentPair.buttonText}
+                  </Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
           </View>
         </View>
       </ScrollView>
@@ -436,6 +646,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   );
 }
 
+// ... (styles remain exactly the same)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -549,8 +760,15 @@ const styles = StyleSheet.create({
     marginRight: 8,
     fontWeight: '600',
   },
-  choiceCard: {
+  // UPDATED: Flip container and card styles for entire card flip
+  flipContainer: {
     width: width * 0.85,
+    height: 400, // Fixed height to prevent layout shift during flip
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  choiceCard: {
+    width: '100%',
     borderRadius: 24,
     backgroundColor: '#F5F5F5',
     padding: 32,
@@ -560,7 +778,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
-    marginVertical: 20,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    backfaceVisibility: 'hidden',
+  },
+  cardFace: {
+    width: '100%',
+    height: '100%',
+  },
+  cardBack: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
   scriptLabel: {
     fontFamily: 'Merriweather-Bold',
@@ -569,14 +799,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
   },
+  scriptCard: {
+    width: '100%',
+    height: 180,
+    marginBottom: 40,
+  },
   oldScriptCard: {
     backgroundColor: 'rgba(146,132,144,0.15)',
     borderRadius: 16,
     padding: 24,
-    marginBottom: 40,
     borderLeftWidth: 4,
     borderLeftColor: '#928490',
     width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   oldScriptText: {
     fontFamily: 'Montserrat-Regular',
@@ -590,10 +827,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(100,124,144,0.15)',
     borderRadius: 16,
     padding: 24,
-    marginBottom: 40,
     borderLeftWidth: 4,
     borderLeftColor: '#647C90',
     width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   newScriptText: {
     fontFamily: 'Montserrat-Regular',
