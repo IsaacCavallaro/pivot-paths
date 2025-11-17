@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
-import { ChevronRight, ArrowLeft, PlusCircle } from 'lucide-react-native';
+import { ChevronRight, ArrowLeft, PlusCircle, Check } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -17,7 +17,7 @@ interface QuizQuestion {
 interface DreamerResult {
   type: string;
   title: string;
-  description: string | React.ReactElement;
+  description: string;
   subtitle: string;
   color: string;
 }
@@ -29,7 +29,6 @@ interface JournalEntry {
 }
 
 const quizQuestions: QuizQuestion[] = [
-  // ... (quiz questions remain exactly the same)
   {
     id: 1,
     question: "When someone asks what you want to do after dance, you usually…",
@@ -99,11 +98,7 @@ const quizQuestions: QuizQuestion[] = [
     options: [
       {
         id: 'a',
-        text: (
-          <Text>
-            I could never pull that off.
-          </Text>
-        ),
+        text: 'I could never pull that off.',
         type: 'A'
       },
       {
@@ -284,6 +279,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const [answers, setAnswers] = useState<{ [key: number]: string }>({});
   const [result, setResult] = useState<DreamerResult | null>(null);
   const [journalEntry, setJournalEntry] = useState('');
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -309,16 +305,23 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     }
   };
 
-  const handleAnswer = (optionType: string) => {
+  const handleAnswer = (optionId: string, optionType: string) => {
+    setSelectedOption(optionId);
+
     const questionIndex = currentScreen - 2;
     const newAnswers = { ...answers, [questionIndex]: optionType };
     setAnswers(newAnswers);
+  };
+
+  const handleContinue = () => {
+    if (selectedOption === null) return;
 
     if (currentScreen < 11) {
       setCurrentScreen(currentScreen + 1);
+      setSelectedOption(null);
       scrollToTop();
     } else {
-      calculateResult(newAnswers);
+      calculateResult(answers);
     }
   };
 
@@ -408,6 +411,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
       scrollToTop();
     } else if (currentScreen > 1 && currentScreen <= 11) {
       setCurrentScreen(currentScreen - 1);
+      setSelectedOption(null);
       scrollToTop();
     } else if (currentScreen === 12) {
       // Go back from result screen to last question
@@ -921,16 +925,61 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               {question.options.map((option) => (
                 <TouchableOpacity
                   key={option.id}
-                  style={styles.optionButton}
-                  onPress={() => handleAnswer(option.type)}
+                  style={[
+                    styles.optionButton,
+                    selectedOption === option.id && styles.optionButtonSelected
+                  ]}
+                  onPress={() => handleAnswer(option.id, option.type)}
                   activeOpacity={0.8}
                 >
                   <View style={styles.optionContent}>
-                    <Text style={styles.optionText}>{option.text}</Text>
+                    {selectedOption === option.id && (
+                      <View style={styles.selectedIndicator}>
+                        <Check size={16} color="#E2DED0" />
+                      </View>
+                    )}
+                    {/* Fixed: Use View wrapper to handle both strings and JSX */}
+                    <View style={styles.optionTextContainer}>
+                      {typeof option.text === 'string' ? (
+                        <Text style={[
+                          styles.optionText,
+                          selectedOption === option.id && styles.optionTextSelected
+                        ]}>
+                          {option.text}
+                        </Text>
+                      ) : (
+                        // Render the JSX element directly with appropriate styling
+                        <View style={styles.jsxOptionWrapper}>
+                          {option.text}
+                        </View>
+                      )}
+                    </View>
                   </View>
                 </TouchableOpacity>
               ))}
             </View>
+
+            {/* Continue Button */}
+            <TouchableOpacity
+              style={[
+                styles.continueQuestionButton,
+                selectedOption === null && styles.continueButtonDisabled
+              ]}
+              onPress={handleContinue}
+              disabled={selectedOption === null}
+              activeOpacity={0.8}
+            >
+              <View style={[
+                styles.continueQuestionButtonContent,
+                { backgroundColor: '#928490' },
+                selectedOption === null && styles.continueButtonContentDisabled
+              ]}>
+                <Text style={styles.continueQuestionButtonText}>
+                  {currentScreen < 11 ? 'Continue' : 'See Results'}
+                </Text>
+                <ChevronRight size={16} color="#E2DED0" />
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -939,7 +988,6 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 }
 
 const styles = StyleSheet.create({
-  // ... (all your existing styles remain exactly the same)
   container: {
     flex: 1,
     backgroundColor: '#E2DED0',
@@ -1178,8 +1226,21 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
+  optionButtonSelected: {
+    backgroundColor: 'rgba(146, 132, 144, 0.3)',
+    borderColor: '#928490',
+    borderWidth: 2,
+  },
   optionContent: {
     padding: 20,
+    paddingRight: 50, // Extra padding for the checkmark
+  },
+  // NEW: Added styles for option text container and JSX wrapper
+  optionTextContainer: {
+    flex: 1,
+  },
+  jsxOptionWrapper: {
+    // You can add specific styling for JSX options if needed
   },
   optionText: {
     fontFamily: 'Montserrat-Regular',
@@ -1187,6 +1248,49 @@ const styles = StyleSheet.create({
     color: '#4E4F50',
     lineHeight: 24,
     textAlign: 'center',
+  },
+  optionTextSelected: {
+    color: '#4E4F50',
+    fontWeight: '600',
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#928490',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  continueQuestionButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+    marginTop: 24,
+  },
+  continueQuestionButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  continueButtonDisabled: {
+    opacity: 0.5,
+  },
+  continueButtonContentDisabled: {
+    backgroundColor: '#B8B8B8',
+  },
+  continueQuestionButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
   },
   resultCard: {
     marginHorizontal: 24,
