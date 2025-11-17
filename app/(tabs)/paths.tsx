@@ -113,22 +113,21 @@ export default function PathsScreen() {
               );
             })}
           </View>
-
           {/* CTA Section */}
-          <View style={[styles.ctaSection, { backgroundColor: '#647C90' }]}>
-            <View style={styles.ctaContent}>
-              <Text style={styles.ctaTitle}>Take Your Next Step with Confidence</Text>
-              <Text style={styles.ctaSubtitle}>
-                Happy Trails is a self-paced, 4-part mini course named after the famous Broadway send-off to help you make a plan for before, during, and after your pivot.
-              </Text>
-              <TouchableOpacity
-                style={styles.ctaButton}
-                onPress={() => Linking.openURL('https://pivotfordancers.com/products/happy-trails/')}
-              >
+          <View style={styles.ctaCard}>
+            <Text style={styles.ctaTitle}>Take Your Next Step with Confidence</Text>
+            <Text style={styles.ctaDescription}>
+              Happy Trails is a self-paced, 4-part mini course named after the famous Broadway send-off to help you make a plan for before, during, and after your pivot.
+            </Text>
+            <TouchableOpacity
+              style={styles.ctaButton}
+              onPress={() => Linking.openURL('https://pivotfordancers.com/products/happy-trails/')}
+            >
+              <View style={[styles.ctaButtonContent, { backgroundColor: '#647C90' }]}>
                 <Text style={styles.ctaButtonText}>Learn More</Text>
                 <ChevronRight size={16} color="#E2DED0" />
-              </TouchableOpacity>
-            </View>
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* Footer */}
@@ -267,48 +266,48 @@ const styles = StyleSheet.create({
     color: '#647C90',
     fontWeight: '500',
   },
-  ctaSection: {
+  ctaCard: {
+    backgroundColor: 'rgba(100, 124, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 32,
+    borderLeftWidth: 4,
+    borderLeftColor: '#647C90',
     marginHorizontal: 24,
-    marginBottom: 0,
-    borderRadius: 24,
-    padding: 40,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-  },
-  ctaContent: {
-    alignItems: 'center',
   },
   ctaTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 28,
-    color: '#E2DED0',
+    fontSize: 18,
+    color: '#647C90',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     fontWeight: '700',
   },
-  ctaSubtitle: {
+  ctaDescription: {
     fontFamily: 'Montserrat-Regular',
-    fontSize: 18,
-    color: 'rgba(226, 222, 208, 0.8)',
+    fontSize: 14,
+    color: '#4E4F50',
     textAlign: 'center',
-    lineHeight: 28,
-    marginBottom: 24,
+    lineHeight: 20,
+    marginBottom: 20,
   },
   ctaButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  ctaButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#647C90',
+    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 30,
     borderWidth: 1,
-    borderColor: '#E2DED0',
+    borderColor: '#647C90',
   },
   ctaButtonText: {
     fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
+    fontSize: 14,
     color: '#E2DED0',
     marginRight: 8,
     fontWeight: '600',
