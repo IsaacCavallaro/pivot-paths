@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Linking } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useCallback, useState, useEffect } from 'react';
 import { ChevronRight, ArrowLeft, Clock, Calendar } from 'lucide-react-native';
@@ -41,6 +41,10 @@ export default function CategoryScreen() {
 
   const handleBackPress = () => {
     router.push('/(tabs)/paths');
+  };
+
+  const handleExternalLink = () => {
+    Linking.openURL('https://pivotfordancers.com/products/happy-trails/');
   };
 
   // Animation setup for path cards
@@ -195,7 +199,7 @@ export default function CategoryScreen() {
               <Text style={styles.ctaSubtitle}>
                 Start your journey today and take the first step towards your new career path
               </Text>
-              <TouchableOpacity style={styles.ctaButton}>
+              <TouchableOpacity style={styles.ctaButton} onPress={handleExternalLink}>
                 <Text style={styles.ctaButtonText}>Start Learning</Text>
                 <ChevronRight size={16} color="#E2DED0" />
               </TouchableOpacity>
