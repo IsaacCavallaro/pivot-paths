@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking, TextInput, Alert } from 'react-native';
-import { ChevronRight, Compass, ArrowLeft, PlusCircle } from 'lucide-react-native';
+import { ChevronRight, ArrowLeft, PlusCircle, Check } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -30,7 +30,6 @@ interface JournalEntry {
 const { width, height } = Dimensions.get('window');
 
 const valuesQuestions: ValuesQuestion[] = [
-  // ... (values questions remain exactly the same)
   {
     id: 1,
     question: "When you imagine your ideal day in the life, what's happening?",
@@ -287,15 +286,24 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
   const [result, setResult] = useState<ValuesResult | null>(null);
   const [randomizedQuestions, setRandomizedQuestions] = useState<ValuesQuestion[]>([]);
   const [journalEntry, setJournalEntry] = useState('');
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const scrollToTop = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: false });
+    }
+  };
 
   useEffect(() => {
-    // Randomize the order of questions when component mounts
     const shuffled = [...valuesQuestions].sort(() => Math.random() - 0.5);
     setRandomizedQuestions(shuffled);
   }, []);
 
   const handleStartQuiz = () => {
     setCurrentScreen(0);
+    scrollToTop();
   };
 
   const handleBack = () => {
@@ -304,13 +312,25 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
     }
   };
 
-  const handleAnswer = (value: string) => {
+  const handleAnswer = (optionId: string, value: string) => {
+    setSelectedOption(optionId);
+
     const questionIndex = currentScreen - 1;
     const newAnswers = { ...answers, [questionIndex]: value };
+    setAnswers(newAnswers);
+  };
+
+  const handleContinue = () => {
+    if (selectedOption === null) return;
+
+    const questionIndex = currentScreen - 1;
+    const newAnswers = { ...answers, [questionIndex]: randomizedQuestions[currentScreen - 1].options.find(opt => opt.id === selectedOption)?.value || '' };
     setAnswers(newAnswers);
 
     if (currentScreen < 10) {
       setCurrentScreen(currentScreen + 1);
+      setSelectedOption(null);
+      scrollToTop();
     } else {
       calculateResult(newAnswers);
     }
@@ -336,14 +356,17 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
     const finalResult = valuesResults[dominantValue];
     setResult(finalResult);
     setCurrentScreen(11);
+    scrollToTop();
   };
 
   const handleContinueToReflection = () => {
     setCurrentScreen(12);
+    scrollToTop();
   };
 
   const handleContinueToFinal = () => {
     setCurrentScreen(13);
+    scrollToTop();
   };
 
   const handleComplete = () => {
@@ -395,19 +418,26 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
       if (onBack) onBack();
     } else if (currentScreen === 0) {
       setCurrentScreen(-1);
+      scrollToTop();
     } else if (currentScreen === 1) {
       setCurrentScreen(0);
+      scrollToTop();
     } else if (currentScreen > 1 && currentScreen <= 10) {
       setCurrentScreen(currentScreen - 1);
+      setSelectedOption(null);
+      scrollToTop();
     } else if (currentScreen === 11) {
       // Go back from result screen to last question
       setCurrentScreen(10);
+      scrollToTop();
     } else if (currentScreen === 12) {
       // Go back from reflection screen to result screen
       setCurrentScreen(11);
+      scrollToTop();
     } else if (currentScreen === 13) {
       // Go back from final screen to reflection screen
       setCurrentScreen(12);
+      scrollToTop();
     }
   };
 
@@ -501,7 +531,11 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.centeredContent}>
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
@@ -548,7 +582,11 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.centeredContent}>
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
@@ -598,7 +636,11 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.centeredContent}>
             <View style={styles.reflectionCard}>
               {/* Header */}
@@ -653,7 +695,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
                 <View style={styles.videoContainer}>
                   <View style={styles.youtubePlayer}>
                     <YoutubePlayer
-                      height={200}
+                      height={140}
                       play={false}
                       videoId={'7EUfZS8mQtk'}
                       webViewStyle={styles.youtubeWebView}
@@ -724,7 +766,11 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.centeredContent}>
             <View style={styles.finalCard}>
               <View style={styles.finalIconContainer}>
@@ -781,7 +827,11 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.centeredContent}>
             <View style={styles.resultCard}>
               <View style={styles.finalIconContainer}>
@@ -839,23 +889,64 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.centeredContent}>
           <View style={styles.choiceCard}>
             <Text style={styles.questionText}>{question.question}</Text>
 
-            <View style={styles.choiceButtons}>
+            <View style={styles.optionsContainer}>
               {question.options.map((option) => (
                 <TouchableOpacity
                   key={option.id}
-                  style={styles.choiceButton}
-                  onPress={() => handleAnswer(option.value)}
+                  style={[
+                    styles.optionButton,
+                    selectedOption === option.id && styles.optionButtonSelected
+                  ]}
+                  onPress={() => handleAnswer(option.id, option.value)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.choiceButtonText}>{option.text}</Text>
+                  <View style={styles.optionContent}>
+                    {selectedOption === option.id && (
+                      <View style={styles.selectedIndicator}>
+                        <Check size={16} color="#E2DED0" />
+                      </View>
+                    )}
+                    <Text style={[
+                      styles.optionText,
+                      selectedOption === option.id && styles.optionTextSelected
+                    ]}>
+                      {option.text}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
+
+            {/* Continue Button */}
+            <TouchableOpacity
+              style={[
+                styles.continueQuestionButton,
+                selectedOption === null && styles.continueButtonDisabled
+              ]}
+              onPress={handleContinue}
+              disabled={selectedOption === null}
+              activeOpacity={0.8}
+            >
+              <View style={[
+                styles.continueQuestionButtonContent,
+                { backgroundColor: '#928490' },
+                selectedOption === null && styles.continueButtonContentDisabled
+              ]}>
+                <Text style={styles.continueQuestionButtonText}>
+                  {currentScreen < 10 ? 'Continue' : 'See Results'}
+                </Text>
+                <ChevronRight size={16} color="#E2DED0" />
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -891,6 +982,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: height - 200,
     paddingBottom: 30,
+    marginTop: 30,
   },
   headerRow: {
     flexDirection: 'row',
@@ -1013,22 +1105,75 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     textAlign: 'center',
   },
-  choiceButtons: {
-    gap: 15,
+  optionsContainer: {
+    gap: 16,
   },
-  choiceButton: {
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+  optionButton: {
     borderRadius: 16,
-    padding: 20,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  choiceButtonText: {
+  optionButtonSelected: {
+    backgroundColor: 'rgba(146, 132, 144, 0.3)',
+    borderColor: '#928490',
+    borderWidth: 2,
+  },
+  optionContent: {
+    padding: 20,
+    paddingRight: 50, // Extra padding for the checkmark
+  },
+  optionText: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
     color: '#4E4F50',
-    lineHeight: 22,
+    lineHeight: 24,
     textAlign: 'center',
+  },
+  optionTextSelected: {
+    color: '#4E4F50',
+    fontWeight: '600',
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#928490',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // NEW: Continue button styles for questions
+  continueQuestionButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+    marginTop: 24,
+  },
+  continueQuestionButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  continueButtonDisabled: {
+    opacity: 0.5,
+  },
+  continueButtonContentDisabled: {
+    backgroundColor: '#B8B8B8',
+  },
+  continueQuestionButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
   },
   resultHeader: {
     paddingHorizontal: 24,
@@ -1286,7 +1431,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: '#647C90',
     textAlign: 'center',
-    marginBottom: 20,
     fontWeight: '700',
   },
   reflectionIntro: {
@@ -1337,8 +1481,8 @@ const styles = StyleSheet.create({
     color: '#4E4F50',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 20,
     fontWeight: '500',
+    marginBottom: 10,
   },
   reflectionQuestionsContainer: {
     marginBottom: 20,
@@ -1404,7 +1548,6 @@ const styles = StyleSheet.create({
   youtubePlayer: {
     borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
