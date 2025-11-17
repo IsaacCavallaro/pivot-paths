@@ -257,11 +257,7 @@ const dreamerResults: { [key: string]: DreamerResult } = {
   'B': {
     type: 'B',
     title: 'The Practical Dreamer',
-    description: (
-      <Text>
-        You're thoughtful, grounded, and great at making realistic decisions. But sometimes you forget how expansive your future <Text style={{ fontStyle: 'italic' }}>could</Text> be. You might downplay your dreams to protect yourself from disappointment. This path will help you reconnect with possibility while still honoring your practical nature.
-      </Text>
-    ),
+    description: "You're thoughtful, grounded, and great at making realistic decisions. But sometimes you forget how expansive your future could be. You might downplay your dreams to protect yourself from disappointment. This path will help you reconnect with possibility while still honoring your practical nature.",
     subtitle: 'You don\'t need to let go of logic to follow your dreams. You just need a little more permission to dream bigger.',
     color: '#928490',
   },
