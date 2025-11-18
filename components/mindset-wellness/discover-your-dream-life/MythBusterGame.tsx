@@ -101,6 +101,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
   const [endOfDayJournalEntry, setEndOfDayJournalEntry] = useState('');
   const [selectedMorningMood, setSelectedMorningMood] = useState<string | null>(null);
   const [selectedEndOfDayMood, setSelectedEndOfDayMood] = useState<string | null>(null);
+  const [selectedReflectionMood, setSelectedReflectionMood] = useState<string | null>(null);
   const [animatedValues] = useState(() => new Map());
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -409,6 +410,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
           day: 'numeric',
         }),
         content: trimmed,
+        mood: selectedReflectionMood,
       };
 
       // Load existing entries
@@ -423,6 +425,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
 
       // Clear input and show success
       setJournalEntry('');
+      setSelectedReflectionMood(null);
       Alert.alert('Success', 'Journal entry added!');
 
     } catch (error) {
@@ -703,6 +706,41 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                 <Text style={styles.journalPrompt}>
                   Which myth are you still holding onto? Why does it feel true to you?
                 </Text>
+
+                {/* Mood Selection for Reflection Journal Entry */}
+                <View style={styles.moodSection}>
+                  <Text style={styles.moodLabel}>How are you feeling about this?</Text>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedReflectionMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedReflectionMood(
+                            selectedReflectionMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedReflectionMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedReflectionMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
 
                 <View style={styles.journalInputContainer}>
                   <TextInput
