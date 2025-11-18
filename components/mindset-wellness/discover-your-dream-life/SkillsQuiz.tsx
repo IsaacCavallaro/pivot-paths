@@ -4,6 +4,14 @@ import { ChevronRight, ArrowLeft, PlusCircle, Check, Smile, Frown, Meh, Laugh, A
 import YoutubePlayer from 'react-native-youtube-iframe';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+
 interface QuizQuestion {
   id: number;
   question: string;
@@ -291,13 +299,9 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const [morningJournalEntry, setMorningJournalEntry] = useState('');
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
 
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  const scrollToTop = () => {
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({ y: 0, animated: false });
-    }
-  };
+  const { scrollViewRef, scrollToTop } = useScrollToTop();
+  const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
+  const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
 
   const handleScreenChange = async (newScreen: number) => {
     setIsTransitioning(true);
@@ -334,7 +338,6 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
     setIsTransitioning(true);
 
-    // Small delay for smooth transition
     await new Promise(resolve => setTimeout(resolve, 150));
 
     if (currentScreen < 11) {
@@ -373,97 +376,6 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     handleScreenChange(14);
   };
 
-  const addMorningJournalEntry = async () => {
-    const trimmed = morningJournalEntry.trim();
-    if (!trimmed) {
-      Alert.alert('Empty Entry', 'Please write something before adding.');
-      return;
-    }
-
-    try {
-      const newEntry: JournalEntry = {
-        id: Date.now().toString(),
-        pathTag: 'discover-dream-life',
-        day: '1',
-        content: trimmed,
-        mood: selectedMood,
-      };
-
-      // Load existing entries
-      const raw = await AsyncStorage.getItem('journalEntries');
-      const existingEntries = raw ? JSON.parse(raw) : [];
-
-      // Add new entry to the beginning
-      const updatedEntries = [newEntry, ...existingEntries];
-
-      // Save back to storage
-      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
-
-      // Clear input and show success
-      setMorningJournalEntry('');
-      setSelectedMood(null);
-      Alert.alert('Success', 'Morning journal entry added!');
-
-    } catch (error) {
-      console.error('Error saving journal entry:', error);
-      Alert.alert('Error', 'Failed to save journal entry.');
-    }
-  };
-
-  const addJournalEntry = async () => {
-    const trimmed = journalEntry.trim();
-    if (!trimmed) {
-      Alert.alert('Empty Entry', 'Please write something before adding.');
-      return;
-    }
-
-    try {
-      const newEntry: JournalEntry = {
-        id: Date.now().toString(),
-        pathTag: 'discover-dream-life',
-        day: '1',
-        content: trimmed,
-        mood: selectedMood, // Add mood to journal entry
-      };
-
-      // Load existing entries
-      const raw = await AsyncStorage.getItem('journalEntries');
-      const existingEntries = raw ? JSON.parse(raw) : [];
-
-      // Add new entry to the beginning
-      const updatedEntries = [newEntry, ...existingEntries];
-
-      // Save back to storage
-      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
-
-      // Clear input and show success
-      setJournalEntry('');
-      setSelectedMood(null); // Clear selected mood after saving
-      Alert.alert('Success', 'Journal entry added!');
-
-    } catch (error) {
-      console.error('Error saving journal entry:', error);
-      Alert.alert('Error', 'Failed to save journal entry.');
-    }
-  };
-
-  const usePrompt = (prompt: string) => {
-    setMorningJournalEntry(prev => prev ? `${prev}\n\n${prompt}` : prompt);
-  };
-
-  const handleComplete = async () => {
-    if (result) {
-      try {
-        await AsyncStorage.setItem('day1SkillsQuizResult', JSON.stringify(result));
-        onComplete(result);
-      } catch (error) {
-        console.error('Error saving quiz result to AsyncStorage:', error);
-        // Optionally, still call onComplete even if saving fails
-        onComplete(result);
-      }
-    }
-  };
-
   const goBack = () => {
     if (currentScreen === 0) {
       if (onBack) onBack();
@@ -474,126 +386,65 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
       setSelectedOption(null);
       scrollToTop();
     } else if (currentScreen === 12) {
-      // Go back from result screen to last question
       handleScreenChange(11);
     } else if (currentScreen === 13) {
-      // Go back from expansive dreamer screen to result screen
       handleScreenChange(12);
     } else if (currentScreen === 14) {
-      // Go back from takeaction screen to expansive dreamer screen
       handleScreenChange(13);
     } else if (currentScreen === 15) {
-      // Go back from final screen to takeaction screen
       handleScreenChange(14);
+    }
+  };
+
+  const handleComplete = async () => {
+    if (result) {
+      try {
+        await AsyncStorage.setItem('day1SkillsQuizResult', JSON.stringify(result));
+        onComplete(result);
+      } catch (error) {
+        console.error('Error saving quiz result to AsyncStorage:', error);
+        onComplete(result);
+      }
     }
   };
 
   // Welcome Screen with Journal Prompt
   if (currentScreen === 0) {
     return (
-      <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-              <ArrowLeft size={28} color="#E2DED0" />
-            </TouchableOpacity>
-            <View style={styles.backButton} />
-          </View>
-        </View>
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={handleBack} />
 
         <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollView}
+          style={commonStyles.scrollView}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
         >
-          <View style={styles.content}>
-            <View style={styles.welcomeCard}>
-              <View style={styles.welcomeIconContainer}>
-                <View style={[styles.welcomeIconGradient, { backgroundColor: '#928490' }]}>
-                  <Image
-                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                    style={styles.heroImage}
-                  />
-                </View>
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <View style={commonStyles.introIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={commonStyles.heroImage}
+                />
               </View>
 
-              <Text style={styles.welcomeTitle}>
+              <Text style={commonStyles.introTitle}>
                 Welcome to Your Path
               </Text>
 
-              <Text style={styles.welcomeDescription}>
+              <Text style={commonStyles.introDescription}>
                 Taking this first step is something to be truly proud of. It takes courage to look inward and explore what might be holding you back from the future you deserve.
               </Text>
 
-              {/* Morning Journal Section */}
-              <View style={styles.journalSection}>
-                <View style={styles.sectionHeader}>
-                  {/* <Text style={styles.sectionTitle}>Start Your Day</Text> */}
-                  <View style={styles.sectionDivider} />
-                </View>
-
-                <Text style={styles.journalInstruction}>
-                  Before we being, let's take a moment to check in with yourself. How are you feeling as you begin this journey?
-                </Text>
-
-                {/* Mood Selection */}
-                <View style={styles.moodSection}>
-                  <View style={styles.moodContainer}>
-                    {MOOD_OPTIONS.map((mood) => {
-                      const IconComponent = mood.icon;
-                      return (
-                        <TouchableOpacity
-                          key={mood.id}
-                          style={[
-                            styles.moodButton,
-                            selectedMood === mood.id && {
-                              backgroundColor: mood.color,
-                            }
-                          ]}
-                          onPress={() => setSelectedMood(
-                            selectedMood === mood.id ? null : mood.id
-                          )}
-                        >
-                          <IconComponent
-                            size={20}
-                            color={selectedMood === mood.id ? '#E2DED0' : mood.color}
-                          />
-                          <Text style={[
-                            styles.moodLabelText,
-                            selectedMood === mood.id && { color: '#E2DED0' }
-                          ]}>
-                            {mood.label}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                {/* Journal Input */}
-                <View style={styles.journalInputContainer}>
-                  <TextInput
-                    style={styles.journalTextInput}
-                    placeholder="Enter your journal entry here"
-                    placeholderTextColor="#928490"
-                    multiline
-                    value={morningJournalEntry}
-                    onChangeText={setMorningJournalEntry}
-                  />
-                  <TouchableOpacity
-                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
-                    onPress={addMorningJournalEntry}
-                  >
-                    <PlusCircle size={20} color="#E2DED0" />
-                    <Text style={styles.journalAddButtonText}>Save Morning Entry</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={styles.journalNote}>
-                  We'll keep these entires save in the journal tab for you to review later.
-                </Text>
-              </View>
+              <JournalEntrySection
+                pathTag="discover-dream-life"
+                journalInstruction="Before we being, let's take a moment to check in with yourself. How are you feeling as you begin this journey?"
+                moodLabel="How are you feeling right now?"
+                saveButtonText="Save Morning Entry"
+              />
 
               <View style={styles.welcomeHighlight}>
                 <Text style={styles.welcomeHighlightText}>
@@ -601,20 +452,12 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 </Text>
               </View>
 
-              <View>
-                <TouchableOpacity
-                  style={styles.welcomeButton}
-                  onPress={handleWelcomeContinue}
-                  activeOpacity={0.8}
-                  disabled={isTransitioning}
-                >
-                  <View style={[styles.welcomeButtonContent, { backgroundColor: '#928490' }]}>
-                    <Text style={styles.welcomeButtonText}>I'm Ready to Begin</Text>
-                    <ChevronRight size={16} color="#E2DED0" />
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </View>
+              <PrimaryButton
+                title="I'm Ready to Begin"
+                onPress={handleWelcomeContinue}
+                disabled={isTransitioning}
+              />
+            </Card>
           </View>
         </ScrollView>
       </View>
@@ -624,55 +467,40 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   // Intro Screen
   if (currentScreen === 1) {
     return (
-      <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-              <ArrowLeft size={28} color="#E2DED0" />
-            </TouchableOpacity>
-            <View style={styles.backButton} />
-          </View>
-        </View>
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
 
         <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollView}
+          style={commonStyles.scrollView}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
         >
-          <View style={styles.content}>
-            <View style={styles.introCard}>
-              <View style={styles.introIconContainer}>
-                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                  <Image
-                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                    style={styles.heroImage}
-                  />
-                </View>
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <View style={commonStyles.introIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={commonStyles.heroImage}
+                />
               </View>
 
-              <Text style={styles.introTitle}>
+              <Text style={commonStyles.introTitle}>
                 What kind of dreamer are you?
               </Text>
 
-              <Text style={styles.introDescription}>
+              <Text style={commonStyles.introDescription}>
                 It's a skill to dream big. Sure, we had dance dreams and achieved them, but when we start dreaming on our own terms, it can start to fall apart. To help you dream bigger, let's start by figuring out your "Dreamer Type" to unlock what could be holding you back.
               </Text>
 
-              <View>
-                <TouchableOpacity
-                  style={styles.startButton}
-                  onPress={handleStartQuiz}
-                  activeOpacity={0.8}
-                  disabled={isTransitioning}
-                >
-                  <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                    <Text style={styles.startButtonText}>Let's do it</Text>
-                    <ChevronRight size={16} color="#E2DED0" />
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </View>
+              <PrimaryButton
+                title="Let's do it"
+                onPress={handleStartQuiz}
+                disabled={isTransitioning}
+              />
+            </Card>
           </View>
         </ScrollView>
       </View>
@@ -682,28 +510,23 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   // The Expansive Dreamer Screen
   if (currentScreen === 13 && result) {
     return (
-      <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-              <ArrowLeft size={28} color="#E2DED0" />
-            </TouchableOpacity>
-            <View style={styles.backButton} />
-          </View>
-        </View>
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
 
         <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollView}
+          style={commonStyles.scrollView}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
         >
-          <View style={styles.content}>
-            <View style={styles.expansiveDreamerCard}>
-              <View style={styles.expansiveIconContainer}>
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <View style={commonStyles.introIconContainer}>
                 <Image
                   source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                  style={styles.heroImage}
+                  style={commonStyles.heroImage}
                 />
               </View>
 
@@ -715,32 +538,24 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 The Expansive Dreamer
               </Text>
 
-              <Text style={styles.expansiveDescription}>
+              <Text style={commonStyles.reflectionDescription}>
                 The Expansive Dreamer is someone who allows their imagination to be bold <Text style={{ fontStyle: 'italic' }}>without apology</Text>.
               </Text>
 
-              <Text style={styles.expansiveDescription}>
+              <Text style={commonStyles.reflectionDescription}>
                 This dreamer understands that their past experiences in dance have given them unique strengths: discipline, creativity, resilience, and the ability to envision something before it exists. They use these strengths to build a future that excites them on their own terms.
               </Text>
 
-              <Text style={styles.expansiveDescription}>
+              <Text style={commonStyles.reflectionDescription}>
                 The Expansive Dreamer doesn't let fear of the unknown stop them. Instead, they see possibility where others see obstacles, and they trust that each step forward reveals the next.
               </Text>
 
-              <View>
-                <TouchableOpacity
-                  style={styles.continueButton}
-                  onPress={handleContinueToTakeAction}
-                  activeOpacity={0.8}
-                  disabled={isTransitioning}
-                >
-                  <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                    <Text style={styles.continueButtonText}>Continue</Text>
-                    <ChevronRight size={16} color="#E2DED0" />
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </View>
+              <PrimaryButton
+                title="Continue"
+                onPress={handleContinueToTakeAction}
+                disabled={isTransitioning}
+              />
+            </Card>
           </View>
         </ScrollView>
       </View>
@@ -749,7 +564,6 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
   // takeaction Screen
   if (currentScreen === 14 && result) {
-    // Get dynamic content based on dreamer type
     const getReflectionQuestions = () => {
       switch (result.type) {
         case 'A':
@@ -792,43 +606,32 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     const journalPlaceholder = getJournalPlaceholder();
 
     return (
-      <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-              <ArrowLeft size={28} color="#E2DED0" />
-            </TouchableOpacity>
-            <View style={styles.backButton} />
-          </View>
-        </View>
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
 
         <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollView}
+          style={commonStyles.scrollView}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
         >
-          <View style={styles.content}>
-            <View style={styles.takeactionCard}>
-              {/* Header with Icon */}
-              <View style={styles.takeactionHeader}>
-                <Text style={styles.takeactionTitle}>Take Action</Text>
-              </View>
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <Text style={styles.takeactionTitle}>Take Action</Text>
 
-              {/* Introduction Text */}
-              <View style={styles.takeactionIntro}>
-                <Text style={styles.takeactionDescription}>
-                  Do you feel that the <Text style={styles.highlightText}>{result.title.toLowerCase()}</Text> describes you? Or are you bothered by the results? Whatever's coming up for you, go with it. We got you!
-                </Text>
+              <Text style={commonStyles.reflectionDescription}>
+                Do you feel that the <Text style={styles.highlightText}>{result.title.toLowerCase()}</Text> describes you? Or are you bothered by the results? Whatever's coming up for you, go with it. We got you!
+              </Text>
 
-                <Text style={styles.takeactionDescription}>
-                  Now, how can you unlock the <Text style={styles.highlightText}>expansive dreamer</Text> within?!
-                </Text>
+              <Text style={commonStyles.reflectionDescription}>
+                Now, how can you unlock the <Text style={styles.highlightText}>expansive dreamer</Text> within?!
+              </Text>
 
-                <Text style={styles.takeactionDescription}>
-                  Let's hear from a dancer who gave herself permission to be the expansive dreamer and learn from her.
-                </Text>
-              </View>
+              <Text style={commonStyles.reflectionDescription}>
+                Let's hear from a dancer who gave herself permission to be the expansive dreamer and learn from her.
+              </Text>
 
               {/* Reflection Section */}
               <View style={styles.reflectionSection}>
@@ -852,10 +655,6 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                     </View>
                   ))}
                 </View>
-
-                <Text style={styles.reflectionInstruction}>
-                  As you're watching, write your reflections as a journal entry below.
-                </Text>
               </View>
 
               {/* YouTube Video Player */}
@@ -875,74 +674,13 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 </View>
               </View>
 
-              {/* Journal Entry Section */}
-              <View style={styles.journalSection}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Journal Your Thoughts</Text>
-                  <View style={styles.sectionDivider} />
-                </View>
-
-                <Text style={styles.reflectionInstruction}>
-                  As you're watching, write your reflections as a journal entry below.
-                </Text>
-
-                {/* Mood Selection for Journal Entry */}
-                <View style={styles.moodSection}>
-                  <Text style={styles.moodLabel}>How are you feeling about this?</Text>
-                  <View style={styles.moodContainer}>
-                    {MOOD_OPTIONS.map((mood) => {
-                      const IconComponent = mood.icon;
-                      return (
-                        <TouchableOpacity
-                          key={mood.id}
-                          style={[
-                            styles.moodButton,
-                            selectedMood === mood.id && {
-                              backgroundColor: mood.color,
-                            }
-                          ]}
-                          onPress={() => setSelectedMood(
-                            selectedMood === mood.id ? null : mood.id
-                          )}
-                        >
-                          <IconComponent
-                            size={20}
-                            color={selectedMood === mood.id ? '#E2DED0' : mood.color}
-                          />
-                          <Text style={[
-                            styles.moodLabelText,
-                            selectedMood === mood.id && { color: '#E2DED0' }
-                          ]}>
-                            {mood.label}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                <View style={styles.journalInputContainer}>
-                  <TextInput
-                    style={styles.journalTextInput}
-                    placeholder={journalPlaceholder}
-                    placeholderTextColor="#928490"
-                    multiline
-                    value={journalEntry}
-                    onChangeText={setJournalEntry}
-                  />
-                  <TouchableOpacity
-                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
-                    onPress={addJournalEntry}
-                  >
-                    <PlusCircle size={24} color="#E2DED0" />
-                    <Text style={styles.journalAddButtonText}>Add to Journal</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={styles.journalNote}>
-                  We'll keep these entries safe in your personal journal which you can view at the end of today's progress.
-                </Text>
-              </View>
+              <JournalEntrySection
+                pathTag="discover-dream-life"
+                journalInstruction="As you're watching, write your reflections as a journal entry below."
+                moodLabel="How are you feeling about this?"
+                saveButtonText="Add to Journal"
+                placeholder={journalPlaceholder}
+              />
 
               {/* Inspirational Quote */}
               <View style={styles.quoteContainer}>
@@ -952,19 +690,12 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 </Text>
               </View>
 
-              {/* Continue Button */}
-              <TouchableOpacity
-                style={styles.continueButton}
+              <PrimaryButton
+                title="Continue Your Journey"
                 onPress={() => handleScreenChange(15)}
-                activeOpacity={0.8}
                 disabled={isTransitioning}
-              >
-                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.continueButtonText}>Continue Your Journey</Text>
-                  <ChevronRight size={20} color="#E2DED0" />
-                </View>
-              </TouchableOpacity>
-            </View>
+              />
+            </Card>
           </View>
         </ScrollView>
       </View>
@@ -974,115 +705,42 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   // Congratulations and Mark as Complete Screen
   if (currentScreen === 15 && result) {
     return (
-      <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-              <ArrowLeft size={28} color="#E2DED0" />
-            </TouchableOpacity>
-            <View style={styles.backButton} />
-          </View>
-        </View>
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
 
         <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollView}
+          style={commonStyles.scrollView}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
         >
-          <View style={styles.content}>
-            <View style={styles.congratulationsCard}>
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
               <Text style={styles.congratulationsTitle}>Congratulations!</Text>
 
-              <Text style={styles.congratulationsDescription}>
+              <Text style={commonStyles.reflectionDescription}>
                 You've taken the first step toward becoming an Expansive Dreamer. By understanding your current dreaming style, you're already opening yourself up to new possibilities.
               </Text>
 
-              {/* End of Day Journal Section */}
-              <View style={styles.journalSection}>
-                <View style={styles.sectionHeader}>
-                  {/* <Text style={styles.sectionTitle}>Start Your Day</Text> */}
-                  <View style={styles.sectionDivider} />
-                </View>
-
-                <Text style={styles.journalInstruction}>
-                  Before we bring today's session to a close, let's take a moment to check in with yourself againn. How are you feeling after taking these first steps towards a new chapter?
-                </Text>
-
-                {/* Mood Selection */}
-                <View style={styles.moodSection}>
-                  <View style={styles.moodContainer}>
-                    {MOOD_OPTIONS.map((mood) => {
-                      const IconComponent = mood.icon;
-                      return (
-                        <TouchableOpacity
-                          key={mood.id}
-                          style={[
-                            styles.moodButton,
-                            selectedMood === mood.id && {
-                              backgroundColor: mood.color,
-                            }
-                          ]}
-                          onPress={() => setSelectedMood(
-                            selectedMood === mood.id ? null : mood.id
-                          )}
-                        >
-                          <IconComponent
-                            size={20}
-                            color={selectedMood === mood.id ? '#E2DED0' : mood.color}
-                          />
-                          <Text style={[
-                            styles.moodLabelText,
-                            selectedMood === mood.id && { color: '#E2DED0' }
-                          ]}>
-                            {mood.label}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                {/* Journal Input */}
-                <View style={styles.journalInputContainer}>
-                  <TextInput
-                    style={styles.journalTextInput}
-                    placeholder="Enter your journal entry here"
-                    placeholderTextColor="#928490"
-                    multiline
-                    value={morningJournalEntry}
-                    onChangeText={setMorningJournalEntry}
-                  />
-                  <TouchableOpacity
-                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
-                    onPress={addMorningJournalEntry}
-                  >
-                    <PlusCircle size={20} color="#E2DED0" />
-                    <Text style={styles.journalAddButtonText}>Save Entry</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={styles.journalNote}>
-                  We'll keep these entires save in the journal tab for you to review later.
-                </Text>
-              </View>
+              <JournalEntrySection
+                pathTag="discover-dream-life"
+                journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself againn. How are you feeling after taking these first steps towards a new chapter?"
+                moodLabel="How are you feeling now?"
+                saveButtonText="Save Entry"
+              />
 
               <Text style={styles.congratulationsClosing}>
                 Your expansive future awaits!
               </Text>
 
-              <TouchableOpacity
-                style={styles.completeButton}
+              <PrimaryButton
+                title="Mark as Complete"
                 onPress={handleComplete}
-                activeOpacity={0.8}
                 disabled={isTransitioning}
-              >
-                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.completeButtonText}>Mark as Complete</Text>
-                  <ChevronRight size={16} color="#E2DED0" />
-                </View>
-              </TouchableOpacity>
-            </View>
+              />
+            </Card>
           </View>
         </ScrollView>
       </View>
@@ -1092,43 +750,32 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   // Result Screen
   if (currentScreen === 12 && result) {
     return (
-      <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: result.color }]}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-              <ArrowLeft size={28} color="#E2DED0" />
-            </TouchableOpacity>
-            <View style={styles.backButton} />
-          </View>
-        </View>
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
 
         <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollView}
+          style={commonStyles.scrollView}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
         >
-          <View style={styles.content}>
-            <View style={styles.resultCard}>
-              <Text style={styles.titleText}>{result.title}</Text>
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <Text style={commonStyles.introTitle}>{result.title}</Text>
               <Text style={styles.resultDescription}>{result.description}</Text>
 
               <View style={styles.resultSubtitleContainer}>
                 <Text style={styles.resultSubtitle}>{result.subtitle}</Text>
               </View>
 
-              <TouchableOpacity
-                style={styles.continueButton}
+              <PrimaryButton
+                title="Continue"
                 onPress={handleContinueToExpansiveDreamer}
-                activeOpacity={0.8}
                 disabled={isTransitioning}
-              >
-                <View style={[styles.continueButtonContent, { backgroundColor: result.color }]}>
-                  <Text style={styles.continueButtonText}>Continue</Text>
-                  <ChevronRight size={16} color="#E2DED0" />
-                </View>
-              </TouchableOpacity>
-            </View>
+              />
+            </Card>
           </View>
         </ScrollView>
       </View>
@@ -1140,30 +787,23 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const progress = ((currentScreen - 1) / 10) * 100;
 
   return (
-    <View style={styles.container}>
-      {/* Sticky Header with Progress */}
-      <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backButton} onPress={goBack}>
-            <ArrowLeft size={28} color="#E2DED0" />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.progressText}>{currentScreen - 1} of 10</Text>
-          </View>
-          <View style={styles.backButton} />
-        </View>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
-        </View>
-      </View>
+    <View style={commonStyles.container}>
+      <StickyHeader
+        onBack={goBack}
+        title={`${currentScreen - 1} of 10`}
+        progress={progress / 100}
+      />
 
       <ScrollView
         ref={scrollViewRef}
-        style={styles.scrollView}
+        style={commonStyles.scrollView}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+        onContentSizeChange={() => scrollToTop()}
+        onLayout={() => scrollToTop()}
       >
-        <View style={styles.content}>
-          <View style={styles.questionCard}>
+        <View style={commonStyles.centeredContent}>
+          <Card style={styles.baseCardSkills}>
             <Text style={styles.questionText}>
               {question.question}
             </Text>
@@ -1206,30 +846,12 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               ))}
             </View>
 
-            {/* Continue Button */}
-            <View>
-              <TouchableOpacity
-                style={[
-                  styles.continueQuestionButton,
-                  (selectedOption === null || isTransitioning) && styles.continueButtonDisabled
-                ]}
-                onPress={handleContinue}
-                disabled={selectedOption === null || isTransitioning}
-                activeOpacity={0.8}
-              >
-                <View style={[
-                  styles.continueQuestionButtonContent,
-                  { backgroundColor: '#928490' },
-                  (selectedOption === null || isTransitioning) && styles.continueButtonContentDisabled
-                ]}>
-                  <Text style={styles.continueQuestionButtonText}>
-                    {currentScreen < 11 ? 'Continue' : 'See Results'}
-                  </Text>
-                  <ChevronRight size={16} color="#E2DED0" />
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
+            <PrimaryButton
+              title={currentScreen < 11 ? 'Continue' : 'See Results'}
+              onPress={handleContinue}
+              disabled={selectedOption === null || isTransitioning}
+            />
+          </Card>
         </View>
       </ScrollView>
     </View>
@@ -1237,110 +859,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#E2DED0',
-  },
-  stickyHeader: {
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 20,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  scrollView: {
-    flex: 1,
-    marginTop: 100,
-  },
-  content: {
-    paddingBottom: 30,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backButton: {
-    width: 28,
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  titleText: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 25,
-    color: '#647C90',
-    textAlign: 'center',
-  },
-  progressText: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 16,
-    color: '#E2DED0',
-    textAlign: 'center',
-  },
-  progressBar: {
-    width: '100%',
-    height: 6,
-    backgroundColor: 'rgba(226, 222, 208, 0.3)',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginTop: 12,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#E2DED0',
-    borderRadius: 3,
-  },
   // Welcome Screen Styles
-  welcomeCard: {
-    marginHorizontal: 24,
-    marginTop: 50,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  welcomeIconContainer: {
-    marginBottom: 24,
-  },
-  welcomeIconGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  welcomeTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 28,
-    color: '#647C90',
-    textAlign: 'center',
-    marginBottom: 20,
-    fontWeight: '700',
-  },
-  welcomeDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#928490',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 20,
-  },
   welcomeHighlight: {
     backgroundColor: 'rgba(146, 132, 144, 0.15)',
     borderRadius: 16,
@@ -1358,202 +877,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     fontWeight: '500',
   },
-  welcomeButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-  welcomeButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#E2DED0',
-  },
-  welcomeButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
-    color: '#E2DED0',
-    marginRight: 8,
-    fontWeight: '600',
-  },
-  // New styles for the journal section on welcome screen
-  journalSection: {
-    width: '100%',
-    marginBottom: 24,
-    padding: 20,
-    backgroundColor: 'rgba(146, 132, 144, 0.08)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(146, 132, 144, 0.2)',
-  },
-  journalInstruction: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 16,
-    color: '#647C90',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 16,
-    fontWeight: '500',
-  },
-  moodSection: {
-    marginBottom: 16,
-  },
-  moodLabel: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 14,
-    color: '#647C90',
-    textAlign: 'center',
-    marginBottom: 12,
-    fontWeight: '600',
-  },
-  moodContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  moodButton: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F5F5F5',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    minWidth: 70,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  moodLabelText: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 12,
-    color: '#4E4F50',
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  journalInputContainer: {
-    marginBottom: 12,
-  },
-  journalTextInput: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    minHeight: 80,
-    textAlignVertical: 'top',
-    marginBottom: 12,
-    padding: 16,
-    backgroundColor: 'white',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(146, 132, 144, 0.3)',
-  },
-  journalAddButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  journalAddButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 14,
-    color: '#E2DED0',
-    marginLeft: 8,
-    fontWeight: '600',
-  },
-  journalNote: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 12,
-    color: '#928490',
-    textAlign: 'center',
-    lineHeight: 18,
-    fontStyle: 'italic',
-  },
-  // Intro Screen Styles
-  introCard: {
-    marginHorizontal: 24,
-    marginTop: 50,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  introIconContainer: {
-    marginBottom: 24,
-  },
-  introIconGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  introTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 28,
-    color: '#647C90',
-    textAlign: 'center',
-    marginBottom: 20,
-    fontWeight: '700',
-  },
-  introDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#928490',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
-  },
-  startButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-  startButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#E2DED0',
-  },
-  startButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
-    color: '#E2DED0',
-    marginRight: 8,
-    fontWeight: '600',
-  },
-  questionCard: {
-    marginHorizontal: 24,
-    marginTop: 50,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
+  // Question Styles
   questionText: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 22,
@@ -1580,9 +904,8 @@ const styles = StyleSheet.create({
   },
   optionContent: {
     padding: 20,
-    paddingRight: 50, // Extra padding for the checkmark
+    paddingRight: 50,
   },
-  // NEW: Added styles for option text container and JSX wrapper
   optionTextContainer: {
     flex: 1,
   },
@@ -1611,47 +934,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  continueQuestionButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-    marginTop: 24,
-  },
-  continueQuestionButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#E2DED0',
-  },
-  continueButtonDisabled: {
-    opacity: 0.5,
-  },
-  continueButtonContentDisabled: {
-    backgroundColor: '#B8B8B8',
-  },
-  continueQuestionButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
-    color: '#E2DED0',
-    marginRight: 8,
-    fontWeight: '600',
-  },
-  resultCard: {
-    marginHorizontal: 24,
-    marginTop: 50,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
+  // Result Styles
   resultDescription: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
@@ -1677,52 +960,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     fontWeight: '500',
   },
-  continueButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-  continueButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#E2DED0',
-  },
-  continueButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
-    color: '#E2DED0',
-    marginRight: 8,
-    fontWeight: '600',
-  },
   // The Expansive Dreamer Screen Styles
-  expansiveDreamerCard: {
-    marginHorizontal: 24,
-    marginTop: 50,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  expansiveIconContainer: {
-    marginBottom: 32,
-  },
-  heroImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderColor: '#647C90',
-    borderWidth: 2,
-    marginBottom: 10,
-  },
   expansiveTitle: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 18,
@@ -1739,28 +977,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     fontWeight: '700',
   },
-  expansiveDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 20,
-  },
   // takeaction Screen Styles
-  takeactionCard: {
-    marginHorizontal: 24,
-    marginTop: 50,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
   takeactionTitle: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 28,
@@ -1768,88 +985,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
     fontWeight: '700',
-  },
-  takeactionDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  videoContainer: {
-    width: '100%',
-  },
-  youtubePlayer: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  youtubeWebView: {
-    borderRadius: 16,
-  },
-  takeactionPrompt: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
-    fontStyle: 'italic',
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
-    padding: 20,
-    borderRadius: 16,
-  },
-  // Journal Section Styles
-  sectionHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 22,
-    color: '#647C90',
-    textAlign: 'center',
-    marginBottom: 12,
-    fontWeight: '700',
-  },
-  sectionDivider: {
-    width: 60,
-    height: 3,
-    backgroundColor: '#928490',
-    borderRadius: 2,
-  },
-  takeactionHeader: {
-    alignItems: 'center',
-  },
-  takeactionIconContainer: {
-    marginBottom: 16,
-  },
-  takeactionIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#928490',
-  },
-  takeactionIconText: {
-    fontSize: 32,
-  },
-  takeactionIntro: {
-    marginBottom: 32,
-    padding: 20,
-    backgroundColor: 'rgba(146, 132, 144, 0.05)',
-    borderRadius: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#928490',
   },
   highlightText: {
     fontFamily: 'Montserrat-SemiBold',
@@ -1924,6 +1059,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '700',
   },
+  videoContainer: {
+    width: '100%',
+  },
+  youtubePlayer: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  youtubeWebView: {
+    borderRadius: 16,
+  },
   quoteContainer: {
     alignItems: 'center',
     marginBottom: 32,
@@ -1948,22 +1099,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   // Congratulations Screen Styles
-  congratulationsCard: {
-    marginHorizontal: 24,
-    marginTop: 50,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  congratulationsIconContainer: {
-    marginBottom: 32,
-  },
   congratulationsTitle: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 32,
@@ -1971,14 +1106,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
     fontWeight: '700',
-  },
-  congratulationsDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 20,
   },
   congratulationsClosing: {
     fontFamily: 'Montserrat-SemiBold',
@@ -1988,25 +1115,36 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     fontWeight: '600',
   },
-  completeButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-  completeButtonContent: {
-    flexDirection: 'row',
+  // Journal Section Styles
+  sectionHeader: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#E2DED0',
+    marginBottom: 20,
   },
-  completeButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
-    color: '#E2DED0',
-    marginRight: 8,
-    fontWeight: '600',
+  sectionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 22,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  sectionDivider: {
+    width: 60,
+    height: 3,
+    backgroundColor: '#928490',
+    borderRadius: 2,
+  },
+  baseCardSkills: {
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginVertical: 20,
+    marginTop: 50,
   },
 });
