@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
-import { ChevronRight, ArrowLeft, PlusCircle } from 'lucide-react-native';
+import { ChevronRight, ArrowLeft, PlusCircle, Smile, Frown, Meh, Laugh, Angry, Heart } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface DreamerResult {
@@ -19,14 +19,25 @@ interface MythPair {
 
 interface JournalEntry {
   id: string;
+  pathTag: string;
   date: string;
   content: string;
+  mood?: string;
 }
 
 interface MythBusterGameProps {
   onComplete: () => void;
   onBack?: () => void;
 }
+
+const MOOD_OPTIONS = [
+  { id: 'angry', label: 'Angry', icon: Angry, color: '#DC2626' },
+  { id: 'sad', label: 'Sad', icon: Frown, color: '#2563EB' },
+  { id: 'neutral', label: 'Neutral', icon: Meh, color: '#CA8A04' },
+  { id: 'happy', label: 'Happy', icon: Smile, color: '#16A34A' },
+  { id: 'excited', label: 'Excited', icon: Laugh, color: '#7C3AED' },
+  { id: 'loved', label: 'Loved', icon: Heart, color: '#DB2777' },
+];
 
 const mythPairs: MythPair[] = [
   // ... (myth pairs remain the same)
@@ -86,6 +97,10 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
   const [currentPairIndex, setCurrentPairIndex] = useState(0);
   const [showMismatch, setShowMismatch] = useState(false);
   const [journalEntry, setJournalEntry] = useState('');
+  const [morningJournalEntry, setMorningJournalEntry] = useState('');
+  const [endOfDayJournalEntry, setEndOfDayJournalEntry] = useState('');
+  const [selectedMorningMood, setSelectedMorningMood] = useState<string | null>(null);
+  const [selectedEndOfDayMood, setSelectedEndOfDayMood] = useState<string | null>(null);
   const [animatedValues] = useState(() => new Map());
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -292,7 +307,91 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     }
   };
 
-  // Add Journal Entry Function
+  // Add Morning Journal Entry Function
+  const addMorningJournalEntry = async () => {
+    const trimmed = morningJournalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        pathTag: 'discover-dream-life', // Add this line
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        content: trimmed,
+        mood: selectedMorningMood,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setMorningJournalEntry('');
+      setSelectedMorningMood(null);
+      Alert.alert('Success', 'Morning journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
+  // Add End of Day Journal Entry Function
+  const addEndOfDayJournalEntry = async () => {
+    const trimmed = endOfDayJournalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        pathTag: 'discover-dream-life', // Add this line
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        content: trimmed,
+        mood: selectedEndOfDayMood,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setEndOfDayJournalEntry('');
+      setSelectedEndOfDayMood(null);
+      Alert.alert('Success', 'End of day journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
+  // Add Journal Entry Function (for reflection screen)
   const addJournalEntry = async () => {
     const trimmed = journalEntry.trim();
     if (!trimmed) {
@@ -303,6 +402,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     try {
       const newEntry: JournalEntry = {
         id: Date.now().toString(),
+        pathTag: 'discover-dream-life', // Add this line
         date: new Date().toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
@@ -331,7 +431,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     }
   };
 
-  // Welcome Screen
+  // Welcome Screen with Morning Journal Section
   if (currentScreen === -1) {
     return (
       <View style={styles.container}>
@@ -398,6 +498,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                 </>
               )}
 
+
               <View style={styles.learningBox}>
                 <Text style={styles.learningBoxTitle}>What You'll Learn:</Text>
                 <Text style={styles.learningBoxItem}>• Common myths that dancers believe</Text>
@@ -408,6 +509,76 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               <Text style={styles.welcomeFooter}>
                 This interactive quiz will help you identify and challenge the myths you might be holding onto.
               </Text>
+
+              {/* Morning Journal Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  {/* <Text style={styles.sectionTitle}>Start Your Day</Text> */}
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.journalInstruction}>
+                  Before we begin, let's take a moment to check in with yourself. How are you feeling as you begin this journey?
+                </Text>
+
+                {/* Mood Selection */}
+                <View style={styles.moodSection}>
+                  <Text style={styles.moodLabel}>How are you feeling right now?</Text>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedMorningMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedMorningMood(
+                            selectedMorningMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedMorningMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedMorningMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Journal Input */}
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Add your entry here"
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={morningJournalEntry}
+                    onChangeText={setMorningJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addMorningJournalEntry}
+                  >
+                    <PlusCircle size={20} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Save Morning Entry</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entries safe in your personal journal for you to review later.
+                </Text>
+              </View>
 
               <TouchableOpacity
                 style={styles.continueButton}
@@ -480,7 +651,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     );
   }
 
-  // NEW: Reflection Screen after Game Completion
+  // Reflection Screen after Game Completion
   if (currentScreen === 2) {
     return (
       <View style={styles.container}>
@@ -573,7 +744,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     );
   }
 
-  // Updated Reflection Screen (now screen 3 - congratulations)
+  // Congratulations Screen with End of Day Journal Section
   if (currentScreen === 3) {
     return (
       <View style={styles.container}>
@@ -615,7 +786,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               </Text>
 
               <Text style={styles.reflectionText}>
-                Take a detour and check out the myths our founder had to unlearn. But don't forget to come back and mark this day as complete!
+                Take a detour and check out the myths our founder had to unlearn. But don't forget to come back to add your journal entry and mark this day as complete!
               </Text>
 
               {/* Added YouTube Short Thumbnail */}
@@ -636,8 +807,78 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                 </View>
               </TouchableOpacity>
 
+              {/* End of Day Journal Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  {/* <Text style={styles.sectionTitle}>End of Day Reflection</Text> */}
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.journalInstruction}>
+                  Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?
+                </Text>
+
+                {/* Mood Selection */}
+                <View style={styles.moodSection}>
+                  <Text style={styles.moodLabel}>How are you feeling now?</Text>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedEndOfDayMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedEndOfDayMood(
+                            selectedEndOfDayMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedEndOfDayMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedEndOfDayMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Journal Input */}
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Add entry here"
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={endOfDayJournalEntry}
+                    onChangeText={setEndOfDayJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addEndOfDayJournalEntry}
+                  >
+                    <PlusCircle size={20} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Save End of Day Entry</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entries safe in your personal journal for you to review later.
+                </Text>
+              </View>
+
               <Text style={styles.reflectionClosing}>
-                We'll check back in tomorrow.
+                See you tomorrow.
               </Text>
 
               <TouchableOpacity
@@ -902,6 +1143,104 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     marginRight: 8,
     fontWeight: '600',
+  },
+  // New styles for the journal section
+  journalSection: {
+    width: '100%',
+    marginBottom: 24,
+    padding: 20,
+    backgroundColor: 'rgba(146, 132, 144, 0.08)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  journalInstruction: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#647C90',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 16,
+    fontWeight: '500',
+  },
+  moodSection: {
+    marginBottom: 16,
+  },
+  moodLabel: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  moodContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  moodButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    minWidth: 70,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  moodLabelText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 12,
+    color: '#4E4F50',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  journalInputContainer: {
+    marginBottom: 12,
+  },
+  journalTextInput: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.3)',
+  },
+  journalAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  journalAddButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#E2DED0',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  journalNote: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 12,
+    color: '#928490',
+    textAlign: 'center',
+    lineHeight: 18,
+    fontStyle: 'italic',
   },
   // Existing Intro Screen Styles
   introCard: {
@@ -1183,10 +1522,6 @@ const styles = StyleSheet.create({
     marginLeft: 4, // Slight offset to center the play icon
   },
   // Journal Section Styles
-  journalSection: {
-    width: '100%',
-    marginBottom: 32,
-  },
   sectionHeader: {
     alignItems: 'center',
     marginBottom: 20,
@@ -1216,54 +1551,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(146, 132, 144, 0.1)',
     padding: 16,
     borderRadius: 12,
-  },
-  journalInputContainer: {
-    marginBottom: 16,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  journalTextInput: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    minHeight: 120,
-    textAlignVertical: 'top',
-    marginBottom: 15,
-    padding: 16,
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(146, 132, 144, 0.2)',
-  },
-  journalAddButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  journalAddButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
-    color: '#E2DED0',
-    marginLeft: 8,
-    fontWeight: '600',
-  },
-  journalNote: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 14,
-    color: '#928490',
-    textAlign: 'center',
-    lineHeight: 20,
-    fontStyle: 'italic',
   },
 });
