@@ -539,9 +539,6 @@ Keep up the great work on your journaling journey! 📝✨
                 }
             >
                 <View style={styles.content}>
-                    <Text style={styles.reportTitle}>Your Journey Insights</Text>
-                    <Text style={styles.reportSubtitle}>Select a completed journey to view detailed reports</Text>
-
                     {/* Completed Paths List */}
                     {completedPaths.length > 0 && (
                         <View style={styles.card}>
@@ -550,7 +547,7 @@ Keep up the great work on your journaling journey! 📝✨
                                 <Text style={styles.cardTitle}>Completed Journeys</Text>
                             </View>
                             <Text style={styles.completedPathsDescription}>
-                                Tap on a completed journey to view detailed insights, charts, and analytics.
+                                Tap on a completed journey to view your results and insights.
                             </Text>
                             {completedPaths.map((path, index) => (
                                 <TouchableOpacity
@@ -579,15 +576,6 @@ Keep up the great work on your journaling journey! 📝✨
                             ))}
                         </View>
                     )}
-
-                    {/* No detailed reports shown here - only the list of completed paths */}
-                    <View style={styles.completionCard}>
-                        <Sparkles size={32} color="#E2DED0" />
-                        <Text style={styles.completionTitle}>Your Journey Awaits</Text>
-                        <Text style={styles.completionText}>
-                            Select any completed journey above to unlock detailed insights, mood analytics, and personalized reports about your progress.
-                        </Text>
-                    </View>
                 </View>
             </ScrollView>
         </View>
