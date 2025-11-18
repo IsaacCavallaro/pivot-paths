@@ -110,8 +110,8 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
         setCurrentStepIndex(prevScreen.stepIndex);
     };
 
-    const handleOpenCourse = () => {
-        Linking.openURL('https://pivotfordancers.com/products/happy-trails/');
+    const handleOpenMentorship = () => {
+        Linking.openURL('https://pivotfordancers.com/services/mentorship/');
     };
 
     // Intro Screen
@@ -191,23 +191,19 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
                                 </Text>
                             </View>
 
-                            {/* New Happy Trails Course Content */}
-                            <View style={styles.courseCard}>
-                                <Text style={styles.courseTitle}>Take your next step today with Happy Trails</Text>
-                                <Text style={styles.courseDescription}>
-                                    A mini course to plan your pivot. Inside, you'll get access to a 5-year career change roadmap and exclusive resources.
+                            {/* Mentorship CTA */}
+                            <View style={styles.mentorshipCard}>
+                                <Text style={styles.mentorshipTitle}>Want more Support?</Text>
+                                <Text style={styles.mentorshipDescription}>
+                                    Our mentorship program provides personalized guidance from experienced former professional dancers who understand your unique journey.
                                 </Text>
-                                <TouchableOpacity style={styles.courseButton} onPress={handleOpenCourse}>
-                                    <View style={[styles.courseButtonContent, { backgroundColor: '#647C90' }]}>
-                                        <Text style={styles.courseButtonText}>Start the Happy Trails Course</Text>
+                                <TouchableOpacity style={styles.mentorshipButton} onPress={handleOpenMentorship}>
+                                    <View style={[styles.mentorshipButtonContent, { backgroundColor: '#647C90' }]}>
+                                        <Text style={styles.mentorshipButtonText}>Learn More</Text>
                                         <ChevronRight size={16} color="#E2DED0" />
                                     </View>
                                 </TouchableOpacity>
                             </View>
-
-                            <Text style={styles.alternativeClosing}>
-                                Ready to dive deeper into your career change?
-                            </Text>
 
                             <View style={styles.finalButtonContainer}>
                                 <TouchableOpacity style={styles.continueButton} onPress={handleComplete}>
@@ -506,8 +502,8 @@ const styles = StyleSheet.create({
         borderColor: '#647C90',
         borderWidth: 2,
     },
-    // New styles for the course card
-    courseCard: {
+    // New styles for the mentorship card
+    mentorshipCard: {
         backgroundColor: 'rgba(100, 124, 144, 0.1)',
         borderRadius: 16,
         padding: 24,
@@ -516,7 +512,7 @@ const styles = StyleSheet.create({
         borderLeftColor: '#647C90',
         width: '100%',
     },
-    courseTitle: {
+    mentorshipTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 18,
         color: '#647C90',
@@ -524,7 +520,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         fontWeight: '700',
     },
-    courseDescription: {
+    mentorshipDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 14,
         color: '#4E4F50',
@@ -532,11 +528,11 @@ const styles = StyleSheet.create({
         lineHeight: 20,
         marginBottom: 20,
     },
-    courseButton: {
+    mentorshipButton: {
         borderRadius: 30,
         overflow: 'hidden',
     },
-    courseButtonContent: {
+    mentorshipButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -546,7 +542,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#647C90',
     },
-    courseButtonText: {
+    mentorshipButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 14,
         color: '#E2DED0',

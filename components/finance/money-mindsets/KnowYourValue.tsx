@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking } from 'react-native';
 import { ChevronRight, DollarSign, ArrowLeft } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -74,6 +74,10 @@ export default function KnowYourValue({ onComplete, onBack }: KnowYourValueProps
 
     const handleStartGame = () => {
         setScreenHistory([{ pairIndex: 0, showNew: false }]);
+    };
+
+    const handleOpenEbook = () => {
+        Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
     };
 
     const handleContinue = () => {
@@ -207,6 +211,19 @@ export default function KnowYourValue({ onComplete, onBack }: KnowYourValueProps
                                 <Text style={styles.finalText}>
                                     From here on, you get to set new standards for yourself. Advocate, negotiate, and expect more. You deserve it.
                                 </Text>
+                            </View>
+
+                            <View style={styles.ebookCard}>
+                                <Text style={styles.ebookTitle}>Hungry for more?</Text>
+                                <Text style={styles.ebookDescription}>
+                                    Our How to Pivot eBook dives into psychological and philosophical concepts that can guide you through a career change, merging academic insights with real-world experience.
+                                </Text>
+                                <TouchableOpacity style={styles.ebookButton} onPress={handleOpenEbook}>
+                                    <View style={[styles.ebookButtonContent, { backgroundColor: '#647C90' }]}>
+                                        <Text style={styles.ebookButtonText}>Learn More</Text>
+                                        <ChevronRight size={16} color="#E2DED0" />
+                                    </View>
+                                </TouchableOpacity>
                             </View>
 
                             <Text style={styles.alternativeClosing}>
@@ -514,15 +531,15 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 20,
+        marginBottom: 10,
     },
     alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 32,
-        marginTop: 20,
+        marginBottom: 5,
+        marginTop: 0,
         fontWeight: '600',
     },
     finalButtonContainer: {
@@ -536,5 +553,51 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         borderColor: '#647C90',
         borderWidth: 2,
+    },
+    ebookCard: {
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 32,
+        borderLeftWidth: 4,
+        borderLeftColor: '#647C90',
+        width: '100%',
+    },
+    ebookTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
+    },
+    ebookDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: 20,
+    },
+    ebookButton: {
+        borderRadius: 30,
+        overflow: 'hidden',
+    },
+    ebookButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#647C90',
+    },
+    ebookButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 14,
+        color: '#E2DED0',
+        marginRight: 8,
+        fontWeight: '600',
     },
 });

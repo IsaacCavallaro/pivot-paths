@@ -1,18 +1,32 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { ChevronRight, Heart, ArrowLeft } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions, Modal, Linking } from 'react-native';
+import { ChevronRight, ArrowLeft, X, Check } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
 
 interface RoleplayScenarioProps {
   onComplete: () => void;
   onBack?: () => void;
 }
 
+const { width, height } = Dimensions.get('window');
+
 export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenarioProps) {
-  const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1 = scenario, 2 = choices, 3 = response, 4 = follow-up, 5 = alternative
+  const [currentScreen, setCurrentScreen] = useState(-1); // -1 = new welcome screen, 0 = intro, 1 = scenario, etc.
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const scrollToTop = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: false });
+    }
+  };
 
   const handleStartRoleplay = () => {
-    setCurrentScreen(1);
+    setCurrentScreen(0);
+    scrollToTop();
   };
 
   const handleBack = () => {
@@ -22,27 +36,70 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
   };
 
   const goBack = () => {
-    if (currentScreen === 1) {
+    if (currentScreen === -1) {
+      if (onBack) onBack();
+    } else if (currentScreen === 0) {
+      setCurrentScreen(-1);
+    } else if (currentScreen === 1) {
       setCurrentScreen(0);
-    } else if (currentScreen > 1 && currentScreen <= 5) {
+    } else if (currentScreen > 1 && currentScreen <= 6) {
       setCurrentScreen(currentScreen - 1);
     }
+    scrollToTop();
   };
 
   const handleChoiceSelect = (choiceNumber: number) => {
     setSelectedChoice(choiceNumber);
-    setCurrentScreen(3);
+    // REMOVED: setCurrentScreen(3); - Don't navigate automatically
+    scrollToTop();
   };
 
   const handleContinue = () => {
-    if (currentScreen === 3) {
+    if (currentScreen === 2 && selectedChoice !== null) {
+      // Only navigate from choices screen if a choice is selected
+      setCurrentScreen(3);
+    } else if (currentScreen === 3) {
       setCurrentScreen(4);
     } else if (currentScreen === 4) {
       setCurrentScreen(5);
     } else if (currentScreen === 5) {
+      setCurrentScreen(6); // Go to new reflection screen instead of completing
+    } else if (currentScreen === 6) {
       onComplete();
     } else {
       setCurrentScreen(currentScreen + 1);
+    }
+    scrollToTop();
+  };
+
+  const openVideoModal = () => {
+    setShowVideoModal(true);
+    setIsPlaying(true);
+  };
+
+  const closeVideoModal = () => {
+    setIsPlaying(false);
+    setShowVideoModal(false);
+  };
+
+  // New function to open YouTube Short in browser
+  const openYouTubeShort = async () => {
+    const youtubeUrl = `https://www.youtube.com/shorts/s-hpQ9XBGP4`;
+
+    try {
+      const supported = await Linking.canOpenURL(youtubeUrl);
+
+      if (supported) {
+        await Linking.openURL(youtubeUrl);
+      } else {
+        // Fallback to modal if YouTube app/browser isn't available
+        console.log("YouTube app not available, opening in modal");
+        openVideoModal();
+      }
+    } catch (error) {
+      console.log("Error opening YouTube:", error);
+      // Fallback to modal on error
+      openVideoModal();
     }
   };
 
@@ -72,11 +129,10 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     }
   };
 
-  // Intro Screen
-  if (currentScreen === 0) {
+  // NEW: Day 3 Welcome Screen
+  if (currentScreen === -1) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -86,7 +142,76 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.welcomeCard}>
+              <View style={styles.welcomeIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.welcomeTitle}>Welcome to Day 3!</Text>
+
+              <Text style={styles.welcomeDescription}>
+                You're doing something truly remarkable. Making time for your growth and future is one of the most powerful commitments you can make to yourself.
+              </Text>
+
+              <Text style={styles.welcomeDescription}>
+                By showing up today, you're proving that you're serious about creating the life you deserve - one that honors both your passion for dance and your dreams beyond it.
+              </Text>
+
+              <View style={styles.celebrationBox}>
+                <Text style={styles.celebrationTitle}>Celebrating Your Progress</Text>
+                <Text style={styles.celebrationItem}>• You've identified your dreamer type</Text>
+                <Text style={styles.celebrationItem}>• You've challenged industry myths</Text>
+                <Text style={styles.celebrationItem}>• You're building self-awareness</Text>
+                <Text style={styles.celebrationItem}>• You're prioritizing your future</Text>
+              </View>
+
+              <Text style={styles.welcomeFooter}>
+                Today, we'll explore what life could look like if you continued down the path of professional dance versus choosing a different route. Get ready to imagine new possibilities!
+              </Text>
+
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleStartRoleplay}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Let's Begin Day 3</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  if (currentScreen === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
@@ -99,12 +224,15 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
               <Text style={styles.introTitle}>What's the alternative?</Text>
 
               <Text style={styles.introDescription}>
-                Let's walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you’d be most likely to do in this scenario and we’ll shed light on an alternative. You have more options than you might think.
+                Let's walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you'd be most likely to do in this scenario and we'll shed light on an alternative. You have more options than you might think.
               </Text>
 
               <TouchableOpacity
                 style={styles.startButton}
-                onPress={handleStartRoleplay}
+                onPress={() => {
+                  setCurrentScreen(1);
+                  scrollToTop();
+                }}
                 activeOpacity={0.8}
               >
                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
@@ -119,11 +247,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     );
   }
 
-  // Scenario Screen
   if (currentScreen === 1) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
@@ -133,7 +259,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.scenarioCard}>
               <Text style={styles.scenarioTitle}>Imagine This</Text>
@@ -148,7 +278,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 activeOpacity={0.8}
               >
                 <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.continueButtonText}>What will you do?</Text>
+                  <Text style={styles.continueButtonText}>Continue</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
               </TouchableOpacity>
@@ -159,11 +289,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     );
   }
 
-  // Choices Screen
   if (currentScreen === 2) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
@@ -173,42 +301,107 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.choicesCard}>
               <Text style={styles.choicesTitle}>Your Options</Text>
 
               <View style={styles.choicesContainer}>
                 <TouchableOpacity
-                  style={styles.choiceButton}
+                  style={[
+                    styles.choiceButton,
+                    selectedChoice === 1 && styles.choiceButtonSelected
+                  ]}
                   onPress={() => handleChoiceSelect(1)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.choiceText}>
-                    Respectfully decline the invitation. Your dance career comes first. It's a no-brainer.
-                  </Text>
+                  <View style={styles.choiceContent}>
+                    {selectedChoice === 1 && (
+                      <View style={styles.selectedIndicator}>
+                        <Check size={16} color="#E2DED0" />
+                      </View>
+                    )}
+                    <Text style={[
+                      styles.choiceText,
+                      selectedChoice === 1 && styles.choiceTextSelected
+                    ]}>
+                      Respectfully decline the invitation. Your dance career comes first. It's a no-brainer.
+                    </Text>
+                  </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.choiceButton}
+                  style={[
+                    styles.choiceButton,
+                    selectedChoice === 2 && styles.choiceButtonSelected
+                  ]}
                   onPress={() => handleChoiceSelect(2)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.choiceText}>
-                    You can't <Text style={{ fontStyle: 'italic' }}>really</Text> afford it but you plan to go, of course. That's what swings are for! You'll think about the financial consequences later…
-                  </Text>
+                  <View style={styles.choiceContent}>
+                    {selectedChoice === 2 && (
+                      <View style={styles.selectedIndicator}>
+                        <Check size={16} color="#E2DED0" />
+                      </View>
+                    )}
+                    <Text style={[
+                      styles.choiceText,
+                      selectedChoice === 2 && styles.choiceTextSelected
+                    ]}>
+                      You can't <Text style={{ fontStyle: 'italic' }}>really</Text> afford it but you plan to go, of course. That's what swings are for! You'll think about the financial consequences later…
+                    </Text>
+                  </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.choiceButton}
+                  style={[
+                    styles.choiceButton,
+                    selectedChoice === 3 && styles.choiceButtonSelected
+                  ]}
                   onPress={() => handleChoiceSelect(3)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.choiceText}>
-                    You have enough savings to cover the trip but you're nervous to ask your director for the time off so early into the contract.
-                  </Text>
+                  <View style={styles.choiceContent}>
+                    {selectedChoice === 3 && (
+                      <View style={styles.selectedIndicator}>
+                        <Check size={16} color="#E2DED0" />
+                      </View>
+                    )}
+                    <Text style={[
+                      styles.choiceText,
+                      selectedChoice === 3 && styles.choiceTextSelected
+                    ]}>
+                      You have enough savings to cover the trip but you're nervous to ask your director for the time off so early into the contract.
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
+
+              {/* Continue Button */}
+              <TouchableOpacity
+                style={[
+                  styles.continueQuestionButton,
+                  selectedChoice === null && styles.continueButtonDisabled
+                ]}
+                onPress={handleContinue}
+                disabled={selectedChoice === null}
+                activeOpacity={0.8}
+              >
+                <View style={[
+                  styles.continueQuestionButtonContent,
+                  { backgroundColor: '#928490' },
+                  selectedChoice === null && styles.continueButtonContentDisabled
+                ]}>
+                  <Text style={styles.continueQuestionButtonText}>
+                    Continue
+                  </Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -216,12 +409,10 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     );
   }
 
-  // Response Screen
   if (currentScreen === 3) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
@@ -230,7 +421,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.responseCard}>
               <Text style={styles.responseTitle}>Here's where you're at</Text>
@@ -254,12 +449,10 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     );
   }
 
-  // Follow-up Screen
   if (currentScreen === 4) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
               <ArrowLeft size={28} color="#E2DED0" />
@@ -268,7 +461,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.followUpCard}>
               <Text style={styles.followUpTitle}>Here's your situation</Text>
@@ -292,11 +489,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     );
   }
 
-  // Alternative Screen
   if (currentScreen === 5) {
     return (
       <View style={styles.container}>
-        {/* Sticky Header */}
         <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
@@ -306,7 +501,11 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.alternativeCard}>
               <View style={styles.alternativeIconContainer}>
@@ -317,7 +516,6 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
               </View>
 
               <Text style={styles.alternativeTitle}>So, what's the alternative?</Text>
-
               <Text style={styles.alternativeText}>
                 You finish off your dance contract on your terms, retiring with grace and dignity. You've started in a new career making more money than ever with three weeks of paid time off. You take dance class every Thursday and spend your weekends trying different hobbies.
               </Text>
@@ -330,9 +528,90 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 You have the best time seeing old friends and celebrating this once in a lifetime event with the memories to prove it. You're still living the dream. How does that sound?
               </Text>
 
-              <Text style={styles.alternativeClosing}>
-                See you for more tomorrow.
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleContinue}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Continue to Reflection</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // NEW: Reflection Screen after Alternative
+  if (currentScreen === 6) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.reflectionCard}>
+              <View style={styles.reflectionIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={styles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.reflectionTitle}>Expanding Your Vision</Text>
+
+              <Text style={styles.reflectionText}>
+                This was just one specific example of an alternative path. As you continue to work on becoming an expansive dreamer and bust those myths, who knows what else you can apply the alternative to?
               </Text>
+
+              <Text style={styles.reflectionText}>
+                Every choice you make opens up new possibilities. The wedding scenario shows how financial stability and work-life balance can transform your ability to show up for the people and experiences that matter most.
+              </Text>
+
+              <Text style={styles.reflectionText}>
+                Take a detour to see how our founder has done it, but don't forget to come back and mark this day as complete!
+              </Text>
+
+              {/* YouTube Short Thumbnail */}
+              <TouchableOpacity
+                style={styles.videoThumbnailContainer}
+                onPress={openYouTubeShort}
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={{ uri: 'https://img.youtube.com/vi/s-hpQ9XBGP4/maxresdefault.jpg' }}
+                  style={styles.videoThumbnail}
+                  resizeMode="cover"
+                />
+                <View style={styles.playButtonOverlay}>
+                  <View style={styles.playButton}>
+                    <Text style={styles.playIcon}>▶</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              {/* Journal Callout */}
+              <View style={styles.journalCallout}>
+                <Text style={styles.journalCalloutTitle}>Your Personal Space</Text>
+                <Text style={styles.journalCalloutText}>
+                  There's no journal prompt today but feel free to use the journal tab at any time to jot down your thoughts.{"\n\n"}
+                  This app is for you! Use it how you'd like to!
+                </Text>
+              </View>
 
               <TouchableOpacity
                 style={styles.completeButton}
@@ -340,13 +619,47 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 activeOpacity={0.8}
               >
                 <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                  <Text style={styles.completeButtonText}>Mark Day 3 As Complete</Text>
                   <ChevronRight size={16} color="#E2DED0" />
                 </View>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
+
+        {/* Keep the modal as fallback */}
+        <Modal
+          visible={showVideoModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={closeVideoModal}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={closeVideoModal}
+                activeOpacity={0.8}
+              >
+                <X size={28} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              <View style={styles.videoPlayerContainer}>
+                <YoutubePlayer
+                  height={height * 0.75}
+                  play={isPlaying}
+                  videoId={'ShIxdYpquqA'}
+                  webViewProps={{
+                    allowsFullscreenVideo: true,
+                  }}
+                  onChangeState={(state) => {
+                    console.log('Video state:', state);
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -386,16 +699,150 @@ const styles = StyleSheet.create({
   backButton: {
     width: 28,
   },
-  headerTitleContainer: {
-    flex: 1,
+  // NEW: Welcome Screen Styles
+  welcomeCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
-  titleText: {
+  welcomeIconContainer: {
+    marginBottom: 24,
+  },
+  welcomeTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 25,
-    color: '#E2DED0',
+    fontSize: 32,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '700',
+  },
+  welcomeDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  celebrationBox: {
+    width: '100%',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  celebrationTitle: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    marginBottom: 12,
+    fontWeight: '600',
     textAlign: 'center',
   },
+  celebrationItem: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#4E4F50',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  welcomeFooter: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#928490',
+    textAlign: 'center',
+    marginBottom: 30,
+    lineHeight: 22,
+  },
+  continueButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  continueButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  continueButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
+  },
+  // NEW: Reflection Screen Styles
+  reflectionCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  reflectionIconContainer: {
+    marginBottom: 30,
+  },
+  reflectionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 24,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 30,
+    fontWeight: '700',
+  },
+  reflectionText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  journalCallout: {
+    width: '100%',
+    backgroundColor: 'rgba(100, 124, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(100, 124, 144, 0.2)',
+  },
+  journalCalloutTitle: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  journalCalloutText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  // Existing styles remain the same...
   introCard: {
     marginHorizontal: 24,
     marginTop: 50,
@@ -411,17 +858,6 @@ const styles = StyleSheet.create({
   },
   introIconContainer: {
     marginBottom: 24,
-  },
-  introIconGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
   },
   introTitle: {
     fontFamily: 'Merriweather-Bold',
@@ -489,10 +925,6 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     marginBottom: 32,
   },
-  continueButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
   continueButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -502,13 +934,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderWidth: 1,
     borderColor: '#E2DED0',
-  },
-  continueButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
-    color: '#E2DED0',
-    marginRight: 8,
-    fontWeight: '600',
+    backgroundColor: '#928490',
   },
   choicesCard: {
     marginHorizontal: 24,
@@ -532,13 +958,24 @@ const styles = StyleSheet.create({
   },
   choicesContainer: {
     gap: 16,
+    marginBottom: 24,
   },
+  // UPDATED: Choice button styles with visual feedback
   choiceButton: {
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
     borderRadius: 16,
-    padding: 20,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
     borderWidth: 2,
     borderColor: 'transparent',
+  },
+  choiceButtonSelected: {
+    backgroundColor: 'rgba(146, 132, 144, 0.3)',
+    borderColor: '#928490',
+    borderWidth: 2,
+  },
+  choiceContent: {
+    padding: 20,
+    paddingRight: 50, // Extra padding for the checkmark
   },
   choiceText: {
     fontFamily: 'Montserrat-Regular',
@@ -546,6 +983,49 @@ const styles = StyleSheet.create({
     color: '#4E4F50',
     lineHeight: 24,
     textAlign: 'center',
+  },
+  choiceTextSelected: {
+    color: '#4E4F50',
+    fontWeight: '600',
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#928490',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // NEW: Continue button styles for choices screen
+  continueQuestionButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  continueQuestionButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  continueButtonDisabled: {
+    opacity: 0.5,
+  },
+  continueButtonContentDisabled: {
+    backgroundColor: '#B8B8B8',
+  },
+  continueQuestionButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
   },
   responseCard: {
     marginHorizontal: 24,
@@ -621,17 +1101,6 @@ const styles = StyleSheet.create({
   alternativeIconContainer: {
     marginBottom: 24,
   },
-  alternativeIconGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
   alternativeTitle: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 24,
@@ -648,14 +1117,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 20,
   },
-  alternativeClosing: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
-    color: '#647C90',
-    textAlign: 'center',
-    marginBottom: 32,
-    fontWeight: '600',
-  },
   completeButton: {
     borderRadius: 30,
     overflow: 'hidden',
@@ -669,6 +1130,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderWidth: 1,
     borderColor: '#E2DED0',
+    backgroundColor: '#928490',
   },
   completeButtonText: {
     fontFamily: 'Montserrat-SemiBold',
@@ -684,5 +1146,78 @@ const styles = StyleSheet.create({
     borderColor: '#647C90',
     borderWidth: 2,
     marginBottom: 10,
+  },
+  // YouTube Thumbnail Styles
+  videoThumbnailContainer: {
+    width: '100%',
+    marginBottom: 25,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+    position: 'relative',
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+  },
+  playButtonOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  playButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF0000', // YouTube red
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  playIcon: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 4, // Slight offset to center the play icon
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: width * 0.9,
+    maxWidth: 500,
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: -50,
+    right: 0,
+    zIndex: 10,
+    padding: 10,
+  },
+  videoPlayerContainer: {
+    width: '100%',
+    aspectRatio: 9 / 16, // YouTube Shorts aspect ratio (vertical)
+    backgroundColor: '#000',
+    borderRadius: 16,
+    overflow: 'hidden',
   },
 });

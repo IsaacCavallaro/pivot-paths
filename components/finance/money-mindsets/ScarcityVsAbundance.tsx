@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { ArrowLeft, ChevronRight } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
 
 interface BeliefPair {
     id: number;
@@ -304,6 +305,25 @@ export default function ScarcityVsAbundance({ onComplete, onBack }: ScarcityVsAb
                             <Text style={styles.reflectionText}>
                                 You're allowed to want more. You're allowed to earn more. And you're allowed to create a life where your worth isn't tied to how much you sacrifice.
                             </Text>
+
+                            <Text style={styles.youtubeHeader}>
+                                Watch this 5 min clip for more ideas!
+                            </Text>
+
+                            <View style={styles.playerContainer}>
+                                <YoutubePlayer
+                                    height={140}
+                                    play={false}
+                                    videoId="1J26CRRwr-k"
+                                    webViewStyle={styles.youtubeWebView}
+                                    webViewProps={{
+                                        allowsFullscreenVideo: false,
+                                    }}
+                                    onChangeState={(state: any) => {
+                                        console.log('Video state:', state);
+                                    }}
+                                />
+                            </View>
 
                             <Text style={styles.reflectionClosing}>
                                 Get ready for tomorrow.
@@ -671,7 +691,15 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
+        marginTop: 40,
         marginBottom: 40,
+        fontWeight: '600',
+    },
+    youtubeHeader: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
         fontWeight: '600',
     },
     completeButton: {
@@ -704,5 +732,15 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         borderColor: '#647C90',
         borderWidth: 2,
+    },
+    playerContainer: {
+        backgroundColor: '#000',
+        marginTop: 16,
+        borderRadius: 12,
+        overflow: 'hidden',
+        width: '100%',
+    },
+    youtubeWebView: {
+        alignSelf: 'stretch',
     },
 });

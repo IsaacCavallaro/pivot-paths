@@ -1,4 +1,4 @@
-import { Rocket, DollarSign, Cloud } from 'lucide-react-native';
+import { Rocket, DollarSign, Cloud, Brain, Clock, Map, School, Car, Rainbow } from 'lucide-react-native';
 
 export interface PathDay {
   day: number;
@@ -80,6 +80,7 @@ export interface Path {
   duration: string;
   totalDays: number;
   days: PathDay[];
+  icon: React.ReactNode;
   callout?: {
     text: string;
     url: string;
@@ -110,6 +111,7 @@ export const categories: Category[] = [
         description: 'It’s time to dream big. Discover what you really want and explore life beyond dance.',
         duration: '7 days',
         totalDays: 7,
+        icon: <Cloud size={24} color='rgba(226, 222, 208, 0.9)' />,
         days: [
           {
             day: 1,
@@ -158,10 +160,11 @@ export const categories: Category[] = [
       {
         id: 'mindset-shift',
         title: 'Mindset Shift',
-        subtitle: '', // We only use subheadings for "Coming Soon"
+        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
         description: 'Explore who you are beyond your dancer identity',
         duration: '7 days',
         totalDays: 7,
+        icon: <Brain size={24} color='rgba(226, 222, 208, 0.9)' />,
         days: [
           {
             day: 1,
@@ -210,10 +213,11 @@ export const categories: Category[] = [
       {
         id: 'work-life-balance',
         title: 'Work/Life Banlance',
-        subtitle: '', // We only use subheadings for "Coming Soon"
+        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
         description: 'Let’s find out when your energy is at its peak and when it dips to help you plan your work, hobbies, and rest. ',
         duration: '7 days',
         totalDays: 7,
+        icon: <Clock size={24} color='rgba(226, 222, 208, 0.9)' />,
         days: [
           {
             day: 1,
@@ -271,10 +275,11 @@ export const categories: Category[] = [
       {
         id: 'skills-assessment',
         title: 'Map Your Direction', // previously "discover your direction"
-        subtitle: '',
+        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
         description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Here’s a map to help discover your direction.',
         duration: '7 days',
         totalDays: 7,
+        icon: <Map size={24} color='rgba(226, 222, 208, 0.9)' />,
         days: [
           {
             day: 1,
@@ -323,10 +328,11 @@ export const categories: Category[] = [
       {
         id: 'upskilling-pathfinder',
         title: 'Upskilling Pathfinder',
-        subtitle: '',
+        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
         description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Each step in the path helps you explore career options you may have never considered and start taking action towards landing a job in the industry that’s works for you.',
         duration: '7 days',
         totalDays: 7,
+        icon: <School size={24} color='rgba(226, 222, 208, 0.9)' />,
         days: [
           {
             day: 1,
@@ -375,10 +381,11 @@ export const categories: Category[] = [
       {
         id: 'prep-your-pivot',
         title: 'Prep Your Pivot',
-        subtitle: '',
+        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
         description: 'Making a big career change is as much about mindset as it is about skills. This quick check will help you see where your confidence tends to dip, so you know what to focus on as you prep your pivot.',
         duration: '7 days',
         totalDays: 7,
+        icon: <Car size={24} color='rgba(226, 222, 208, 0.9)' />,
         days: [
           {
             day: 1,
@@ -436,10 +443,11 @@ export const categories: Category[] = [
       {
         id: 'money-mindsets',
         title: 'Money Mindsets',
-        subtitle: '',
+        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
         description: 'When it comes to money, dancers don’t often have the right mindset. And during your career change, you’re going to grapple with money and some hard truths about your finances.',
         duration: '7 days',
         totalDays: 7,
+        icon: <Brain size={24} color='rgba(226, 222, 208, 0.9)' />,
         days: [
           {
             day: 1,
@@ -488,10 +496,11 @@ export const categories: Category[] = [
       {
         id: 'budgeting-for-dancers',
         title: 'Budgeting For Dancers',
-        subtitle: '',
+        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
         description: 'Let’s talk about your money goals. Not the vague ones like ‘I should probably save more’—I’m talking about the goals that light you up. The ones that make budgeting worth it.',
         duration: '7 days',
         totalDays: 7,
+        icon: <DollarSign size={24} color='rgba(226, 222, 208, 0.9)' />,
         days: [
           {
             day: 1,
@@ -540,10 +549,11 @@ export const categories: Category[] = [
       {
         id: 'financial-futureproofing',
         title: 'Financial Futureproofing ',
-        subtitle: '',
+        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
         description: "Debt can feel like a weight holding you back. But think of it like a complex dance routine: it can be mastered one step at a time with a clear plan. You're not alone in this.Let's choose a strategy and build your payoff plan.",
         duration: '7 days',
         totalDays: 7,
+        icon: <Rainbow size={24} color='rgba(226, 222, 208, 0.9)' />,
         days: [
           {
             day: 1,

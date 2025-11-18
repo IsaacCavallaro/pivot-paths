@@ -1,6 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
 import { ChevronRight, DollarSign, ArrowLeft, ChevronLeft } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -80,6 +79,7 @@ interface MoreMoneyMoreHeadroomProps {
 export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyMoreHeadroomProps) {
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
     const [screenHistory, setScreenHistory] = useState<number[]>([]);
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const handleBack = useCallback(() => {
         if (onBack) {
@@ -91,14 +91,20 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
         setScreenHistory([0]);
     };
 
+    const scrollToTop = () => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    };
+
     const handleContinue = () => {
         if (currentCardIndex < tipCards.length - 1) {
             const newCardIndex = currentCardIndex + 1;
             setCurrentCardIndex(newCardIndex);
             setScreenHistory([...screenHistory, newCardIndex]);
+            scrollToTop();
         } else {
             // All cards completed, go to final screen
             setScreenHistory([...screenHistory, -1]); // -1 represents final screen
+            scrollToTop();
         }
     };
 
@@ -128,6 +134,7 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
         }
 
         setCurrentCardIndex(prevScreenIndex);
+        scrollToTop();
     };
 
     // Calculate progress for card screens
@@ -146,11 +153,14 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                     </View>
                 </View>
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
                     <View style={styles.centeredContent}>
                         <View style={styles.introCard}>
-                            <View style={styles.introIcon}>
-                                <DollarSign size={32} color="#928490" />
+                            <View style={styles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.introTitle}>More Headroom</Text>
@@ -185,11 +195,14 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                     </View>
                 </View>
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
                     <View style={styles.centeredContent}>
                         <View style={styles.finalCard}>
-                            <View style={styles.finalIcon}>
-                                <DollarSign size={40} color="#928490" />
+                            <View style={styles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
                             <Text style={styles.introTitle}>Moving Towards Clarity</Text>
                             <Text style={styles.finalText}>
@@ -235,7 +248,7 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
                 </View>
             </View>
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
                 <View style={styles.centeredContent}>
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>{currentCard.title}</Text>
@@ -335,6 +348,7 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 5,
         marginVertical: 20,
+        marginTop: 50,
     },
     introCard: {
         width: width * 0.85,
@@ -348,6 +362,7 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 5,
         marginVertical: 20,
+        marginTop: 50,
     },
     introIcon: {
         width: 80,
@@ -517,5 +532,15 @@ const styles = StyleSheet.create({
         height: '100%',
         backgroundColor: '#E2DED0',
         borderRadius: 3,
+    },
+    introIconContainer: {
+        marginBottom: 24,
+    },
+    heroImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
     },
 });

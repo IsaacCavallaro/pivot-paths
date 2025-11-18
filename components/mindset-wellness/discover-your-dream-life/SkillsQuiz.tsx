@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { ChevronRight, ArrowLeft } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
+import { ChevronRight, ArrowLeft, PlusCircle, Check, Smile, Frown, Meh, Laugh, Angry, Heart } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface QuizQuestion {
   id: number;
@@ -15,10 +17,27 @@ interface QuizQuestion {
 interface DreamerResult {
   type: string;
   title: string;
-  description: string | React.ReactElement;
+  description: string;
   subtitle: string;
   color: string;
 }
+
+interface JournalEntry {
+  id: string;
+  pathTag: string;
+  day: string;
+  content: string;
+  mood?: string;
+}
+
+const MOOD_OPTIONS = [
+  { id: 'angry', label: 'Angry', icon: Angry, color: '#DC2626' },
+  { id: 'sad', label: 'Sad', icon: Frown, color: '#2563EB' },
+  { id: 'neutral', label: 'Neutral', icon: Meh, color: '#CA8A04' },
+  { id: 'happy', label: 'Happy', icon: Smile, color: '#16A34A' },
+  { id: 'excited', label: 'Excited', icon: Laugh, color: '#7C3AED' },
+  { id: 'loved', label: 'Loved', icon: Heart, color: '#DB2777' },
+];
 
 const quizQuestions: QuizQuestion[] = [
   {
@@ -90,11 +109,7 @@ const quizQuestions: QuizQuestion[] = [
     options: [
       {
         id: 'a',
-        text: (
-          <Text>
-            I could never pull that off.
-          </Text>
-        ),
+        text: 'I could never pull that off.',
         type: 'A'
       },
       {
@@ -243,25 +258,21 @@ const dreamerResults: { [key: string]: DreamerResult } = {
     title: 'The Anxious Dreamer',
     description: 'You\'re full of potential, but fear or uncertainty has been holding you back. Whether it\'s perfectionism, imposter syndrome, or fear of judgment, it\'s hard to dream clearly when anxiety gets loud. This path will help you replace "what ifs" with grounded confidence.',
     subtitle: 'Your dream life doesn\'t need to be perfect. It just needs to be yours.',
-    color: '#928490'
+    color: '#928490',
   },
   'B': {
     type: 'B',
     title: 'The Practical Dreamer',
-    description: (
-      <Text>
-        You're thoughtful, grounded, and great at making realistic decisions. But sometimes you forget how expansive your future <Text style={{ fontStyle: 'italic' }}>could</Text> be. You might downplay your dreams to protect yourself from disappointment. This path will help you reconnect with possibility while still honoring your practical nature.
-      </Text>
-    ),
+    description: "You're thoughtful, grounded, and great at making realistic decisions. But sometimes you forget how expansive your future could be. You might downplay your dreams to protect yourself from disappointment. This path will help you reconnect with possibility while still honoring your practical nature.",
     subtitle: 'You don\'t need to let go of logic to follow your dreams. You just need a little more permission to dream bigger.',
-    color: '#647C90'
+    color: '#928490',
   },
   'C': {
     type: 'C',
     title: 'The Limited Dreamer',
     description: 'You\'ve been dreaming small, maybe without even realizing it. Whether due to burnout, self-protection, or past letdowns, your imagination needs a little spark. This path is your invitation to let yourself want more.',
     subtitle: 'Playing small won\'t keep you safe, it just keeps you stuck. Let\'s expand your vision together.',
-    color: '#928490'
+    color: '#928490',
   }
 };
 
@@ -274,9 +285,34 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const [currentScreen, setCurrentScreen] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: string }>({});
   const [result, setResult] = useState<DreamerResult | null>(null);
+  const [journalEntry, setJournalEntry] = useState('');
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [morningJournalEntry, setMorningJournalEntry] = useState('');
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const scrollToTop = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: false });
+    }
+  };
+
+  const handleScreenChange = async (newScreen: number) => {
+    setIsTransitioning(true);
+    await new Promise(resolve => setTimeout(resolve, 150));
+    setCurrentScreen(newScreen);
+    scrollToTop();
+    setIsTransitioning(false);
+  };
+
+  const handleWelcomeContinue = () => {
+    handleScreenChange(1);
+  };
 
   const handleStartQuiz = () => {
-    setCurrentScreen(1);
+    handleScreenChange(2);
   };
 
   const handleBack = () => {
@@ -285,16 +321,31 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     }
   };
 
-  const handleAnswer = (optionType: string) => {
-    const questionIndex = currentScreen - 1;
+  const handleAnswer = (optionId: string, optionType: string) => {
+    setSelectedOption(optionId);
+
+    const questionIndex = currentScreen - 2;
     const newAnswers = { ...answers, [questionIndex]: optionType };
     setAnswers(newAnswers);
+  };
 
-    if (currentScreen < 10) {
+  const handleContinue = async () => {
+    if (selectedOption === null || isTransitioning) return;
+
+    setIsTransitioning(true);
+
+    // Small delay for smooth transition
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    if (currentScreen < 11) {
       setCurrentScreen(currentScreen + 1);
+      setSelectedOption(null);
+      scrollToTop();
     } else {
-      calculateResult(newAnswers);
+      calculateResult(answers);
     }
+
+    setIsTransitioning(false);
   };
 
   const calculateResult = (finalAnswers: { [key: number]: string }) => {
@@ -310,34 +361,132 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
     const finalResult = dreamerResults[dominantType];
     setResult(finalResult);
-    setCurrentScreen(11);
-  };
-
-  const handleContinueToFinal = () => {
     setCurrentScreen(12);
+    scrollToTop();
   };
 
-  const handleComplete = () => {
+  const handleContinueToExpansiveDreamer = () => {
+    handleScreenChange(13);
+  };
+
+  const handleContinueToTakeAction = () => {
+    handleScreenChange(14);
+  };
+
+  const addMorningJournalEntry = async () => {
+    const trimmed = morningJournalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        pathTag: 'discover-dream-life',
+        day: '1',
+        content: trimmed,
+        mood: selectedMood,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setMorningJournalEntry('');
+      setSelectedMood(null);
+      Alert.alert('Success', 'Morning journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
+  const addJournalEntry = async () => {
+    const trimmed = journalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        pathTag: 'discover-dream-life',
+        day: '1',
+        content: trimmed,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setJournalEntry('');
+      Alert.alert('Success', 'Journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
+  const usePrompt = (prompt: string) => {
+    setMorningJournalEntry(prev => prev ? `${prev}\n\n${prompt}` : prompt);
+  };
+
+  const handleComplete = async () => {
     if (result) {
-      onComplete(result);
+      try {
+        await AsyncStorage.setItem('day1SkillsQuizResult', JSON.stringify(result));
+        onComplete(result);
+      } catch (error) {
+        console.error('Error saving quiz result to AsyncStorage:', error);
+        // Optionally, still call onComplete even if saving fails
+        onComplete(result);
+      }
     }
   };
 
   const goBack = () => {
-    if (currentScreen === 1) {
-      setCurrentScreen(0);
-    } else if (currentScreen > 1 && currentScreen <= 10) {
+    if (currentScreen === 0) {
+      if (onBack) onBack();
+    } else if (currentScreen === 1) {
+      handleScreenChange(0);
+    } else if (currentScreen > 1 && currentScreen <= 11) {
       setCurrentScreen(currentScreen - 1);
-    } else if (currentScreen === 11) {
-      // Go back from result screen to last question
-      setCurrentScreen(10);
+      setSelectedOption(null);
+      scrollToTop();
     } else if (currentScreen === 12) {
-      // Go back from final screen to result screen
-      setCurrentScreen(11);
+      // Go back from result screen to last question
+      handleScreenChange(11);
+    } else if (currentScreen === 13) {
+      // Go back from expansive dreamer screen to result screen
+      handleScreenChange(12);
+    } else if (currentScreen === 14) {
+      // Go back from takeaction screen to expansive dreamer screen
+      handleScreenChange(13);
+    } else if (currentScreen === 15) {
+      // Go back from final screen to takeaction screen
+      handleScreenChange(14);
     }
   };
 
-  // Intro Screen
+  // Welcome Screen with Journal Prompt
   if (currentScreen === 0) {
     return (
       <View style={styles.container}>
@@ -351,11 +500,15 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
-            <View style={styles.introCard}>
-              <View style={styles.introIconContainer}>
-                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+            <View style={styles.welcomeCard}>
+              <View style={styles.welcomeIconContainer}>
+                <View style={[styles.welcomeIconGradient, { backgroundColor: '#928490' }]}>
                   <Image
                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
                     style={styles.heroImage}
@@ -363,22 +516,102 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 </View>
               </View>
 
-              <Text style={styles.introTitle}>What kind of dreamer are you?</Text>
-
-              <Text style={styles.introDescription}>
-                It's a skill to dream big. Sure, we had dance dreams and achieved them, but when we start dreaming on our own terms, it can start to fall apart. To help you dream bigger, let's start by figuring out your "Dreamer Type" to unlock what could be holding you back.
+              <Text style={styles.welcomeTitle}>
+                Welcome to Your Path
               </Text>
 
-              <TouchableOpacity
-                style={styles.startButton}
-                onPress={handleStartQuiz}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.startButtonText}>Let's do it</Text>
-                  <ChevronRight size={16} color="#E2DED0" />
+              <Text style={styles.welcomeDescription}>
+                Taking this first step is something to be truly proud of. It takes courage to look inward and explore what might be holding you back from the future you deserve.
+              </Text>
+
+              {/* Morning Journal Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  {/* <Text style={styles.sectionTitle}>Start Your Day</Text> */}
+                  <View style={styles.sectionDivider} />
                 </View>
-              </TouchableOpacity>
+
+                <Text style={styles.journalInstruction}>
+                  Before we being, let's take a moment to check in with yourself. How are you feeling as you begin this journey?
+                </Text>
+
+                {/* Mood Selection */}
+                <View style={styles.moodSection}>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedMood(
+                            selectedMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Journal Input */}
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Enter your journal entry here"
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={morningJournalEntry}
+                    onChangeText={setMorningJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addMorningJournalEntry}
+                  >
+                    <PlusCircle size={20} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Save Morning Entry</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entires save in the journal tab for you to review later.
+                </Text>
+              </View>
+
+              <View style={styles.welcomeHighlight}>
+                <Text style={styles.welcomeHighlightText}>
+                  Congratulations on giving yourself permission to identify as something more than a dancer.
+                </Text>
+              </View>
+
+              <View>
+                <TouchableOpacity
+                  style={styles.welcomeButton}
+                  onPress={handleWelcomeContinue}
+                  activeOpacity={0.8}
+                  disabled={isTransitioning}
+                >
+                  <View style={[styles.welcomeButtonContent, { backgroundColor: '#928490' }]}>
+                    <Text style={styles.welcomeButtonText}>I'm Ready to Begin</Text>
+                    <ChevronRight size={16} color="#E2DED0" />
+                  </View>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </ScrollView>
@@ -386,8 +619,8 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     );
   }
 
-  // Final Screen
-  if (currentScreen === 12) {
+  // Intro Screen
+  if (currentScreen === 1) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
@@ -400,31 +633,408 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
-            <View style={styles.finalCard}>
-              <View style={styles.finalIconContainer}>
+            <View style={styles.introCard}>
+              <View style={styles.introIconContainer}>
+                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                  <Image
+                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                    style={styles.heroImage}
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.introTitle}>
+                What kind of dreamer are you?
+              </Text>
+
+              <Text style={styles.introDescription}>
+                It's a skill to dream big. Sure, we had dance dreams and achieved them, but when we start dreaming on our own terms, it can start to fall apart. To help you dream bigger, let's start by figuring out your "Dreamer Type" to unlock what could be holding you back.
+              </Text>
+
+              <View>
+                <TouchableOpacity
+                  style={styles.startButton}
+                  onPress={handleStartQuiz}
+                  activeOpacity={0.8}
+                  disabled={isTransitioning}
+                >
+                  <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
+                    <Text style={styles.startButtonText}>Let's do it</Text>
+                    <ChevronRight size={16} color="#E2DED0" />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // The Expansive Dreamer Screen
+  if (currentScreen === 13 && result) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.expansiveDreamerCard}>
+              <View style={styles.expansiveIconContainer}>
                 <Image
                   source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
                   style={styles.heroImage}
                 />
               </View>
 
-              <Text style={styles.finalTitle}>Here's What You Could Be:</Text>
-              <Text style={styles.finalTitleBold}>The Expansive Dreamer</Text>
+              <Text style={styles.expansiveTitle}>
+                Here's What You Could Be:
+              </Text>
 
-              <Text style={styles.finalDescription}>
+              <Text style={styles.expansiveTitleBold}>
+                The Expansive Dreamer
+              </Text>
+
+              <Text style={styles.expansiveDescription}>
                 The Expansive Dreamer is someone who allows their imagination to be bold <Text style={{ fontStyle: 'italic' }}>without apology</Text>.
               </Text>
 
-              <Text style={styles.finalClosing}>
-                See you tomorrow!
+              <Text style={styles.expansiveDescription}>
+                This dreamer understands that their past experiences in dance have given them unique strengths: discipline, creativity, resilience, and the ability to envision something before it exists. They use these strengths to build a future that excites them on their own terms.
+              </Text>
+
+              <Text style={styles.expansiveDescription}>
+                The Expansive Dreamer doesn't let fear of the unknown stop them. Instead, they see possibility where others see obstacles, and they trust that each step forward reveals the next.
+              </Text>
+
+              <View>
+                <TouchableOpacity
+                  style={styles.continueButton}
+                  onPress={handleContinueToTakeAction}
+                  activeOpacity={0.8}
+                  disabled={isTransitioning}
+                >
+                  <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                    <Text style={styles.continueButtonText}>Continue</Text>
+                    <ChevronRight size={16} color="#E2DED0" />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // takeaction Screen
+  if (currentScreen === 14 && result) {
+    // Get dynamic content based on dreamer type
+    const getReflectionQuestions = () => {
+      switch (result.type) {
+        case 'A':
+          return [
+            'Is it serving me to be the Anxious Dreamer?',
+            'How did Monica turn her anxiety about the future into real change?',
+            'What did I learn from Monica\'s story?'
+          ];
+        case 'B':
+          return [
+            'Is it serving me to be the Practical Dreamer?',
+            'How did Monica take practical steps on her journey that helped her dream bigger?',
+            'What did I learn from Monica\'s story?'
+          ];
+        case 'C':
+          return [
+            'Is it serving me to be the Limited Dreamer?',
+            'How did Monica challenge her limiting beliefs?',
+            'What did I learn from Monica\'s story?'
+          ];
+        default:
+          return [];
+      }
+    };
+
+    const getJournalPlaceholder = () => {
+      switch (result.type) {
+        case 'A':
+          return 'Monica channelled anxious feelings into change by...';
+        case 'B':
+          return 'Monica took practical steps by...';
+        case 'C':
+          return 'Monica challenged her limiting beliefs by...';
+        default:
+          return 'Write your reflections here...';
+      }
+    };
+
+    const reflectionQuestions = getReflectionQuestions();
+    const journalPlaceholder = getJournalPlaceholder();
+
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.takeactionCard}>
+              {/* Header with Icon */}
+              <View style={styles.takeactionHeader}>
+                <Text style={styles.takeactionTitle}>Take Action</Text>
+              </View>
+
+              {/* Introduction Text */}
+              <View style={styles.takeactionIntro}>
+                <Text style={styles.takeactionDescription}>
+                  Do you feel that the <Text style={styles.highlightText}>{result.title.toLowerCase()}</Text> describes you? Or are you bothered by the results? Whatever's coming up for you, go with it. We got you!
+                </Text>
+
+                <Text style={styles.takeactionDescription}>
+                  Now, how can you unlock the <Text style={styles.highlightText}>expansive dreamer</Text> within?!
+                </Text>
+
+                <Text style={styles.takeactionDescription}>
+                  Let's hear from a dancer who gave herself permission to be the expansive dreamer and learn from her.
+                </Text>
+              </View>
+
+              {/* Reflection Section */}
+              <View style={styles.reflectionSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Your Reflection Journey</Text>
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.reflectionInstruction}>
+                  Start by watching the video below and reflect on these questions:
+                </Text>
+
+                {/* Dynamic Reflection Questions */}
+                <View style={styles.reflectionQuestionsContainer}>
+                  {reflectionQuestions.map((question, index) => (
+                    <View key={index} style={styles.reflectionQuestionCard}>
+                      <View style={styles.questionNumber}>
+                        <Text style={styles.questionNumberText}>{index + 1}</Text>
+                      </View>
+                      <Text style={styles.reflectionQuestion}>{question}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                <Text style={styles.reflectionInstruction}>
+                  As you're watching, write your reflections as a journal entry below.
+                </Text>
+              </View>
+
+              {/* YouTube Video Player */}
+              <View style={styles.videoSection}>
+                <View style={styles.videoHeader}>
+                  <Text style={styles.videoTitle}>Watch & Learn</Text>
+                </View>
+                <View style={styles.videoContainer}>
+                  <View style={styles.youtubePlayer}>
+                    <YoutubePlayer
+                      height={140}
+                      play={false}
+                      videoId={'ZsvNvXLtcC4'}
+                      webViewStyle={styles.youtubeWebView}
+                    />
+                  </View>
+                </View>
+              </View>
+
+              {/* Journal Entry Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Journal Your Thoughts</Text>
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder={journalPlaceholder}
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={journalEntry}
+                    onChangeText={setJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addJournalEntry}
+                  >
+                    <PlusCircle size={24} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Add to Journal</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entries safe in your personal journal which you can view at the end of today's progress.
+                </Text>
+              </View>
+
+              {/* Inspirational Quote */}
+              <View style={styles.quoteContainer}>
+                <Text style={styles.quoteSymbol}>"</Text>
+                <Text style={styles.takeactionQuote}>
+                  The only limits that exist are the ones you place on yourself.
+                </Text>
+              </View>
+
+              {/* Continue Button */}
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={() => handleScreenChange(15)}
+                activeOpacity={0.8}
+                disabled={isTransitioning}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Continue Your Journey</Text>
+                  <ChevronRight size={20} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Congratulations and Mark as Complete Screen
+  if (currentScreen === 15 && result) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.congratulationsCard}>
+              <Text style={styles.congratulationsTitle}>Congratulations!</Text>
+
+              <Text style={styles.congratulationsDescription}>
+                You've taken the first step toward becoming an Expansive Dreamer. By understanding your current dreaming style, you're already opening yourself up to new possibilities.
+              </Text>
+
+              {/* End of Day Journal Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  {/* <Text style={styles.sectionTitle}>Start Your Day</Text> */}
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.journalInstruction}>
+                  Before we bring today's session to a close, let's take a moment to check in with yourself againn. How are you feeling after taking these first steps towards a new chapter?
+                </Text>
+
+                {/* Mood Selection */}
+                <View style={styles.moodSection}>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedMood(
+                            selectedMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Journal Input */}
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Enter your journal entry here"
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={morningJournalEntry}
+                    onChangeText={setMorningJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addMorningJournalEntry}
+                  >
+                    <PlusCircle size={20} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Save Entry</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entires save in the journal tab for you to review later.
+                </Text>
+              </View>
+
+              <Text style={styles.congratulationsClosing}>
+                Your expansive future awaits!
               </Text>
 
               <TouchableOpacity
                 style={styles.completeButton}
                 onPress={handleComplete}
                 activeOpacity={0.8}
+                disabled={isTransitioning}
               >
                 <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
                   <Text style={styles.completeButtonText}>Mark as Complete</Text>
@@ -439,7 +1049,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   }
 
   // Result Screen
-  if (currentScreen === 11 && result) {
+  if (currentScreen === 12 && result) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
@@ -452,7 +1062,11 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.content}>
             <View style={styles.resultCard}>
               <Text style={styles.titleText}>{result.title}</Text>
@@ -464,8 +1078,9 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
               <TouchableOpacity
                 style={styles.continueButton}
-                onPress={handleContinueToFinal}
+                onPress={handleContinueToExpansiveDreamer}
                 activeOpacity={0.8}
+                disabled={isTransitioning}
               >
                 <View style={[styles.continueButtonContent, { backgroundColor: result.color }]}>
                   <Text style={styles.continueButtonText}>Continue</Text>
@@ -479,9 +1094,9 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
     );
   }
 
-  // Question Screens
-  const question = quizQuestions[currentScreen - 1];
-  const progress = (currentScreen / 10) * 100;
+  // Question Screens with smooth transitions
+  const question = quizQuestions[currentScreen - 2];
+  const progress = ((currentScreen - 1) / 10) * 100;
 
   return (
     <View style={styles.container}>
@@ -492,7 +1107,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
             <ArrowLeft size={28} color="#E2DED0" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
-            <Text style={styles.progressText}>{currentScreen} of 10</Text>
+            <Text style={styles.progressText}>{currentScreen - 1} of 10</Text>
           </View>
           <View style={styles.backButton} />
         </View>
@@ -501,24 +1116,77 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.content}>
           <View style={styles.questionCard}>
-            <Text style={styles.questionText}>{question.question}</Text>
+            <Text style={styles.questionText}>
+              {question.question}
+            </Text>
 
             <View style={styles.optionsContainer}>
-              {question.options.map((option) => (
-                <TouchableOpacity
-                  key={option.id}
-                  style={styles.optionButton}
-                  onPress={() => handleAnswer(option.type)}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.optionContent}>
-                    <Text style={styles.optionText}>{option.text}</Text>
-                  </View>
-                </TouchableOpacity>
+              {question.options.map((option, index) => (
+                <View key={option.id}>
+                  <TouchableOpacity
+                    style={[
+                      styles.optionButton,
+                      selectedOption === option.id && styles.optionButtonSelected
+                    ]}
+                    onPress={() => handleAnswer(option.id, option.type)}
+                    activeOpacity={0.8}
+                    disabled={isTransitioning}
+                  >
+                    <View style={styles.optionContent}>
+                      {selectedOption === option.id && (
+                        <View style={styles.selectedIndicator}>
+                          <Check size={16} color="#E2DED0" />
+                        </View>
+                      )}
+                      <View style={styles.optionTextContainer}>
+                        {typeof option.text === 'string' ? (
+                          <Text style={[
+                            styles.optionText,
+                            selectedOption === option.id && styles.optionTextSelected
+                          ]}>
+                            {option.text}
+                          </Text>
+                        ) : (
+                          <View style={styles.jsxOptionWrapper}>
+                            {option.text}
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                </View>
               ))}
+            </View>
+
+            {/* Continue Button */}
+            <View>
+              <TouchableOpacity
+                style={[
+                  styles.continueQuestionButton,
+                  (selectedOption === null || isTransitioning) && styles.continueButtonDisabled
+                ]}
+                onPress={handleContinue}
+                disabled={selectedOption === null || isTransitioning}
+                activeOpacity={0.8}
+              >
+                <View style={[
+                  styles.continueQuestionButtonContent,
+                  { backgroundColor: '#928490' },
+                  (selectedOption === null || isTransitioning) && styles.continueButtonContentDisabled
+                ]}>
+                  <Text style={styles.continueQuestionButtonText}>
+                    {currentScreen < 11 ? 'Continue' : 'See Results'}
+                  </Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -588,6 +1256,187 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2DED0',
     borderRadius: 3,
   },
+  // Welcome Screen Styles
+  welcomeCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  welcomeIconContainer: {
+    marginBottom: 24,
+  },
+  welcomeIconGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  welcomeTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 28,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '700',
+  },
+  welcomeDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#928490',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  welcomeHighlight: {
+    backgroundColor: 'rgba(146, 132, 144, 0.15)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: 'rgba(100, 124, 144, 0.2)',
+  },
+  welcomeHighlightText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#647C90',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontStyle: 'italic',
+    fontWeight: '500',
+  },
+  welcomeButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  welcomeButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  welcomeButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
+  },
+  // New styles for the journal section on welcome screen
+  journalSection: {
+    width: '100%',
+    marginBottom: 24,
+    padding: 20,
+    backgroundColor: 'rgba(146, 132, 144, 0.08)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  journalInstruction: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#647C90',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 16,
+    fontWeight: '500',
+  },
+  moodSection: {
+    marginBottom: 16,
+  },
+  moodLabel: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  moodContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  moodButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    minWidth: 70,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  moodLabelText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 12,
+    color: '#4E4F50',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  journalInputContainer: {
+    marginBottom: 12,
+  },
+  journalTextInput: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.3)',
+  },
+  journalAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  journalAddButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#E2DED0',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  journalNote: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 12,
+    color: '#928490',
+    textAlign: 'center',
+    lineHeight: 18,
+    fontStyle: 'italic',
+  },
+  // Intro Screen Styles
   introCard: {
     marginHorizontal: 24,
     marginTop: 50,
@@ -683,8 +1532,21 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
+  optionButtonSelected: {
+    backgroundColor: 'rgba(146, 132, 144, 0.3)',
+    borderColor: '#928490',
+    borderWidth: 2,
+  },
   optionContent: {
     padding: 20,
+    paddingRight: 50, // Extra padding for the checkmark
+  },
+  // NEW: Added styles for option text container and JSX wrapper
+  optionTextContainer: {
+    flex: 1,
+  },
+  jsxOptionWrapper: {
+    // You can add specific styling for JSX options if needed
   },
   optionText: {
     fontFamily: 'Montserrat-Regular',
@@ -692,6 +1554,49 @@ const styles = StyleSheet.create({
     color: '#4E4F50',
     lineHeight: 24,
     textAlign: 'center',
+  },
+  optionTextSelected: {
+    color: '#4E4F50',
+    fontWeight: '600',
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#928490',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  continueQuestionButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+    marginTop: 24,
+  },
+  continueQuestionButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  continueButtonDisabled: {
+    opacity: 0.5,
+  },
+  continueButtonContentDisabled: {
+    backgroundColor: '#B8B8B8',
+  },
+  continueQuestionButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
   },
   resultCard: {
     marginHorizontal: 24,
@@ -752,7 +1657,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
     fontWeight: '600',
   },
-  finalCard: {
+  // The Expansive Dreamer Screen Styles
+  expansiveDreamerCard: {
     marginHorizontal: 24,
     marginTop: 50,
     borderRadius: 24,
@@ -765,7 +1671,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
-  finalIconContainer: {
+  expansiveIconContainer: {
     marginBottom: 32,
   },
   heroImage: {
@@ -776,7 +1682,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     marginBottom: 10,
   },
-  finalTitle: {
+  expansiveTitle: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 18,
     color: '#4E4F50',
@@ -784,7 +1690,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontWeight: '700',
   },
-  finalTitleBold: {
+  expansiveTitleBold: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 28,
     color: '#928490',
@@ -792,7 +1698,37 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     fontWeight: '700',
   },
-  finalDescription: {
+  expansiveDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  // takeaction Screen Styles
+  takeactionCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  takeactionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 28,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '700',
+  },
+  takeactionDescription: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
     color: '#4E4F50',
@@ -800,9 +1736,212 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 24,
   },
-  finalClosing: {
+  videoContainer: {
+    width: '100%',
+  },
+  youtubePlayer: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  youtubeWebView: {
+    borderRadius: 16,
+  },
+  takeactionPrompt: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 32,
+    fontStyle: 'italic',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    padding: 20,
+    borderRadius: 16,
+  },
+  // Journal Section Styles
+  sectionHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 22,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  sectionDivider: {
+    width: 60,
+    height: 3,
+    backgroundColor: '#928490',
+    borderRadius: 2,
+  },
+  takeactionHeader: {
+    alignItems: 'center',
+  },
+  takeactionIconContainer: {
+    marginBottom: 16,
+  },
+  takeactionIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#928490',
+  },
+  takeactionIconText: {
+    fontSize: 32,
+  },
+  takeactionIntro: {
+    marginBottom: 32,
+    padding: 20,
+    backgroundColor: 'rgba(146, 132, 144, 0.05)',
+    borderRadius: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#928490',
+  },
+  highlightText: {
     fontFamily: 'Montserrat-SemiBold',
+    color: '#928490',
+    fontWeight: '600',
+  },
+  reflectionSection: {
+    marginBottom: 32,
+  },
+  reflectionInstruction: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontWeight: '500',
+    marginBottom: 15,
+  },
+  reflectionQuestionsContainer: {
+    marginBottom: 20,
+  },
+  reflectionQuestionCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.1)',
+  },
+  questionNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#928490',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    marginTop: 2,
+  },
+  questionNumberText: {
+    fontFamily: 'Montserrat-Bold',
+    fontSize: 16,
+    color: '#E2DED0',
+    fontWeight: '700',
+  },
+  reflectionQuestion: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#4E4F50',
+    lineHeight: 22,
+    flex: 1,
+    paddingTop: 2,
+  },
+  videoSection: {
+    marginBottom: 32,
+  },
+  videoHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  videoTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 20,
+    color: '#647C90',
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  quoteContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+    padding: 24,
+    backgroundColor: 'rgba(146, 132, 144, 0.08)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  quoteSymbol: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 48,
+    color: '#928490',
+    marginBottom: -20,
+  },
+  takeactionQuote: {
+    fontFamily: 'Merriweather-Italic',
     fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    lineHeight: 26,
+    fontStyle: 'italic',
+  },
+  // Congratulations Screen Styles
+  congratulationsCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  congratulationsIconContainer: {
+    marginBottom: 32,
+  },
+  congratulationsTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 32,
+    color: '#928490',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '700',
+  },
+  congratulationsDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  congratulationsClosing: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 20,
     color: '#647C90',
     textAlign: 'center',
     marginBottom: 32,

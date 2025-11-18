@@ -1,75 +1,97 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
-import { useState } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Linking } from 'react-native';
+import { useState, useRef, useCallback } from 'react';
+import { useRouter } from 'expo-router';
+import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { Play, Filter, ExternalLink, Instagram, Youtube, Facebook, Linkedin, ChevronDown, ChevronUp, ArrowLeft, Heart, Star, Trophy } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
 import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
 const videoCategories = [
-  { id: 'all', title: 'All Videos', color: '#647C90' },
   { id: 'stories', title: 'Career Stories', color: '#928490' },
-  { id: 'tips', title: 'Transition Tips', color: '#746C70' },
-  { id: 'wellness', title: 'Wellness', color: '#4E4F50' },
+  { id: 'data', title: 'Data', color: '#746C70' },
 ];
 
-// Real YouTube videos from Pivot for Dancers
+// Updated YouTube videos from Pivot for Dancers
 const videos = [
+  {
+    id: '16JMiSPzlBE',
+    title: 'How a ski mountain helped Elise let go of her dance career',
+    category: 'stories',
+    duration: '32:21',
+  },
+  {
+    id: 'a_U9pZr03zI',
+    title: 'Kelsey didn\'t wait around for her dance career to inevitably end',
+    category: 'stories',
+    duration: '26:17',
+  },
+  {
+    id: 'D6b1OD2q55A',
+    title: 'Shocking data reveals that dancers retire much earlier than expected...',
+    category: 'data',
+    duration: '8:15',
+  },
+  {
+    id: '1J26CRRwr-k',
+    title: 'If a recession is coming, are dancers really ready?',
+    category: 'data',
+    duration: '5:42',
+  },
   {
     id: 'ZsvNvXLtcC4',
     title: 'Will you regret being a dancer? How Monica turned guilt into growth',
-    description: 'Monica shares her journey of overcoming guilt and finding growth after leaving dance.',
     category: 'stories',
-    duration: '15:32',
+    duration: '26:03',
   },
   {
-    id: 'tuBxpzNHWlU',
-    title: 'How do you land a muggle job anyway? Career Change Workshop for Professional Dancers',
-    description: 'A comprehensive workshop on transitioning from dance to traditional careers.',
-    category: 'tips',
-    duration: '45:18',
+    id: 'FJRbh7AI9HQ',
+    title: 'Are we done telling dancers not to have a backup plan? Rachel is proof that you can',
+    category: 'stories',
+    duration: '30:29',
   },
   {
-    id: 'rr5G_7E9ZcY',
-    title: '"Why I Had to Walk Away From Dance" - Pivot Interview with Sakina Ibrahim',
-    description: 'Sakina Ibrahim opens up about her decision to leave dance and what came next.',
+    id: 'tnPkI_ezUto',
+    title: 'Missing the magic of the stage? Here\'s how Ali is finding meaning beyond her ballet career',
     category: 'stories',
-    duration: '28:45',
+    duration: '27:28',
   },
   {
-    id: 'dG-WzFlfBDY',
-    title: 'My dance career was no longer working for me... This is what I did next',
-    description: 'A personal story of recognizing when it\'s time to pivot and taking action.',
+    id: '7EUfZS8mQtk',
+    title: 'How Demi\'s roller skating hobby turned into 500K followers on Instagram',
     category: 'stories',
-    duration: '22:15',
-  },
-  {
-    id: 'U7GJ6I-Cgdk',
-    title: 'Why we left the stage to start over',
-    description: 'Two dancers share their journey of leaving performance to build something new.',
-    category: 'stories',
-    duration: '18:30',
+    duration: '22:36',
   },
 ];
 
-const handleTermsPress = () => {
-  console.log('Opening terms & conditions');
-};
-
-const handleSocialPress = (platform: string) => {
-  console.log(`Opening ${platform}`);
+const handleSocialPress = (url: string) => {
+  Linking.openURL(url);
 };
 
 export default function LearnScreen() {
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [expandedVideo, setExpandedVideo] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('stories');
+  const [expandedVideo, setExpandedVideo] = useState<string | null>(videos[0]?.id || null);
 
-  const filteredVideos = selectedCategory === 'all'
-    ? videos
-    : videos.filter(video => video.category === selectedCategory);
+  // Add this scroll ref for tab navigation
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
+  // Add this to scroll to top when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Scroll to top when screen is focused
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ y: 0, animated: false });
+      }
+
+      // Reset the first video to be expanded when screen comes into focus
+      setExpandedVideo(videos[0]?.id || null);
+    }, [])
+  );
+
+  const filteredVideos = videos.filter(video => video.category === selectedCategory);
 
   const handleVideoPress = (videoId: string) => {
     // If the same video is clicked, collapse it. Otherwise, expand the new one
@@ -77,21 +99,21 @@ export default function LearnScreen() {
   };
 
   const handleExternalLink = () => {
-    console.log('Opening pivotfordancers.com');
+    Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
   };
 
   const handleBackPress = () => {
     router.push('/(tabs)/');
   };
 
-  const scaleValues = videos.map(() => useSharedValue(1));
+  const scaleValue = useSharedValue(1);
 
-  const handlePressIn = (index: number) => {
-    scaleValues[index].value = withTiming(0.95, { duration: 150, easing: Easing.out(Easing.ease) });
+  const handlePressIn = () => {
+    scaleValue.value = withTiming(0.95, { duration: 150, easing: Easing.out(Easing.ease) });
   };
 
-  const handlePressOut = (index: number) => {
-    scaleValues[index].value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
+  const handlePressOut = () => {
+    scaleValue.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
   };
 
   return (
@@ -110,28 +132,57 @@ export default function LearnScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Content */}
         <View style={styles.content}>
+          {/* Category Filter */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryScrollContent}
+            style={styles.categoryScroll}
+          >
+            {videoCategories.map((category) => (
+              <TouchableOpacity
+                key={category.id}
+                onPress={() => setSelectedCategory(category.id)}
+                style={[
+                  styles.categoryButton,
+                  selectedCategory === category.id && styles.categoryButtonActive,
+                  { borderColor: category.color }
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.categoryButtonText,
+                    selectedCategory === category.id && styles.categoryButtonTextActive,
+                    { color: selectedCategory === category.id ? '#E2DED0' : category.color }
+                  ]}
+                >
+                  {category.title}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
           {/* Video List */}
           <View style={styles.videosContainer}>
             {filteredVideos.map((video, index) => {
               const isExpanded = expandedVideo === video.id;
 
               return (
-                <Animated.View
+                <View
                   key={`${video.id}-${index}`}
-                  style={[
-                    styles.videoCard,
-                    useAnimatedStyle(() => ({
-                      transform: [{ scale: scaleValues[index].value }],
-                    })),
-                  ]}
+                  style={styles.videoCard}
                 >
                   <TouchableOpacity
                     onPress={() => handleVideoPress(video.id)}
-                    onPressIn={() => handlePressIn(index)}
-                    onPressOut={() => handlePressOut(index)}
+                    onPressIn={handlePressIn}
+                    onPressOut={handlePressOut}
                     activeOpacity={0.8}
                   >
                     <View style={[styles.videoContentContainer, { backgroundColor: '#F5F5F5' }]}>
@@ -143,7 +194,6 @@ export default function LearnScreen() {
                         </View>
                         <View style={styles.videoInfo}>
                           <Text style={styles.videoTitle}>{video.title}</Text>
-                          <Text style={styles.videoDescription}>{video.description}</Text>
                           <View style={styles.videoMeta}>
                             <View style={styles.videoDurationBadge}>
                               <Text style={styles.videoDurationText}>{video.duration}</Text>
@@ -168,9 +218,13 @@ export default function LearnScreen() {
                       {isExpanded && (
                         <View style={styles.playerContainer}>
                           <YoutubePlayer
-                            height={220}
+                            height={160}
                             play={false}
                             videoId={video.id}
+                            webViewStyle={styles.youtubeWebView}
+                            webViewProps={{
+                              allowsFullscreenVideo: false,
+                            }}
                             onChangeState={(state: any) => {
                               console.log('Video state:', state);
                             }}
@@ -179,7 +233,7 @@ export default function LearnScreen() {
                       )}
                     </View>
                   </TouchableOpacity>
-                </Animated.View>
+                </View>
               );
             })}
           </View>
@@ -189,10 +243,10 @@ export default function LearnScreen() {
             <View style={styles.promotionContent}>
               <Text style={styles.promotionTitle}>Ready for more?</Text>
               <Text style={styles.promotionSubtitle}>
-                Dive deeper with comprehensive courses and resources at pivotfordancers.com
+                Dive deeper with our part self-help book and part action-focused career resource tailored specifically for professional dancers.
               </Text>
               <TouchableOpacity style={styles.promotionButton} onPress={handleExternalLink}>
-                <Text style={styles.promotionButtonText}>Explore Courses</Text>
+                <Text style={styles.promotionButtonText}>Learn More</Text>
                 <ExternalLink size={16} color="#E2DED0" />
               </TouchableOpacity>
             </View>
@@ -204,22 +258,18 @@ export default function LearnScreen() {
               <TouchableOpacity onPress={handleExternalLink}>
                 <Text style={styles.footerLink}>pivotfordancers.com</Text>
               </TouchableOpacity>
-              <Text style={styles.footerSeparator}>|</Text>
-              <TouchableOpacity onPress={handleTermsPress}>
-                <Text style={styles.footerLink}>Terms & Conditions</Text>
-              </TouchableOpacity>
             </View>
             <View style={styles.socialIcons}>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Instagram')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.instagram.com/pivotfordancers')}>
                 <Instagram size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('YouTube')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.youtube.com/@pivotfordancers')}>
                 <Youtube size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Facebook')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.facebook.com/pivotfordancers/')}>
                 <Facebook size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('LinkedIn')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.linkedin.com/company/pivotfordancers/')}>
                 <Linkedin size={24} color="#647C90" />
               </TouchableOpacity>
             </View>
@@ -275,10 +325,35 @@ const styles = StyleSheet.create({
     color: '#E2DED0',
     textAlign: 'center',
   },
+  categoryScroll: {
+    marginBottom: 24,
+  },
+  categoryScrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 30,
+    gap: 12,
+  },
+  categoryButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 2,
+    backgroundColor: '#E2DED0',
+  },
+  categoryButtonActive: {
+    backgroundColor: '#647C90',
+  },
+  categoryButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  categoryButtonTextActive: {
+    color: '#E2DED0',
+  },
   videosContainer: {
     paddingHorizontal: 24,
     paddingBottom: 30,
-    paddingTop: 50,
   },
   videoCard: {
     marginBottom: 24,
@@ -372,10 +447,14 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderRadius: 12,
     overflow: 'hidden',
+    width: '100%',
+  },
+  youtubeWebView: {
+    alignSelf: 'stretch',
   },
   promotionContainer: {
     marginHorizontal: 24,
-    marginBottom: 48,
+    marginBottom: 0,
     borderRadius: 24,
     padding: 40,
     shadowColor: '#000',

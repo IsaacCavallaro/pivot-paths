@@ -1,6 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { ChevronRight, ArrowLeft } from 'lucide-react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
+import { ChevronRight, ArrowLeft, PlusCircle, Smile, Frown, Meh, Laugh, Angry, Heart } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface DreamerResult {
+  type: string;
+  title: string;
+  description: string | React.ReactElement;
+  subtitle: string;
+  color: string;
+}
 
 interface MythPair {
   id: number;
@@ -8,12 +17,30 @@ interface MythPair {
   reality: string;
 }
 
+interface JournalEntry {
+  id: string;
+  pathTag: string;
+  date: string;
+  content: string;
+  mood?: string;
+}
+
 interface MythBusterGameProps {
   onComplete: () => void;
   onBack?: () => void;
 }
 
+const MOOD_OPTIONS = [
+  { id: 'angry', label: 'Angry', icon: Angry, color: '#DC2626' },
+  { id: 'sad', label: 'Sad', icon: Frown, color: '#2563EB' },
+  { id: 'neutral', label: 'Neutral', icon: Meh, color: '#CA8A04' },
+  { id: 'happy', label: 'Happy', icon: Smile, color: '#16A34A' },
+  { id: 'excited', label: 'Excited', icon: Laugh, color: '#7C3AED' },
+  { id: 'loved', label: 'Loved', icon: Heart, color: '#DB2777' },
+];
+
 const mythPairs: MythPair[] = [
+  // ... (myth pairs remain the same)
   {
     id: 1,
     myth: "Dancers shouldn't have a plan B.",
@@ -62,13 +89,42 @@ const mythPairs: MythPair[] = [
 ];
 
 export default function MythBusterGame({ onComplete, onBack }: MythBusterGameProps) {
-  const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1 = game, 2 = reflection
+  const [currentScreen, setCurrentScreen] = useState(-1); // -1 = welcome, 0 = intro, 1 = game, 2 = reflection, 3 = congratulations
+  const [day1SkillsQuizResult, setDay1SkillsQuizResult] = useState<DreamerResult | null>(null);
   const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; pairId: number; type: 'myth' | 'reality' }>>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
   const [currentPairIndex, setCurrentPairIndex] = useState(0);
   const [showMismatch, setShowMismatch] = useState(false);
+  const [journalEntry, setJournalEntry] = useState('');
+  const [morningJournalEntry, setMorningJournalEntry] = useState('');
+  const [endOfDayJournalEntry, setEndOfDayJournalEntry] = useState('');
+  const [selectedMorningMood, setSelectedMorningMood] = useState<string | null>(null);
+  const [selectedEndOfDayMood, setSelectedEndOfDayMood] = useState<string | null>(null);
   const [animatedValues] = useState(() => new Map());
+
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const loadQuizResult = async () => {
+      try {
+        const storedResult = await AsyncStorage.getItem('day1SkillsQuizResult');
+        if (storedResult) {
+          setDay1SkillsQuizResult(JSON.parse(storedResult));
+        }
+      } catch (error) {
+        console.error('Error loading quiz result from AsyncStorage:', error);
+      }
+    };
+    loadQuizResult();
+  }, []);
+
+  // Scroll to top whenever screen changes
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: false });
+    }
+  }, [currentScreen]);
 
   const handleBack = () => {
     onBack?.();
@@ -79,7 +135,9 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
   };
 
   const goBack = () => {
-    if (currentScreen === 1) {
+    if (currentScreen === 0) {
+      setCurrentScreen(-1);
+    } else if (currentScreen === 1) {
       setCurrentScreen(0);
     } else if (currentScreen === 2) {
       // Reset game state when going back from reflection screen
@@ -88,7 +146,9 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
       setCurrentPairIndex(0);
       setShowMismatch(false);
       setCurrentScreen(1);
-    } else if (currentScreen > 1) {
+    } else if (currentScreen === 3) {
+      setCurrentScreen(2);
+    } else if (currentScreen > 3) {
       setCurrentScreen(currentScreen - 1);
     }
   };
@@ -201,7 +261,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
         // Check if game is complete
         if (newMatchedPairs.length === mythPairs.length) {
           setTimeout(() => {
-            setCurrentScreen(2);
+            setCurrentScreen(2); // Go to reflection screen after game completion
           }, 500);
         }
       }, 600);
@@ -230,8 +290,149 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     }
   };
 
-  // Intro Screen
-  if (currentScreen === 0) {
+  // Function to open YouTube Short
+  const openYouTubeShort = async () => {
+    const youtubeUrl = `https://www.youtube.com/shorts/8DwWYZHsUHw`;
+
+    try {
+      const supported = await Linking.canOpenURL(youtubeUrl);
+
+      if (supported) {
+        await Linking.openURL(youtubeUrl);
+      } else {
+        console.log("YouTube app not available");
+      }
+    } catch (error) {
+      console.log("Error opening YouTube:", error);
+    }
+  };
+
+  // Add Morning Journal Entry Function
+  const addMorningJournalEntry = async () => {
+    const trimmed = morningJournalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        pathTag: 'discover-dream-life', // Add this line
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        content: trimmed,
+        mood: selectedMorningMood,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setMorningJournalEntry('');
+      setSelectedMorningMood(null);
+      Alert.alert('Success', 'Morning journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
+  // Add End of Day Journal Entry Function
+  const addEndOfDayJournalEntry = async () => {
+    const trimmed = endOfDayJournalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        pathTag: 'discover-dream-life', // Add this line
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        content: trimmed,
+        mood: selectedEndOfDayMood,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setEndOfDayJournalEntry('');
+      setSelectedEndOfDayMood(null);
+      Alert.alert('Success', 'End of day journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
+  // Add Journal Entry Function (for reflection screen)
+  const addJournalEntry = async () => {
+    const trimmed = journalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        pathTag: 'discover-dream-life', // Add this line
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        content: trimmed,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setJournalEntry('');
+      Alert.alert('Success', 'Journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
+  // Welcome Screen with Morning Journal Section
+  if (currentScreen === -1) {
     return (
       <View style={styles.container}>
         {/* Sticky Header */}
@@ -244,7 +445,178 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollViewContent}
+        >
+          <View style={styles.content}>
+            <View style={styles.welcomeCard}>
+              <View style={styles.welcomeIconContainer}>
+                <View style={[styles.welcomeIconGradient, { backgroundColor: '#928490' }]}>
+                  <Image
+                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                    style={styles.heroImage}
+                  />
+                </View>
+              </View>
+
+              {day1SkillsQuizResult ? (
+                <>
+                  <Text style={styles.welcomeTitle}>Welcome Back!</Text>
+                  <Text style={styles.welcomeDescription}>
+                    Yesterday, you discovered your "Dreamer Type":
+                  </Text>
+                  <View style={[styles.learningBox, { borderColor: day1SkillsQuizResult.color + '20' }]}>
+                    <Text style={[styles.learningBoxTitle, { color: day1SkillsQuizResult.color }]}>
+                      {day1SkillsQuizResult.title}
+                    </Text>
+                    <Text style={styles.learningBoxItem}>
+                      {day1SkillsQuizResult.description}
+                    </Text>
+                    <Text style={[styles.welcomeFooter, { color: day1SkillsQuizResult.color }]}>
+                      {day1SkillsQuizResult.subtitle}
+                    </Text>
+                  </View>
+                  <Text style={styles.welcomeDescription}>
+                    Today, we're diving into the myths that shape our thinking in the dance industry.
+                  </Text>
+                  <Text style={styles.welcomeDescription}>
+                    Many dancers carry beliefs that may actually be holding them back from building sustainable, fulfilling careers.
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.welcomeTitle}>Welcome Back!</Text>
+                  <Text style={styles.welcomeDescription}>
+                    Today we're diving into the myths that shape our thinking in the dance industry.
+                  </Text>
+                  <Text style={styles.welcomeDescription}>
+                    Many dancers carry beliefs that may actually be holding them back from building sustainable, fulfilling careers.
+                  </Text>
+                </>
+              )}
+
+
+              <View style={styles.learningBox}>
+                <Text style={styles.learningBoxTitle}>What You'll Learn:</Text>
+                <Text style={styles.learningBoxItem}>• Common myths that dancers believe</Text>
+                <Text style={styles.learningBoxItem}>• The reality behind these industry narratives</Text>
+                <Text style={styles.learningBoxItem}>• How these beliefs impact your career decisions</Text>
+              </View>
+
+              <Text style={styles.welcomeFooter}>
+                This interactive quiz will help you identify and challenge the myths you might be holding onto.
+              </Text>
+
+              {/* Morning Journal Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  {/* <Text style={styles.sectionTitle}>Start Your Day</Text> */}
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.journalInstruction}>
+                  Before we begin, let's take a moment to check in with yourself. How are you feeling as you begin this journey?
+                </Text>
+
+                {/* Mood Selection */}
+                <View style={styles.moodSection}>
+                  <Text style={styles.moodLabel}>How are you feeling right now?</Text>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedMorningMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedMorningMood(
+                            selectedMorningMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedMorningMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedMorningMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Journal Input */}
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Add your entry here"
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={morningJournalEntry}
+                    onChangeText={setMorningJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addMorningJournalEntry}
+                  >
+                    <PlusCircle size={20} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Save Morning Entry</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entries safe in your personal journal for you to review later.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={() => setCurrentScreen(0)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Intro Screen
+  if (currentScreen === 0) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollViewContent}
+        >
           <View style={styles.content}>
             <View style={styles.introCard}>
               <View style={styles.introIconContainer}>
@@ -279,7 +651,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     );
   }
 
-  // Reflection Screen
+  // Reflection Screen after Game Completion
   if (currentScreen === 2) {
     return (
       <View style={styles.container}>
@@ -293,7 +665,105 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollViewContent}
+        >
+          <View style={styles.content}>
+            <View style={styles.reflectionCard}>
+              <View style={styles.reflectionIconContainer}>
+                <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
+                  <Image
+                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                    style={styles.heroImage}
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.reflectionTitle}>Time for Reflection</Text>
+
+              <Text style={styles.reflectionText}>
+                Which myth are you not convinced is actually a myth?{"\n"}
+                <Text style={styles.reflectionEmphasis}>(No judgement - this is why we do this)</Text>
+              </Text>
+
+              <Text style={styles.reflectionText}>
+                Take a moment to reflect on the myths you encountered. Which one still feels true to you, even after seeing the reality?
+              </Text>
+
+              {/* Journal Entry Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Journal Your Thoughts</Text>
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.journalPrompt}>
+                  Which myth are you still holding onto? Why does it feel true to you?
+                </Text>
+
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="I'm still not convinced that... because..."
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={journalEntry}
+                    onChangeText={setJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addJournalEntry}
+                  >
+                    <PlusCircle size={24} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Add to Journal</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entries safe in your personal journal which you can view at the end of today's progress.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={() => setCurrentScreen(3)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                  <ChevronRight size={16} color="#E2DED0" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Congratulations Screen with End of Day Journal Section
+  if (currentScreen === 3) {
+    return (
+      <View style={styles.container}>
+        {/* Sticky Header */}
+        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <ArrowLeft size={28} color="#E2DED0" />
+            </TouchableOpacity>
+            <View style={styles.backButton} />
+          </View>
+        </View>
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollViewContent}
+        >
           <View style={styles.content}>
             <View style={styles.reflectionCard}>
               <View style={styles.reflectionIconContainer}>
@@ -316,11 +786,99 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               </Text>
 
               <Text style={styles.reflectionText}>
-                In fact, these myths usually keep us stuck in a cycle where we’re more susceptible to manipulation and exploitation. Do you agree?
+                Take a detour and check out the myths our founder had to unlearn. But don't forget to come back to add your journal entry and mark this day as complete!
               </Text>
 
+              {/* Added YouTube Short Thumbnail */}
+              <TouchableOpacity
+                style={styles.videoThumbnailContainer}
+                onPress={openYouTubeShort}
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={{ uri: 'https://img.youtube.com/vi/8DwWYZHsUHw/maxresdefault.jpg' }}
+                  style={styles.videoThumbnail}
+                  resizeMode="cover"
+                />
+                <View style={styles.playButtonOverlay}>
+                  <View style={styles.playButton}>
+                    <Text style={styles.playIcon}>▶</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              {/* End of Day Journal Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  {/* <Text style={styles.sectionTitle}>End of Day Reflection</Text> */}
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.journalInstruction}>
+                  Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?
+                </Text>
+
+                {/* Mood Selection */}
+                <View style={styles.moodSection}>
+                  <Text style={styles.moodLabel}>How are you feeling now?</Text>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedEndOfDayMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedEndOfDayMood(
+                            selectedEndOfDayMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedEndOfDayMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedEndOfDayMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Journal Input */}
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Add entry here"
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={endOfDayJournalEntry}
+                    onChangeText={setEndOfDayJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addEndOfDayJournalEntry}
+                  >
+                    <PlusCircle size={20} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Save End of Day Entry</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entries safe in your personal journal for you to review later.
+                </Text>
+              </View>
+
               <Text style={styles.reflectionClosing}>
-                We'll check back in tomorrow.
+                See you tomorrow.
               </Text>
 
               <TouchableOpacity
@@ -361,7 +919,12 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollViewContent}
+      >
         <View style={styles.content}>
           <View style={styles.gameCard}>
             <Text style={styles.gameTitle}>Myth Buster</Text>
@@ -442,6 +1005,9 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 100,
   },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
   content: {
     paddingBottom: 30,
   },
@@ -482,6 +1048,201 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2DED0',
     borderRadius: 3,
   },
+  // Welcome Screen Styles
+  welcomeCard: {
+    marginHorizontal: 24,
+    marginTop: 50,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  welcomeIconContainer: {
+    marginBottom: 24,
+  },
+  welcomeIconGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  welcomeTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 32,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '700',
+  },
+  welcomeDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  learningBox: {
+    width: '100%',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  learningBoxTitle: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  learningBoxItem: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#4E4F50',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  welcomeFooter: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#928490',
+    textAlign: 'center',
+    marginBottom: 30,
+    lineHeight: 22,
+  },
+  continueButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  continueButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2DED0',
+  },
+  continueButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
+  },
+  // New styles for the journal section
+  journalSection: {
+    width: '100%',
+    marginBottom: 24,
+    padding: 20,
+    backgroundColor: 'rgba(146, 132, 144, 0.08)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  journalInstruction: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#647C90',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 16,
+    fontWeight: '500',
+  },
+  moodSection: {
+    marginBottom: 16,
+  },
+  moodLabel: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  moodContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  moodButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    minWidth: 70,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  moodLabelText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 12,
+    color: '#4E4F50',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  journalInputContainer: {
+    marginBottom: 12,
+  },
+  journalTextInput: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.3)',
+  },
+  journalAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  journalAddButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#E2DED0',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  journalNote: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 12,
+    color: '#928490',
+    textAlign: 'center',
+    lineHeight: 18,
+    fontStyle: 'italic',
+  },
+  // Existing Intro Screen Styles
   introCard: {
     marginHorizontal: 24,
     marginTop: 50,
@@ -673,6 +1434,10 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 20,
   },
+  reflectionEmphasis: {
+    fontStyle: 'italic',
+    color: '#928490',
+  },
   reflectionClosing: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 18,
@@ -708,5 +1473,83 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderColor: '#647C90',
     borderWidth: 2,
+  },
+  // YouTube Thumbnail Styles
+  videoThumbnailContainer: {
+    width: '100%',
+    marginBottom: 25,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+    position: 'relative',
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+  },
+  playButtonOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  playButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF0000', // YouTube red
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  playIcon: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 4, // Slight offset to center the play icon
+  },
+  // Journal Section Styles
+  sectionHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 22,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  sectionDivider: {
+    width: 60,
+    height: 3,
+    backgroundColor: '#928490',
+    borderRadius: 2,
+  },
+  journalPrompt: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+    fontWeight: '500',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    padding: 16,
+    borderRadius: 12,
   },
 });

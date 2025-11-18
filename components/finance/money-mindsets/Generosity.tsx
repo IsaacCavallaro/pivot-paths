@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { ChevronRight, Heart, Gift, ArrowLeft, ChevronLeft } from 'lucide-react-native';
 
 interface GenerosityProps {
@@ -112,27 +111,12 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
 
     const scenarioData = getScenarioData();
 
-    const getHeaderColor = () => {
-        switch (currentScreen) {
-            case 0:
-            case 1:
-            case 2:
-            case 5:
-                return '#928490';
-            case 3:
-            case 4:
-                return '#647C90';
-            default:
-                return '#928490';
-        }
-    };
-
     // Intro Screen
     if (currentScreen === 0) {
         return (
             <View style={styles.container}>
                 {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
                         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
@@ -145,9 +129,10 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                     <View style={styles.content}>
                         <View style={styles.introCard}>
                             <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Heart size={32} color="#E2DED0" />
-                                </View>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.introTitle}>How Money Creates Generosity</Text>
@@ -178,7 +163,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
         return (
             <View style={styles.container}>
                 {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
@@ -218,7 +203,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
         return (
             <View style={styles.container}>
                 {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
@@ -258,7 +243,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
         return (
             <View style={styles.container}>
                 {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
@@ -298,7 +283,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
         return (
             <View style={styles.container}>
                 {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
@@ -311,7 +296,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                     <View style={styles.content}>
                         <View style={styles.alternativeCard}>
                             <View style={styles.alternativeIconContainer}>
-                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#5A7D7B' }]}>
+                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
                                     <Gift size={32} color="#E2DED0" />
                                 </View>
                             </View>
@@ -348,7 +333,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
         return (
             <View style={styles.container}>
                 {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
+                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
                     <View style={styles.headerRow}>
                         <TouchableOpacity style={styles.backButton} onPress={goBack}>
                             <ArrowLeft size={28} color="#E2DED0" />
@@ -361,9 +346,10 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                     <View style={styles.content}>
                         <View style={styles.alternativeCard}>
                             <View style={styles.alternativeIconContainer}>
-                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#5A7D7B' }]}>
-                                    <Heart size={32} color="#E2DED0" />
-                                </View>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={styles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.alternativeTitle}>Money isn't holding you back.</Text>
@@ -595,7 +581,7 @@ const styles = StyleSheet.create({
     },
     responseCard: {
         marginHorizontal: 24,
-        marginTop: 50,
+        marginTop: 100,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
@@ -693,5 +679,12 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         marginRight: 8,
         fontWeight: '600',
+    },
+    heroImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderColor: '#647C90',
+        borderWidth: 2,
     },
 });

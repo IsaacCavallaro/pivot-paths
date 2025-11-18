@@ -1,5 +1,7 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Linking } from 'react-native';
+import { useRef, useCallback } from 'react';
 import { useRouter } from 'expo-router';
+import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import { ChevronRight, Play, BookOpen, Instagram, Youtube, Facebook, Linkedin } from 'lucide-react-native';
 import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
@@ -8,16 +10,30 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const router = useRouter();
 
+  // Add this scroll ref for tab navigation
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
+  // Add this to scroll to top when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Scroll to top when screen is focused
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ y: 0, animated: false });
+      }
+    }, [])
+  );
+
   const handleExternalLink = () => {
-    console.log('Opening pivotfordancers.com');
+    Linking.openURL('https://pivotfordancers.com/services/mentorship/');
   };
 
-  const handleTermsPress = () => {
-    console.log('Opening terms & conditions');
+  const handleWebsiteLink = () => {
+    Linking.openURL('https://pivotfordancers.com/');
   };
 
-  const handleSocialPress = (platform: string) => {
-    console.log(`Opening ${platform}`);
+  const handleSocialPress = (url: string) => {
+    Linking.openURL(url);
   };
 
   const handleGuidedPathsPress = () => {
@@ -56,7 +72,11 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={scrollRef}  // Add this ref
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={[styles.heroSection, { backgroundColor: '#647C90' }]}>
         <View style={styles.heroContent}>
           <Image
@@ -112,12 +132,12 @@ export default function HomeScreen() {
 
       <View style={[styles.ctaSection, { backgroundColor: '#647C90' }]}>
         <View style={styles.ctaContent}>
-          <Text style={styles.ctaTitle}>Join Our Community</Text>
+          <Text style={styles.ctaTitle}>Want Personalized Support?</Text>
           <Text style={styles.ctaSubtitle}>
-            Join thousands of dancers who have successfully transitioned to fulfilling careers
+            Our mentorship program provides personalized guidance from experienced former professional dancers who understand your unique journey.
           </Text>
           <TouchableOpacity style={styles.ctaButton} onPress={handleExternalLink}>
-            <Text style={styles.ctaButtonText}>Join Us</Text>
+            <Text style={styles.ctaButtonText}>Get Started</Text>
             <ChevronRight size={16} color="#E2DED0" />
           </TouchableOpacity>
         </View>
@@ -125,25 +145,21 @@ export default function HomeScreen() {
 
       <View style={styles.footer}>
         <View style={styles.footerLinks}>
-          <TouchableOpacity onPress={handleExternalLink}>
+          <TouchableOpacity onPress={handleWebsiteLink}>
             <Text style={styles.footerLink}>pivotfordancers.com</Text>
-          </TouchableOpacity>
-          <Text style={styles.footerSeparator}>|</Text>
-          <TouchableOpacity onPress={handleTermsPress}>
-            <Text style={styles.footerLink}>Terms & Conditions</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.socialIcons}>
-          <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Instagram')}>
+          <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.instagram.com/pivotfordancers')}>
             <Instagram size={24} color="#647C90" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('YouTube')}>
+          <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.youtube.com/@pivotfordancers')}>
             <Youtube size={24} color="#647C90" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Facebook')}>
+          <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.facebook.com/pivotfordancers/')}>
             <Facebook size={24} color="#647C90" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('LinkedIn')}>
+          <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.linkedin.com/company/pivotfordancers/')}>
             <Linkedin size={24} color="#647C90" />
           </TouchableOpacity>
         </View>
@@ -270,7 +286,7 @@ const styles = StyleSheet.create({
   },
   ctaSection: {
     marginHorizontal: 24,
-    marginBottom: 48,
+    marginBottom: 0,
     borderRadius: 24,
     padding: 40,
     shadowColor: '#000',

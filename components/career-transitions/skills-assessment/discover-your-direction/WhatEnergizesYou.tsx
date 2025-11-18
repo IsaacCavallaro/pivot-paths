@@ -413,7 +413,7 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                             <Text style={styles.introTitle}>What Energizes You?</Text>
 
                             <Text style={styles.introDescription}>
-                                Some work drains you. Other work *fuels* you. This quiz helps you spot the tasks, environments, and wins that give you real energy, so you can steer your career in that direction.
+                                Some work drains you. Other work fuels you. This quiz helps you spot the tasks, environments, and wins that give you real energy, so you can steer your career in that direction.
                             </Text>
 
                             <TouchableOpacity
@@ -460,7 +460,7 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                             <Text style={styles.finalTitle}>Your energy is a compass.</Text>
 
                             <Text style={styles.finalDescription}>
-                                When you follow it, you'll find careers that don't just work for you, they *work with you*.
+                                When you follow it, you'll find careers that don't just work for you, they work with you.
                             </Text>
 
                             <Text style={styles.finalClosing}>

@@ -1,12 +1,10 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Dimensions } from 'react-native';
-import { useEffect, useState } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
+
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Dimensions, Linking } from 'react-native';
+import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Trophy, Heart, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Target } from 'lucide-react-native';
-import { Image } from 'react-native';
+import { Trophy, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Map, ChevronRight, Target } from 'lucide-react-native';
 import { categories } from '@/data/categories';
 
 const { width } = Dimensions.get('window');
@@ -16,9 +14,18 @@ export default function ProfileScreen() {
   const [progress, setProgress] = useState<{ [key: string]: number }>({});
   const [showResetModal, setShowResetModal] = useState(false);
 
+  // Add this scroll ref for tab navigation
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
   useFocusEffect(
     useCallback(() => {
       loadProgress();
+
+      // Scroll to top when screen is focused
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ y: 0, animated: false });
+      }
     }, [])
   );
 
@@ -37,6 +44,14 @@ export default function ProfileScreen() {
 
   const resetProgress = async () => {
     setShowResetModal(true);
+  };
+
+  const handleExternalLink = () => {
+    Linking.openURL('https://pivotfordancers.com/');
+  };
+
+  const handleOpenMentorship = () => {
+    Linking.openURL('https://pivotfordancers.com/services/mentorship/');
   };
 
   const confirmReset = async () => {
@@ -130,8 +145,13 @@ export default function ProfileScreen() {
     router.push('/(tabs)/');
   };
 
-  const handleSocialPress = (platform: string) => {
-    console.log(`Opening ${platform}`);
+  const handleSocialPress = (url: string) => {
+    Linking.openURL(url);
+  };
+
+  // Add this function to handle path navigation
+  const handlePathPress = (categoryId: string, pathId: string) => {
+    router.push(`/paths/${categoryId}/${pathId}`);
   };
 
   return (
@@ -149,47 +169,57 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}  // Add this ref
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.content}>
           {/* Paths in Progress */}
           {getInProgressPaths().length > 0 && (
             <View style={styles.pathsProgressContainer}>
               <Text style={styles.sectionTitle}>Paths in Progress</Text>
               {getInProgressPaths().map((pathData) => (
-                <View key={`${pathData.categoryId}_${pathData.pathId}`} style={styles.pathProgressCard}>
-                  <View style={[styles.pathProgressContent, { backgroundColor: '#F5F5F5' }]}>
-                    <View style={styles.pathProgressHeader}>
-                      <View style={styles.pathIconContainer}>
-                        <View style={[styles.pathIconGradient, { backgroundColor: pathData.categoryColor }]}>
-                          <Text style={styles.pathProgressIconText}>
-                            {categories.find(c => c.id === pathData.categoryId)?.icon}
-                          </Text>
+                <TouchableOpacity
+                  key={`${pathData.categoryId}_${pathData.pathId}`}
+                  onPress={() => handlePathPress(pathData.categoryId, pathData.pathId)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.pathProgressCard}>
+                    <View style={[styles.pathProgressContent, { backgroundColor: '#F5F5F5' }]}>
+                      <View style={styles.pathProgressHeader}>
+                        <View style={styles.pathIconContainer}>
+                          <View style={[styles.pathIconGradient, { backgroundColor: pathData.categoryColor }]}>
+                            <Text style={styles.pathProgressIconText}>
+                              {categories.find(c => c.id === pathData.categoryId)?.icon}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.pathProgressInfo}>
+                          <Text style={styles.pathProgressTitle}>{pathData.pathTitle}</Text>
+                          <Text style={styles.pathProgressSubtitle}>{pathData.pathSubtitle}</Text>
+                          <Text style={styles.pathProgressCategory}>{pathData.categoryTitle}</Text>
+                        </View>
+                        <View style={styles.pathProgressStats}>
+                          <Text style={styles.pathProgressPercentage}>{pathData.percentage}%</Text>
                         </View>
                       </View>
-                      <View style={styles.pathProgressInfo}>
-                        <Text style={styles.pathProgressTitle}>{pathData.pathTitle}</Text>
-                        <Text style={styles.pathProgressSubtitle}>{pathData.pathSubtitle}</Text>
-                        <Text style={styles.pathProgressCategory}>{pathData.categoryTitle}</Text>
+                      <View style={styles.pathProgressBarContainer}>
+                        <View style={styles.pathProgressBar}>
+                          <View
+                            style={[
+                              styles.pathProgressFill,
+                              { width: `${pathData.percentage}%`, backgroundColor: pathData.categoryColor }
+                            ]}
+                          />
+                        </View>
+                        <Text style={styles.pathProgressDays}>
+                          {pathData.completed}/{pathData.total} days
+                        </Text>
                       </View>
-                      <View style={styles.pathProgressStats}>
-                        <Text style={styles.pathProgressPercentage}>{pathData.percentage}%</Text>
-                      </View>
-                    </View>
-                    <View style={styles.pathProgressBarContainer}>
-                      <View style={styles.pathProgressBar}>
-                        <View
-                          style={[
-                            styles.pathProgressFill,
-                            { width: `${pathData.percentage}%`, backgroundColor: pathData.categoryColor }
-                          ]}
-                        />
-                      </View>
-                      <Text style={styles.pathProgressDays}>
-                        {pathData.completed}/{pathData.total} days
-                      </Text>
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           )}
@@ -232,7 +262,7 @@ export default function ProfileScreen() {
             <View style={styles.emptyStateContainer}>
               <View style={[styles.emptyStateCard, { backgroundColor: '#F5F5F5' }]}>
                 <View style={styles.emptyStateIcon}>
-                  <Target size={48} color="#647C90" />
+                  <Map size={48} color="#647C90" />
                 </View>
                 <Text style={styles.emptyStateTitle}>Your Journey Awaits</Text>
                 <Text style={styles.emptyStateText}>
@@ -253,6 +283,7 @@ export default function ProfileScreen() {
 
           {/* Achievements */}
           <View style={styles.achievementsContainer}>
+            <Text style={styles.sectionTitle}>Achievements</Text>
             <View style={styles.achievementsList}>
               {getTotalDaysCompleted() >= 1 ? (
                 <>
@@ -344,6 +375,20 @@ export default function ProfileScreen() {
             </View>
           </View>
 
+          {/* Mentorship CTA */}
+          <View style={styles.mentorshipCard}>
+            <Text style={styles.mentorshipTitle}>Want more Support?</Text>
+            <Text style={styles.mentorshipDescription}>
+              Our mentorship program provides personalized guidance from experienced former professional dancers who understand your unique journey.
+            </Text>
+            <TouchableOpacity style={styles.mentorshipButton} onPress={handleOpenMentorship}>
+              <View style={[styles.mentorshipButtonContent, { backgroundColor: '#647C90' }]}>
+                <Text style={styles.mentorshipButtonText}>Learn More</Text>
+                <ChevronRight size={16} color="#E2DED0" />
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Reset Progress Button */}
           <TouchableOpacity
             style={[styles.resetButton, { backgroundColor: '#F5F5F5' }]}
@@ -356,25 +401,21 @@ export default function ProfileScreen() {
           {/* Footer */}
           <View style={styles.footer}>
             <View style={styles.footerLinks}>
-              <TouchableOpacity onPress={() => console.log('Opening pivotfordancers.com')}>
+              <TouchableOpacity onPress={handleExternalLink}>
                 <Text style={styles.footerLink}>pivotfordancers.com</Text>
-              </TouchableOpacity>
-              <Text style={styles.footerSeparator}>|</Text>
-              <TouchableOpacity onPress={() => console.log('Opening terms & conditions')}>
-                <Text style={styles.footerLink}>Terms & Conditions</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.socialIcons}>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Instagram')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.instagram.com/pivotfordancers')}>
                 <Instagram size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('YouTube')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.youtube.com/@pivotfordancers')}>
                 <Youtube size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('Facebook')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.facebook.com/pivotfordancers/')}>
                 <Facebook size={24} color="#647C90" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('LinkedIn')}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => handleSocialPress('https://www.linkedin.com/company/pivotfordancers/')}>
                 <Linkedin size={24} color="#647C90" />
               </TouchableOpacity>
             </View>
@@ -502,6 +543,7 @@ const styles = StyleSheet.create({
     color: '#647C90',
     marginBottom: 20,
     fontWeight: '700',
+    textAlign: 'center', // Add this line to center the titles
   },
   pathProgressCard: {
     marginBottom: 24,
@@ -784,7 +826,7 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     marginHorizontal: 24,
-    marginBottom: 48,
+    marginBottom: 0,
     borderRadius: 24,
     padding: 20,
     alignItems: 'center',
@@ -901,5 +943,53 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     backgroundColor: 'rgba(146, 132, 144, 0.1)',
+  },
+  // New styles for the mentorship card
+  mentorshipCard: {
+    backgroundColor: 'rgba(100, 124, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 32,
+    borderLeftWidth: 4,
+    borderLeftColor: '#647C90',
+    marginRight: 24,
+    marginLeft: 24,
+  },
+  mentorshipTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  mentorshipDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 14,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  mentorshipButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  mentorshipButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#647C90',
+  },
+  mentorshipButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#E2DED0',
+    marginRight: 8,
+    fontWeight: '600',
   },
 });
