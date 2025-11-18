@@ -21,9 +21,10 @@ import {
     Sparkles,
     BarChart3,
     Download,
-    Share2
+    Share2,
+    ChevronRight
 } from 'lucide-react-native';
-import { PieChart, BarChart } from 'react-native-svg-charts';
+import { PieChart } from 'react-native-svg-charts';
 
 interface JournalEntry {
     id: string;
@@ -38,7 +39,49 @@ interface MoodStats {
     [key: string]: number;
 }
 
+interface CompletedPath {
+    categoryId: string;
+    pathId: string;
+    pathName: string;
+    completedDays: number;
+    totalDays: number;
+    completionDate: number;
+}
+
 const screenWidth = Dimensions.get('window').width;
+
+// Helper functions moved outside to avoid initialization issues
+const formatPathTag = (pathTag: string): string => {
+    if (!pathTag) return 'General';
+    return pathTag
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+};
+
+const getMoodEmoji = (mood: string): string => {
+    const emojiMap: { [key: string]: string } = {
+        angry: '😠',
+        sad: '😢',
+        neutral: '😐',
+        happy: '😊',
+        excited: '😄',
+        loved: '❤️'
+    };
+    return emojiMap[mood] || '😐';
+};
+
+const getMoodColor = (mood: string): string => {
+    const colorMap: { [key: string]: string } = {
+        angry: '#DC2626',
+        sad: '#2563EB',
+        neutral: '#CA8A04',
+        happy: '#16A34A',
+        excited: '#7C3AED',
+        loved: '#DB2777'
+    };
+    return colorMap[mood] || '#928490';
+};
 
 export default function ReportsScreen() {
     const router = useRouter();
@@ -47,12 +90,21 @@ export default function ReportsScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [completedDays, setCompletedDays] = useState(0);
+    const [completedPaths, setCompletedPaths] = useState<CompletedPath[]>([]);
+    const [selectedPath, setSelectedPath] = useState<CompletedPath | null>(null);
 
     useFocusEffect(
         useCallback(() => {
             loadReportData();
         }, [])
     );
+
+    const formatPathIdToName = (pathId: string): string => {
+        return pathId
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
 
     const loadReportData = async () => {
         try {
@@ -70,12 +122,29 @@ export default function ReportsScreen() {
             const pathCompleted = currentCompletedDays >= 7;
             setIsPathCompleted(pathCompleted);
 
-            if (pathCompleted) {
-                const raw = await AsyncStorage.getItem('journalEntries');
-                if (raw) {
-                    const parsedEntries = JSON.parse(raw);
-                    setJournalEntries(parsedEntries);
+            // Load all completed paths
+            const completedPathsList: CompletedPath[] = [];
+            Object.entries(progressData).forEach(([key, days]) => {
+                const [catId, pathId] = key.split('_');
+                const totalDays = 7; // Assuming all paths have 7 days for now
+                if (days >= totalDays) {
+                    completedPathsList.push({
+                        categoryId: catId,
+                        pathId: pathId,
+                        pathName: formatPathIdToName(pathId),
+                        completedDays: days,
+                        totalDays,
+                        completionDate: Date.now() // You might want to store actual completion date
+                    });
                 }
+            });
+            setCompletedPaths(completedPathsList);
+
+            // Load journal entries
+            const raw = await AsyncStorage.getItem('journalEntries');
+            if (raw) {
+                const parsedEntries = JSON.parse(raw);
+                setJournalEntries(parsedEntries);
             }
 
             setLoading(false);
@@ -92,12 +161,42 @@ export default function ReportsScreen() {
     }, []);
 
     const handleBackPress = () => {
-        router.push('/(tabs)');
+        if (selectedPath) {
+            setSelectedPath(null);
+        } else {
+            router.push('/(tabs)');
+        }
     };
+
+    const handlePathSelect = (path: CompletedPath) => {
+        setSelectedPath(path);
+    };
+
+    // Filter journal entries for the selected path - UPDATED
+    const getFilteredJournalEntries = useMemo(() => {
+        if (!selectedPath) return [];
+
+        // Normalize path IDs for comparison
+        const selectedPathId = selectedPath.pathId.toLowerCase();
+        const formattedSelectedPath = formatPathTag(selectedPath.pathId).toLowerCase();
+
+        return journalEntries.filter(entry => {
+            if (!entry.pathTag) return false;
+
+            const entryPathTag = entry.pathTag.toLowerCase();
+
+            // Match exact path ID or formatted path name
+            return entryPathTag === selectedPathId ||
+                entryPathTag === formattedSelectedPath ||
+                entryPathTag.includes(selectedPathId) ||
+                selectedPathId.includes(entryPathTag);
+        });
+    }, [journalEntries, selectedPath]);
 
     const getMoodStats = (): MoodStats => {
         const stats: MoodStats = {};
-        journalEntries.forEach(entry => {
+        const entries = getFilteredJournalEntries;
+        entries.forEach(entry => {
             if (entry.mood) {
                 stats[entry.mood] = (stats[entry.mood] || 0) + 1;
             }
@@ -122,74 +221,35 @@ export default function ReportsScreen() {
 
     const getEntriesByPath = () => {
         const byPath: { [key: string]: JournalEntry[] } = {};
-        journalEntries.forEach(entry => {
-            const path = entry.pathTag || 'general';
-            if (!byPath[path]) {
-                byPath[path] = [];
-            }
-            byPath[path].push(entry);
-        });
+        const entries = getFilteredJournalEntries;
+
+        // For selected path reports, we only show entries from that specific path
+        if (selectedPath) {
+            byPath[selectedPath.pathName] = entries;
+        } else {
+            // Fallback: group by path tag if no specific path selected
+            entries.forEach(entry => {
+                const path = entry.pathTag || 'general';
+                if (!byPath[path]) {
+                    byPath[path] = [];
+                }
+                byPath[path].push(entry);
+            });
+        }
         return byPath;
     };
 
-    const formatPathTag = (pathTag: string): string => {
-        if (!pathTag) return 'General';
-        return pathTag
-            .split('-')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    };
-
-    const getMoodEmoji = (mood: string): string => {
-        const emojiMap: { [key: string]: string } = {
-            angry: '😠',
-            sad: '😢',
-            neutral: '😐',
-            happy: '😊',
-            excited: '😄',
-            loved: '❤️'
-        };
-        return emojiMap[mood] || '😐';
-    };
-
-    const getMoodColor = (mood: string): string => {
-        const colorMap: { [key: string]: string } = {
-            angry: '#DC2626',
-            sad: '#2563EB',
-            neutral: '#CA8A04',
-            happy: '#16A34A',
-            excited: '#7C3AED',
-            loved: '#DB2777'
-        };
-        return colorMap[mood] || '#928490';
-    };
-
     const getInsights = () => {
-        const totalEntries = journalEntries.length;
+        const entries = getFilteredJournalEntries;
+        const totalEntries = entries.length;
         const moodStats = getMoodStats();
         const mostCommonMood = getMostCommonMood();
         const entriesByPath = getEntriesByPath();
         const pathCount = Object.keys(entriesByPath).length;
 
-        const entryLengths = journalEntries.map(entry => entry.content.length);
+        const entryLengths = entries.map(entry => entry.content.length);
         const avgLength = entryLengths.length > 0 ?
             Math.round(entryLengths.reduce((a, b) => a + b, 0) / entryLengths.length) : 0;
-
-        const timeOfDay = journalEntries.map(entry => {
-            const hour = new Date(entry.timestamp).getHours();
-            if (hour < 6) return 'Night';
-            if (hour < 12) return 'Morning';
-            if (hour < 18) return 'Afternoon';
-            return 'Evening';
-        });
-
-        const timeStats = timeOfDay.reduce((acc, time) => {
-            acc[time] = (acc[time] || 0) + 1;
-            return acc;
-        }, {} as { [key: string]: number });
-
-        const favoriteTime = Object.keys(timeStats).length > 0 ?
-            Object.keys(timeStats).reduce((a, b) => timeStats[a] > timeStats[b] ? a : b) : 'Evening';
 
         return {
             totalEntries,
@@ -198,12 +258,10 @@ export default function ReportsScreen() {
             entriesByPath,
             pathCount,
             avgLength,
-            timeStats,
-            favoriteTime
         };
     };
 
-    const insights = useMemo(() => getInsights(), [journalEntries]);
+    const insights = useMemo(() => getInsights(), [getFilteredJournalEntries]);
 
     // Data for react-native-svg-charts
     const getMoodPieData = () => {
@@ -216,26 +274,16 @@ export default function ReportsScreen() {
         }));
     };
 
-    const getTimeBarData = () => {
-        const times = ['Morning', 'Afternoon', 'Evening', 'Night'];
-        return times.map(time => ({
-            value: insights.timeStats[time] || 0,
-            svg: { fill: '#647C90' },
-            key: `bar-${time}`
-        }));
-    };
-
     const exportReport = async () => {
         try {
             const reportText = `
-Your Journal Insights Report
+Your Journal Insights Report - ${selectedPath?.pathName || 'All Journeys'}
 ============================
 
 Total Entries: ${insights.totalEntries}
 Categories: ${insights.pathCount}
 Most Common Mood: ${insights.mostCommonMood}
 Average Entry Length: ${insights.avgLength} characters
-Favorite Writing Time: ${insights.favoriteTime}
 
 Mood Distribution:
 ${Object.entries(insights.moodStats)
@@ -252,7 +300,7 @@ Keep up the great work on your journaling journey! 📝✨
 
             await Share.share({
                 message: reportText,
-                title: 'My Journal Insights Report'
+                title: `My ${selectedPath?.pathName || 'Journal'} Insights Report`
             });
         } catch (error) {
             Alert.alert('Error', 'Failed to export report');
@@ -268,7 +316,9 @@ Keep up the great work on your journaling journey! 📝✨
                             <ArrowLeft size={28} color="#E2DED0" />
                         </TouchableOpacity>
                         <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Reports</Text>
+                            <Text style={styles.titleText}>
+                                {selectedPath ? selectedPath.pathName : 'Reports'}
+                            </Text>
                         </View>
                         <View style={styles.backButtonPlaceholder} />
                     </View>
@@ -280,7 +330,7 @@ Keep up the great work on your journaling journey! 📝✨
         );
     }
 
-    if (!isPathCompleted) {
+    if (!isPathCompleted && completedPaths.length === 0) {
         return (
             <View style={styles.container}>
                 <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
@@ -318,6 +368,151 @@ Keep up the great work on your journaling journey! 📝✨
         );
     }
 
+    // Show detailed report when a path is selected
+    if (selectedPath) {
+        return (
+            <View style={styles.container}>
+                <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+                            <ArrowLeft size={28} color="#E2DED0" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTitleContainer}>
+                            <Text style={styles.titleText}>{selectedPath.pathName}</Text>
+                        </View>
+                        <TouchableOpacity style={styles.exportButton} onPress={exportReport}>
+                            <Share2 size={20} color="#E2DED0" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                <ScrollView
+                    style={styles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={['#647C90']}
+                        />
+                    }
+                >
+                    <View style={styles.content}>
+
+                        {/* Mood Analysis */}
+                        {Object.keys(insights.moodStats).length > 0 && (
+                            <View style={styles.card}>
+                                <View style={styles.cardHeader}>
+                                    <Heart size={24} color="#647C90" />
+                                    <Text style={styles.cardTitle}>Mood Analysis</Text>
+                                </View>
+
+                                {/* Mood Distribution Pie Chart */}
+                                {getMoodPieData().length > 0 && (
+                                    <View style={styles.chartContainer}>
+                                        <Text style={styles.chartTitle}>Mood Distribution</Text>
+                                        <View style={styles.pieChartWrapper}>
+                                            <PieChart
+                                                style={{ height: 200, width: 200 }}
+                                                data={getMoodPieData()}
+                                                innerRadius={'40%'}
+                                                padAngle={0.02}
+                                            />
+                                            <View style={styles.pieChartCenter}>
+                                                <Text style={styles.pieChartCenterText}>
+                                                    {insights.totalEntries}
+                                                </Text>
+                                                <Text style={styles.pieChartCenterLabel}>Total</Text>
+                                            </View>
+                                        </View>
+                                        <View style={styles.pieLegend}>
+                                            {Object.entries(insights.moodStats).map(([mood, count]) => (
+                                                <View key={mood} style={styles.legendItem}>
+                                                    <View
+                                                        style={[
+                                                            styles.legendColor,
+                                                            { backgroundColor: getMoodColor(mood) }
+                                                        ]}
+                                                    />
+                                                    <Text style={styles.legendText}>
+                                                        {mood.charAt(0).toUpperCase() + mood.slice(1)} ({count})
+                                                    </Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                )}
+
+                                {/* Detailed Mood Stats */}
+                                <View style={styles.moodContainer}>
+                                    <Text style={styles.dominantMood}>
+                                        Most Common Mood: {getMoodEmoji(insights.mostCommonMood)} {insights.mostCommonMood.charAt(0).toUpperCase() + insights.mostCommonMood.slice(1)}
+                                    </Text>
+                                    <View style={styles.moodList}>
+                                        {Object.entries(insights.moodStats)
+                                            .sort((a, b) => b[1] - a[1])
+                                            .map(([mood, count]) => (
+                                                <View key={mood} style={styles.moodItem}>
+                                                    <Text style={styles.moodEmoji}>{getMoodEmoji(mood)}</Text>
+                                                    <Text style={styles.moodName}>
+                                                        {mood.charAt(0).toUpperCase() + mood.slice(1)}
+                                                    </Text>
+                                                    <View style={styles.moodBar}>
+                                                        <View
+                                                            style={[
+                                                                styles.moodBarFill,
+                                                                {
+                                                                    width: `${(count / insights.totalEntries) * 100}%`,
+                                                                    backgroundColor: getMoodColor(mood)
+                                                                }
+                                                            ]}
+                                                        />
+                                                    </View>
+                                                    <Text style={styles.moodCount}>{count}</Text>
+                                                    <Text style={styles.moodPercentage}>
+                                                        {((count / insights.totalEntries) * 100).toFixed(0)}%
+                                                    </Text>
+                                                </View>
+                                            ))}
+                                    </View>
+                                </View>
+                            </View>
+                        )}
+
+                        {/* Writing Patterns */}
+                        <View style={styles.card}>
+                            <View style={styles.cardHeader}>
+                                <BarChart3 size={24} color="#647C90" />
+                                <Text style={styles.cardTitle}>Writing Patterns</Text>
+                            </View>
+                            <View style={styles.patternsGrid}>
+                                <View style={styles.patternItem}>
+                                    <Text style={styles.patternValue}>
+                                        {insights.avgLength}
+                                    </Text>
+                                    <Text style={styles.patternLabel}>Average Entry Length</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        <View style={styles.exportCard}>
+                            <Download size={32} color="#647C90" />
+                            <Text style={styles.exportTitle}>Share Your Progress</Text>
+                            <Text style={styles.exportText}>
+                                Export and share your journal insights with others or keep for your records.
+                            </Text>
+                            <TouchableOpacity style={styles.exportButtonLarge} onPress={exportReport}>
+                                <Share2 size={20} color="#E2DED0" />
+                                <Text style={styles.exportButtonText}>Export Report</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Show completed paths list (no detailed reports visible)
     return (
         <View style={styles.container}>
             <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
@@ -328,9 +523,7 @@ Keep up the great work on your journaling journey! 📝✨
                     <View style={styles.headerTitleContainer}>
                         <Text style={styles.titleText}>Reports</Text>
                     </View>
-                    <TouchableOpacity style={styles.exportButton} onPress={exportReport}>
-                        <Share2 size={20} color="#E2DED0" />
-                    </TouchableOpacity>
+                    <View style={styles.backButtonPlaceholder} />
                 </View>
             </View>
 
@@ -347,201 +540,52 @@ Keep up the great work on your journaling journey! 📝✨
             >
                 <View style={styles.content}>
                     <Text style={styles.reportTitle}>Your Journey Insights</Text>
-                    <Text style={styles.reportSubtitle}>Discover Your Dream Life</Text>
+                    <Text style={styles.reportSubtitle}>Select a completed journey to view detailed reports</Text>
 
-                    {/* Summary Card */}
-                    <View style={styles.summaryCard}>
-                        <View style={styles.summaryHeader}>
-                            <TrendingUp size={24} color="#647C90" />
-                            <Text style={styles.summaryTitle}>Overview</Text>
-                        </View>
-                        <View style={styles.statsGrid}>
-                            <View style={styles.statBox}>
-                                <Text style={styles.statNumber}>{insights.totalEntries}</Text>
-                                <Text style={styles.statLabel}>Total Entries</Text>
-                            </View>
-                            <View style={styles.statBox}>
-                                <Text style={styles.statNumber}>{insights.pathCount}</Text>
-                                <Text style={styles.statLabel}>Categories</Text>
-                            </View>
-                            <View style={styles.statBox}>
-                                <Text style={styles.statNumber}>{insights.avgLength}</Text>
-                                <Text style={styles.statLabel}>Avg Length</Text>
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* Mood Analysis */}
-                    {Object.keys(insights.moodStats).length > 0 && (
+                    {/* Completed Paths List */}
+                    {completedPaths.length > 0 && (
                         <View style={styles.card}>
                             <View style={styles.cardHeader}>
-                                <Heart size={24} color="#647C90" />
-                                <Text style={styles.cardTitle}>Mood Analysis</Text>
+                                <Sparkles size={24} color="#647C90" />
+                                <Text style={styles.cardTitle}>Completed Journeys</Text>
                             </View>
-
-                            {/* Mood Distribution Pie Chart */}
-                            {getMoodPieData().length > 0 && (
-                                <View style={styles.chartContainer}>
-                                    <Text style={styles.chartTitle}>Mood Distribution</Text>
-                                    <View style={styles.pieChartWrapper}>
-                                        <PieChart
-                                            style={{ height: 200, width: 200 }}
-                                            data={getMoodPieData()}
-                                            innerRadius={'40%'}
-                                            padAngle={0.02}
-                                        />
-                                        <View style={styles.pieChartCenter}>
-                                            <Text style={styles.pieChartCenterText}>
-                                                {insights.totalEntries}
+                            <Text style={styles.completedPathsDescription}>
+                                Tap on a completed journey to view detailed insights, charts, and analytics.
+                            </Text>
+                            {completedPaths.map((path, index) => (
+                                <TouchableOpacity
+                                    key={`${path.categoryId}_${path.pathId}`}
+                                    style={[
+                                        styles.pathItem,
+                                        index < completedPaths.length - 1 && styles.pathItemBorder
+                                    ]}
+                                    onPress={() => handlePathSelect(path)}
+                                >
+                                    <View style={styles.pathItemContent}>
+                                        <View style={styles.pathInfo}>
+                                            <Text style={styles.pathName}>{path.pathName}</Text>
+                                            <Text style={styles.pathCompletion}>
+                                                Completed {new Date(path.completionDate).toLocaleDateString()}
                                             </Text>
-                                            <Text style={styles.pieChartCenterLabel}>Total</Text>
+                                        </View>
+                                        <View style={styles.pathStats}>
+                                            <Text style={styles.pathDays}>
+                                                {path.completedDays}/{path.totalDays} days
+                                            </Text>
+                                            <ChevronRight size={20} color="#647C90" />
                                         </View>
                                     </View>
-                                    <View style={styles.pieLegend}>
-                                        {Object.entries(insights.moodStats).map(([mood, count]) => (
-                                            <View key={mood} style={styles.legendItem}>
-                                                <View
-                                                    style={[
-                                                        styles.legendColor,
-                                                        { backgroundColor: getMoodColor(mood) }
-                                                    ]}
-                                                />
-                                                <Text style={styles.legendText}>
-                                                    {mood.charAt(0).toUpperCase() + mood.slice(1)} ({count})
-                                                </Text>
-                                            </View>
-                                        ))}
-                                    </View>
-                                </View>
-                            )}
-
-                            {/* Detailed Mood Stats */}
-                            <View style={styles.moodContainer}>
-                                <Text style={styles.dominantMood}>
-                                    Most Common Mood: {getMoodEmoji(insights.mostCommonMood)} {insights.mostCommonMood.charAt(0).toUpperCase() + insights.mostCommonMood.slice(1)}
-                                </Text>
-                                <View style={styles.moodList}>
-                                    {Object.entries(insights.moodStats)
-                                        .sort((a, b) => b[1] - a[1])
-                                        .map(([mood, count]) => (
-                                            <View key={mood} style={styles.moodItem}>
-                                                <Text style={styles.moodEmoji}>{getMoodEmoji(mood)}</Text>
-                                                <Text style={styles.moodName}>
-                                                    {mood.charAt(0).toUpperCase() + mood.slice(1)}
-                                                </Text>
-                                                <View style={styles.moodBar}>
-                                                    <View
-                                                        style={[
-                                                            styles.moodBarFill,
-                                                            {
-                                                                width: `${(count / insights.totalEntries) * 100}%`,
-                                                                backgroundColor: getMoodColor(mood)
-                                                            }
-                                                        ]}
-                                                    />
-                                                </View>
-                                                <Text style={styles.moodCount}>{count}</Text>
-                                                <Text style={styles.moodPercentage}>
-                                                    {((count / insights.totalEntries) * 100).toFixed(0)}%
-                                                </Text>
-                                            </View>
-                                        ))}
-                                </View>
-                            </View>
+                                </TouchableOpacity>
+                            ))}
                         </View>
                     )}
 
-                    {/* Writing Patterns */}
-                    <View style={styles.card}>
-                        <View style={styles.cardHeader}>
-                            <BarChart3 size={24} color="#647C90" />
-                            <Text style={styles.cardTitle}>Writing Patterns</Text>
-                        </View>
-                        <View style={styles.patternsGrid}>
-                            <View style={styles.patternItem}>
-                                <Text style={styles.patternValue}>
-                                    {insights.avgLength}
-                                </Text>
-                                <Text style={styles.patternLabel}>Avg Length</Text>
-                            </View>
-                            <View style={styles.patternItem}>
-                                <Text style={styles.patternValue}>
-                                    {insights.favoriteTime}
-                                </Text>
-                                <Text style={styles.patternLabel}>Favorite Time</Text>
-                            </View>
-                        </View>
-
-                        {/* Time of Day Chart */}
-                        {Object.keys(insights.timeStats).length > 0 && (
-                            <View style={styles.chartContainer}>
-                                <Text style={styles.chartTitle}>Entries by Time of Day</Text>
-                                <BarChart
-                                    style={{ height: 200, width: screenWidth - 80 }}
-                                    data={getTimeBarData()}
-                                    contentInset={{ top: 20, bottom: 20, left: 10, right: 10 }}
-                                    spacing={0.2}
-                                    gridMin={0}
-                                />
-                                <View style={styles.barChartLabels}>
-                                    {['Morning', 'Afternoon', 'Evening', 'Night'].map((time, index) => (
-                                        <Text key={index} style={styles.barChartLabel}>{time}</Text>
-                                    ))}
-                                </View>
-                            </View>
-                        )}
-                    </View>
-
-                    <View style={styles.card}>
-                        <View style={styles.cardHeader}>
-                            <BookOpen size={24} color="#647C90" />
-                            <Text style={styles.cardTitle}>Entries by Category</Text>
-                        </View>
-                        {Object.entries(insights.entriesByPath).map(([path, entries]) => (
-                            <View key={path} style={styles.pathSection}>
-                                <Text style={styles.pathTitle}>{formatPathTag(path)}</Text>
-                                <Text style={styles.pathCount}>{entries.length} entries</Text>
-                            </View>
-                        ))}
-                    </View>
-
-                    <View style={styles.card}>
-                        <View style={styles.cardHeader}>
-                            <Calendar size={24} color="#647C90" />
-                            <Text style={styles.cardTitle}>Recent Entries</Text>
-                        </View>
-                        {journalEntries.slice(0, 3).map((entry) => (
-                            <View key={entry.id} style={styles.entryPreview}>
-                                <View style={styles.entryPreviewHeader}>
-                                    <Text style={styles.entryPath}>{formatPathTag(entry.pathTag)}</Text>
-                                    {entry.mood && (
-                                        <Text style={styles.entryMood}>{getMoodEmoji(entry.mood)}</Text>
-                                    )}
-                                </View>
-                                <Text style={styles.entryContent} numberOfLines={2}>
-                                    {entry.content}
-                                </Text>
-                            </View>
-                        ))}
-                    </View>
-
-                    <View style={styles.exportCard}>
-                        <Download size={32} color="#647C90" />
-                        <Text style={styles.exportTitle}>Share Your Progress</Text>
-                        <Text style={styles.exportText}>
-                            Export and share your journal insights with others or keep for your records.
-                        </Text>
-                        <TouchableOpacity style={styles.exportButtonLarge} onPress={exportReport}>
-                            <Share2 size={20} color="#E2DED0" />
-                            <Text style={styles.exportButtonText}>Export Report</Text>
-                        </TouchableOpacity>
-                    </View>
-
+                    {/* No detailed reports shown here - only the list of completed paths */}
                     <View style={styles.completionCard}>
                         <Sparkles size={32} color="#E2DED0" />
-                        <Text style={styles.completionTitle}>Congratulations! 🎉</Text>
+                        <Text style={styles.completionTitle}>Your Journey Awaits</Text>
                         <Text style={styles.completionText}>
-                            You've completed the "Discover Your Dream Life" path. Keep journaling to track your continued growth and insights!
+                            Select any completed journey above to unlock detailed insights, mood analytics, and personalized reports about your progress.
                         </Text>
                     </View>
                 </View>
@@ -550,6 +594,7 @@ Keep up the great work on your journaling journey! 📝✨
     );
 }
 
+// ... (styles remain exactly the same)
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -727,6 +772,47 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#647C90',
         marginLeft: 8,
+    },
+    completedPathsDescription: {
+        fontSize: 14,
+        color: '#928490',
+        marginBottom: 16,
+        lineHeight: 20,
+    },
+    pathItem: {
+        paddingVertical: 16,
+    },
+    pathItemBorder: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#E2DED0',
+    },
+    pathItemContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    pathInfo: {
+        flex: 1,
+    },
+    pathName: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#4E4F50',
+        marginBottom: 4,
+    },
+    pathCompletion: {
+        fontSize: 12,
+        color: '#928490',
+    },
+    pathStats: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    pathDays: {
+        fontSize: 14,
+        color: '#647C90',
+        fontWeight: '500',
+        marginRight: 8,
     },
     chartContainer: {
         marginBottom: 20,
@@ -986,4 +1072,4 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 20,
     },
-}); 
+});
