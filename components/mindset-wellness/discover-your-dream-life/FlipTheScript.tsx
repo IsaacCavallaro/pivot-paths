@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking, TextInput, Alert, Animated } from 'react-native';
-import { ChevronRight, MessageCircle, ArrowLeft, PlusCircle } from 'lucide-react-native';
+import { ChevronRight, MessageCircle, ArrowLeft, PlusCircle, Smile, Frown, Meh, Laugh, Angry, Heart } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -15,9 +15,20 @@ interface ScriptPair {
 
 interface JournalEntry {
   id: string;
+  pathTag: string;
   date: string;
   content: string;
+  mood?: string;
 }
+
+const MOOD_OPTIONS = [
+  { id: 'angry', label: 'Angry', icon: Angry, color: '#DC2626' },
+  { id: 'sad', label: 'Sad', icon: Frown, color: '#2563EB' },
+  { id: 'neutral', label: 'Neutral', icon: Meh, color: '#CA8A04' },
+  { id: 'happy', label: 'Happy', icon: Smile, color: '#16A34A' },
+  { id: 'excited', label: 'Excited', icon: Laugh, color: '#7C3AED' },
+  { id: 'loved', label: 'Loved', icon: Heart, color: '#DB2777' },
+];
 
 const scriptPairs: ScriptPair[] = [
   {
@@ -92,6 +103,10 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   const [showNewScript, setShowNewScript] = useState(false);
   const [screenHistory, setScreenHistory] = useState<Array<{ pairIndex: number, showNew: boolean }>>([]);
   const [journalEntry, setJournalEntry] = useState('');
+  const [morningJournalEntry, setMorningJournalEntry] = useState('');
+  const [endOfDayJournalEntry, setEndOfDayJournalEntry] = useState('');
+  const [selectedMorningMood, setSelectedMorningMood] = useState<string | null>(null);
+  const [selectedEndOfDayMood, setSelectedEndOfDayMood] = useState<string | null>(null);
 
   // Enhanced animation values with useRef for better performance
   const flipAnim = useRef(new Animated.Value(0)).current;
@@ -296,6 +311,90 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     }
   };
 
+  // Add Morning Journal Entry Function
+  const addMorningJournalEntry = async () => {
+    const trimmed = morningJournalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        pathTag: 'discover-dream-life',
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        content: trimmed,
+        mood: selectedMorningMood,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setMorningJournalEntry('');
+      setSelectedMorningMood(null);
+      Alert.alert('Success', 'Morning journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
+  // Add End of Day Journal Entry Function
+  const addEndOfDayJournalEntry = async () => {
+    const trimmed = endOfDayJournalEntry.trim();
+    if (!trimmed) {
+      Alert.alert('Empty Entry', 'Please write something before adding.');
+      return;
+    }
+
+    try {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        pathTag: 'discover-dream-life',
+        date: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        content: trimmed,
+        mood: selectedEndOfDayMood,
+      };
+
+      // Load existing entries
+      const raw = await AsyncStorage.getItem('journalEntries');
+      const existingEntries = raw ? JSON.parse(raw) : [];
+
+      // Add new entry to the beginning
+      const updatedEntries = [newEntry, ...existingEntries];
+
+      // Save back to storage
+      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+      // Clear input and show success
+      setEndOfDayJournalEntry('');
+      setSelectedEndOfDayMood(null);
+      Alert.alert('Success', 'End of day journal entry added!');
+
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      Alert.alert('Error', 'Failed to save journal entry.');
+    }
+  };
+
   const addJournalEntry = async () => {
     const trimmed = journalEntry.trim();
     if (!trimmed) {
@@ -306,6 +405,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     try {
       const newEntry: JournalEntry = {
         id: Date.now().toString(),
+        pathTag: 'discover-dream-life',
         date: new Date().toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
@@ -380,7 +480,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     }).start();
   }, [currentPairIndex]);
 
-  // NEW: Intro Screen
+  // NEW: Intro Screen with Morning Journal
   if (screenHistory.length === 0) {
     return (
       <View style={styles.container}>
@@ -415,6 +515,75 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
               <Text style={styles.introDescription}>
                 You're almost at the end of this path and you've already dug through a lot. It's not easy and it's ok if this is all still really uncomfortable. You're taking action and you're turning up. The rest is a matter of time, trust me. Let's keep going, one small step at a time.
               </Text>
+
+              {/* Morning Journal Section */}
+              <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.journalInstruction}>
+                  Before we begin, let's take a moment to check in with yourself. How are you feeling as you continue this journey?
+                </Text>
+
+                {/* Mood Selection */}
+                <View style={styles.moodSection}>
+                  <Text style={styles.moodLabel}>How are you feeling right now?</Text>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedMorningMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedMorningMood(
+                            selectedMorningMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedMorningMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedMorningMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Journal Input */}
+                <View style={styles.journalInputContainer}>
+                  <TextInput
+                    style={styles.journalTextInput}
+                    placeholder="Add your entry here"
+                    placeholderTextColor="#928490"
+                    multiline
+                    value={morningJournalEntry}
+                    onChangeText={setMorningJournalEntry}
+                  />
+                  <TouchableOpacity
+                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
+                    onPress={addMorningJournalEntry}
+                  >
+                    <PlusCircle size={20} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Save Morning Entry</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.journalNote}>
+                  We'll keep these entries safe in your personal journal for you to review later.
+                </Text>
+              </View>
 
               <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
                 <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
@@ -501,7 +670,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     );
   }
 
-  // Final Screen (Updated with journal entry)
+  // Final Screen (Updated with End of Day Journal)
   if (currentScreen.pairIndex === -1) {
     return (
       <View style={styles.container}>
@@ -542,28 +711,72 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
                 </Text>
               </View>
 
-              {/* Journal Entry Section */}
+              {/* End of Day Journal Section */}
               <View style={styles.journalSection}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.journalInstruction}>
+                  Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?
+                </Text>
+
+                {/* Mood Selection */}
+                <View style={styles.moodSection}>
+                  <Text style={styles.moodLabel}>How are you feeling now?</Text>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedEndOfDayMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedEndOfDayMood(
+                            selectedEndOfDayMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedEndOfDayMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedEndOfDayMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Journal Input */}
                 <View style={styles.journalInputContainer}>
                   <TextInput
                     style={styles.journalTextInput}
-                    placeholder="Write your own empowering script here..."
+                    placeholder="Add entry here"
                     placeholderTextColor="#928490"
                     multiline
-                    value={journalEntry}
-                    onChangeText={setJournalEntry}
+                    value={endOfDayJournalEntry}
+                    onChangeText={setEndOfDayJournalEntry}
                   />
                   <TouchableOpacity
                     style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
-                    onPress={addJournalEntry}
+                    onPress={addEndOfDayJournalEntry}
                   >
-                    <PlusCircle size={24} color="#E2DED0" />
-                    <Text style={styles.journalAddButtonText}>Add to Journal</Text>
+                    <PlusCircle size={20} color="#E2DED0" />
+                    <Text style={styles.journalAddButtonText}>Save End of Day Entry</Text>
                   </TouchableOpacity>
                 </View>
 
                 <Text style={styles.journalNote}>
-                  We'll keep these entries safe in your personal journal.
+                  We'll keep these entries safe in your personal journal for you to review later.
                 </Text>
               </View>
 
@@ -1048,27 +1261,73 @@ const styles = StyleSheet.create({
   journalSection: {
     width: '100%',
     marginBottom: 32,
+    padding: 20,
+    backgroundColor: 'rgba(146, 132, 144, 0.08)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  journalInstruction: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    color: '#647C90',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 16,
+    fontWeight: '500',
+  },
+  moodSection: {
+    marginBottom: 16,
+  },
+  moodLabel: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  moodContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  moodButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    minWidth: 70,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  moodLabelText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 12,
+    color: '#4E4F50',
+    marginTop: 4,
+    fontWeight: '500',
   },
   journalInputContainer: {
-    marginBottom: 16,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    marginBottom: 12,
   },
   journalTextInput: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
     color: '#4E4F50',
-    minHeight: 100,
+    minHeight: 80,
     textAlignVertical: 'top',
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
-    borderRadius: 8,
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.3)',
   },
   journalAddButton: {
     flexDirection: 'row',
@@ -1083,17 +1342,27 @@ const styles = StyleSheet.create({
   },
   journalAddButtonText: {
     fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
+    fontSize: 14,
     color: '#E2DED0',
     marginLeft: 8,
     fontWeight: '600',
   },
   journalNote: {
     fontFamily: 'Montserrat-Regular',
-    fontSize: 14,
+    fontSize: 12,
     color: '#928490',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 18,
     fontStyle: 'italic',
+  },
+  sectionHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionDivider: {
+    width: 60,
+    height: 3,
+    backgroundColor: '#928490',
+    borderRadius: 2,
   },
 });
