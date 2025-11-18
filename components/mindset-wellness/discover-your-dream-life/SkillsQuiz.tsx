@@ -423,6 +423,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
         pathTag: 'discover-dream-life',
         day: '1',
         content: trimmed,
+        mood: selectedMood, // Add mood to journal entry
       };
 
       // Load existing entries
@@ -437,6 +438,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
       // Clear input and show success
       setJournalEntry('');
+      setSelectedMood(null); // Clear selected mood after saving
       Alert.alert('Success', 'Journal entry added!');
 
     } catch (error) {
@@ -878,6 +880,45 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Journal Your Thoughts</Text>
                   <View style={styles.sectionDivider} />
+                </View>
+
+                <Text style={styles.reflectionInstruction}>
+                  As you're watching, write your reflections as a journal entry below.
+                </Text>
+
+                {/* Mood Selection for Journal Entry */}
+                <View style={styles.moodSection}>
+                  <Text style={styles.moodLabel}>How are you feeling about this?</Text>
+                  <View style={styles.moodContainer}>
+                    {MOOD_OPTIONS.map((mood) => {
+                      const IconComponent = mood.icon;
+                      return (
+                        <TouchableOpacity
+                          key={mood.id}
+                          style={[
+                            styles.moodButton,
+                            selectedMood === mood.id && {
+                              backgroundColor: mood.color,
+                            }
+                          ]}
+                          onPress={() => setSelectedMood(
+                            selectedMood === mood.id ? null : mood.id
+                          )}
+                        >
+                          <IconComponent
+                            size={20}
+                            color={selectedMood === mood.id ? '#E2DED0' : mood.color}
+                          />
+                          <Text style={[
+                            styles.moodLabelText,
+                            selectedMood === mood.id && { color: '#E2DED0' }
+                          ]}>
+                            {mood.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </View>
 
                 <View style={styles.journalInputContainer}>
