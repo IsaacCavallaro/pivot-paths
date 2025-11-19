@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, AlertTriangle, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { ChevronRight, AlertTriangle, ArrowLeft } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
 
 interface LifestyleQuestion {
     id: number;
@@ -241,18 +248,28 @@ interface LifestyleCreepRiskMeterProps {
 }
 
 export default function LifestyleCreepRiskMeter({ onComplete, onBack }: LifestyleCreepRiskMeterProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-9 = questions, 10 = result, 11 = final
+    const [currentScreen, setCurrentScreen] = useState(0);
     const [answers, setAnswers] = useState<{ [key: number]: number }>({});
     const [result, setResult] = useState<LifestyleResult | null>(null);
-    const [randomizedQuestions, setRandomizedQuestions] = useState<LifestyleQuestion[]>([]);
+    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
 
-    useEffect(() => {
-        // Use questions in order (no randomization for this assessment)
-        setRandomizedQuestions([...lifestyleQuestions]);
-    }, []);
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+
+    const handleScreenChange = async (newScreen: number) => {
+        setIsTransitioning(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+        setCurrentScreen(newScreen);
+        scrollToTop();
+        setIsTransitioning(false);
+    };
+
+    const handleWelcomeContinue = () => {
+        handleScreenChange(1);
+    };
 
     const handleStartQuiz = () => {
-        setCurrentScreen(1);
+        handleScreenChange(2);
     };
 
     const handleBack = () => {
@@ -261,16 +278,29 @@ export default function LifestyleCreepRiskMeter({ onComplete, onBack }: Lifestyl
         }
     };
 
-    const handleAnswer = (score: number) => {
-        const questionIndex = currentScreen - 1;
+    const handleAnswer = (optionId: string, score: number) => {
+        setSelectedOption(optionId);
+
+        const questionIndex = currentScreen - 2;
         const newAnswers = { ...answers, [questionIndex]: score };
         setAnswers(newAnswers);
+    };
 
-        if (currentScreen < 9) {
+    const handleContinue = async () => {
+        if (selectedOption === null || isTransitioning) return;
+
+        setIsTransitioning(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        if (currentScreen < 10) {
             setCurrentScreen(currentScreen + 1);
+            setSelectedOption(null);
+            scrollToTop();
         } else {
-            calculateResult(newAnswers);
+            calculateResult(answers);
         }
+
+        setIsTransitioning(false);
     };
 
     const calculateResult = (finalAnswers: { [key: number]: number }) => {
@@ -289,131 +319,204 @@ export default function LifestyleCreepRiskMeter({ onComplete, onBack }: Lifestyl
 
         const finalResult = lifestyleResults[riskLevel];
         setResult(finalResult);
-        setCurrentScreen(10);
+        setCurrentScreen(11);
+        scrollToTop();
     };
 
     const handleContinueToFinal = () => {
-        setCurrentScreen(11);
+        handleScreenChange(12);
     };
 
-    const handleComplete = () => {
-        onComplete();
-    };
-
-    const goBack = () => {
-        if (currentScreen === 1) {
-            setCurrentScreen(0);
-        } else if (currentScreen > 1 && currentScreen <= 9) {
-            setCurrentScreen(currentScreen - 1);
+    const handleComplete = async () => {
+        try {
+            await AsyncStorage.setItem('day6LifestyleCreepResult', JSON.stringify(result));
+            onComplete();
+        } catch (error) {
+            console.error('Error saving quiz result to AsyncStorage:', error);
+            onComplete();
         }
     };
 
-    // Intro Screen
+    const goBack = () => {
+        if (currentScreen === 0) {
+            if (onBack) onBack();
+        } else if (currentScreen === 1) {
+            handleScreenChange(0);
+        } else if (currentScreen > 1 && currentScreen <= 10) {
+            setCurrentScreen(currentScreen - 1);
+            setSelectedOption(null);
+            scrollToTop();
+        } else if (currentScreen === 11) {
+            handleScreenChange(10);
+        } else if (currentScreen === 12) {
+            handleScreenChange(11);
+        }
+    };
+
+    // Welcome Screen with Journal Prompt
     if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Risk Meter</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
                                     <AlertTriangle size={32} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <Text style={styles.introTitle}>Lifestyle Creep Risk Meter</Text>
-
-                            <Text style={styles.introDescription}>
-                                Lifestyle creep happens when your income rises, but your spending rises right alongside it (or faster). This quiz will help you see how at risk you are, and what you can do to keep more of your hard-earned money.
+                            <Text style={commonStyles.introTitle}>
+                                Welcome to Your Financial Assessment
                             </Text>
 
-                            <Text style={styles.introDescription}>
-                                Answer honestly! This is just for your awareness!
+                            <Text style={commonStyles.introDescription}>
+                                Taking this honest look at your spending habits is a powerful step toward financial freedom. Understanding your relationship with money helps you build a future that supports your dreams, not just your lifestyle.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={handleStartQuiz}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Start Assessment</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <JournalEntrySection
+                                pathTag="financial-futureproofing"
+                                day="6"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Lifestyle Creep Risk Meter"
+                                journalInstruction="Before we begin, let's check in with your current feelings about money and spending. How are you feeling about your financial habits right now?"
+                                moodLabel=""
+                                saveButtonText="Add to Journal"
+                            />
+
+                            <View style={styles.welcomeHighlight}>
+                                <Text style={styles.welcomeHighlightText}>
+                                    We'll come back to these reflections later. Ready to discover your lifestyle creep risk level?
+                                </Text>
+                            </View>
+
+                            <PrimaryButton
+                                title="I'm Ready to Begin"
+                                onPress={handleWelcomeContinue}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Final Screen
-    if (currentScreen === 11) {
+    // Intro Screen
+    if (currentScreen === 1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Lifestyle Creep</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.finalCard}>
-                            <View style={styles.finalIconContainer}>
-                                <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
-                                    <AlertTriangle size={40} color="#E2DED0" />
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <AlertTriangle size={32} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <View style={styles.finalHeader}>
-                                <AlertTriangle size={24} color="#928490" />
-                                <Text style={styles.finalHeading}>Controlling Lifestyle Creep</Text>
-                                <AlertTriangle size={24} color="#928490" />
-                            </View>
-
-                            <View style={styles.finalTextContainer}>
-                                <Text style={styles.finalText}>
-                                    No matter your result, awareness is the first step. Lifestyle creep is sneaky because it doesn't feel like overspending… it feels like rewarding yourself. But when you create boundaries around upgrades and commit to paying yourself first, you build a financial future that actually supports your freedom, not just your lifestyle.
-                                </Text>
-                            </View>
-
-                            <Text style={styles.alternativeClosing}>
-                                See you tomorrow for the next step.
+                            <Text style={commonStyles.introTitle}>
+                                Lifestyle Creep Risk Meter
                             </Text>
 
-                            <View style={styles.finalButtonContainer}>
-                                <TouchableOpacity
-                                    style={styles.continueButton}
-                                    onPress={handleComplete}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                        <Text style={styles.continueButtonText}>Mark As Complete</Text>
-                                        <ChevronRight size={16} color="#E2DED0" />
-                                    </View>
-                                </TouchableOpacity>
+                            <Text style={commonStyles.introDescription}>
+                                Lifestyle creep happens when your income rises, but your spending rises right alongside it (or faster). This quiz will help you see how at risk you are, and what you can do to keep more of your hard-earned money.
+                            </Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                Answer honestly! This is just for your awareness!
+                            </Text>
+
+                            <PrimaryButton
+                                title="Start Assessment"
+                                onPress={handleStartQuiz}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Financial Freedom Screen
+    if (currentScreen === 12 && result) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <AlertTriangle size={32} color="#E2DED0" />
+                                </View>
                             </View>
-                        </View>
+
+                            <Text style={styles.financialFreedomTitle}>
+                                Here's What You're Working Toward:
+                            </Text>
+
+                            <Text style={styles.financialFreedomTitleBold}>
+                                Financial Freedom
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Financial freedom isn't about having unlimited money—it's about having control over your money so it supports the life you want to live.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                It means your spending aligns with your values, you have security for the future, and you can make choices based on what matters to you, not just what you can afford.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                By understanding your lifestyle creep risk, you're already taking the first step toward building this kind of freedom.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="financial-futureproofing"
+                                day="6"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Lifestyle Creep Risk Meter"
+                                journalInstruction="Based on your results and what you've learned, what's one small change you can make to improve your financial habits?"
+                                moodLabel="How are you feeling about your financial future?"
+                                saveButtonText="Add to Journal"
+                            />
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleComplete}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -421,96 +524,102 @@ export default function LifestyleCreepRiskMeter({ onComplete, onBack }: Lifestyl
     }
 
     // Result Screen
-    if (currentScreen === 10 && result) {
+    if (currentScreen === 11 && result) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: result.color }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Results</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.resultCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.resultIconContainer}>
                                 <View style={[styles.resultIconGradient, { backgroundColor: result.color }]}>
                                     <AlertTriangle size={40} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <Text style={styles.resultTitle}>{result.title}</Text>
+                            <Text style={commonStyles.introTitle}>{result.title}</Text>
+                            <Text style={styles.resultDescription}>{result.description}</Text>
 
-                            <View style={styles.resultTextContainer}>
-                                <Text style={styles.resultText}>{result.description}</Text>
+                            <View style={styles.resultHighlight}>
+                                <Text style={styles.resultHighlightText}>
+                                    No matter your result, awareness is the first step toward financial freedom.
+                                </Text>
                             </View>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
+                            <PrimaryButton
+                                title="Continue"
                                 onPress={handleContinueToFinal}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: result.color }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Question Screens
-    if (randomizedQuestions.length === 0) {
-        return <View style={styles.container} />;
-    }
-
-    const question = randomizedQuestions[currentScreen - 1];
-    const progress = (currentScreen / 9) * 100;
+    // Question Screens with smooth transitions
+    const question = lifestyleQuestions[currentScreen - 2];
+    const progress = ((currentScreen - 1) / 9) * 100;
 
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>Question {currentScreen} of 9</Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${progress}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${currentScreen - 1} of 9`}
+                progress={progress / 100}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.centeredContent}>
-                    <View style={styles.choiceCard}>
-                        <Text style={styles.questionText}>{question.question}</Text>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={styles.baseCard}>
+                        <Text style={styles.questionText}>
+                            {question.question}
+                        </Text>
 
-                        <View style={styles.choiceButtons}>
+                        <View style={styles.optionsContainer}>
                             {question.options.map((option) => (
                                 <TouchableOpacity
                                     key={option.id}
-                                    style={styles.choiceButton}
-                                    onPress={() => handleAnswer(option.score)}
+                                    style={[
+                                        styles.optionButton,
+                                        selectedOption === option.id && styles.optionButtonSelected
+                                    ]}
+                                    onPress={() => handleAnswer(option.id, option.score)}
                                     activeOpacity={0.8}
+                                    disabled={isTransitioning}
                                 >
-                                    <Text style={styles.choiceButtonText}>{option.text}</Text>
+                                    <Text style={[
+                                        styles.optionText,
+                                        selectedOption === option.id && styles.optionTextSelected
+                                    ]}>
+                                        {option.text}
+                                    </Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
-                    </View>
+
+                        <PrimaryButton
+                            title={currentScreen < 10 ? 'Continue' : 'See Results'}
+                            onPress={handleContinue}
+                            disabled={selectedOption === null || isTransitioning}
+                        />
+                    </Card>
                 </View>
             </ScrollView>
         </View>
@@ -518,87 +627,25 @@ export default function LifestyleCreepRiskMeter({ onComplete, onBack }: Lifestyl
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
+    // Welcome Screen Styles
+    welcomeHighlight: {
+        backgroundColor: 'rgba(146, 132, 144, 0.15)',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 32,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 124, 144, 0.2)',
     },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-        zIndex: 1,
-    },
-    centeredContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: height - 200,
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
+    welcomeHighlightText: {
         fontFamily: 'Montserrat-Medium',
         fontSize: 16,
-        color: '#E2DED0',
+        color: '#647C90',
         textAlign: 'center',
+        lineHeight: 24,
+        fontStyle: 'italic',
+        fontWeight: '500',
     },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
+    // Icon Styles
     introIconGradient: {
         width: 80,
         height: 80,
@@ -609,95 +656,6 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
-        fontStyle: 'italic',
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-        marginTop: 10,
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choiceCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    questionText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
-        lineHeight: 28,
-        marginBottom: 30,
-        textAlign: 'center',
-    },
-    choiceButtons: {
-        gap: 15,
-    },
-    choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        borderRadius: 16,
-        padding: 20,
-        borderWidth: 2,
-        borderColor: 'transparent',
-    },
-    choiceButtonText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        lineHeight: 22,
-        textAlign: 'center',
-    },
-    resultCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
     },
     resultIconContainer: {
         marginBottom: 24,
@@ -713,49 +671,87 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 8,
     },
-    resultTitle: {
+    // Question Styles
+    questionText: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
+        fontSize: 22,
+        color: '#647C90',
+        lineHeight: 32,
+        marginBottom: 32,
         textAlign: 'center',
-        marginBottom: 20,
         fontWeight: '700',
     },
-    resultTextContainer: {
-        width: '100%',
+    optionsContainer: {
+        gap: 16,
         marginBottom: 32,
     },
-    resultText: {
+    optionButton: {
+        borderRadius: 16,
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderWidth: 2,
+        borderColor: 'transparent',
+        padding: 20,
+    },
+    optionButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+    },
+    optionText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
-        textAlign: 'center',
         lineHeight: 24,
+        textAlign: 'center',
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-        minWidth: width * 0.5,
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
+    optionTextSelected: {
+        color: '#4E4F50',
         fontWeight: '600',
     },
-    finalCard: {
-        width: width * 0.85,
+    // Result Styles
+    resultDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#4E4F50',
+        lineHeight: 24,
+        marginBottom: 24,
+        textAlign: 'center',
+    },
+    resultHighlight: {
+        backgroundColor: 'rgba(146, 132, 144, 0.15)',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 32,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 124, 144, 0.2)',
+    },
+    resultHighlightText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#647C90',
+        textAlign: 'center',
+        lineHeight: 24,
+        fontStyle: 'italic',
+        fontWeight: '500',
+    },
+    // Financial Freedom Screen Styles
+    financialFreedomTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
+    },
+    financialFreedomTitleBold: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 24,
+        fontWeight: '700',
+    },
+    // Card Styles
+    baseCard: {
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
@@ -766,58 +762,6 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 5,
         marginVertical: 20,
-    },
-    finalIconContainer: {
-        marginBottom: 30,
-    },
-    finalIconGradient: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    finalHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 30,
-        gap: 12,
-    },
-    finalHeading: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        fontWeight: '700',
-    },
-    finalTextContainer: {
-        width: '100%',
-        marginBottom: 40,
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 28,
-    },
-    alternativeClosing: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 32,
-        marginTop: 20,
-        fontWeight: '600',
-    },
-    finalButtonContainer: {
-        width: '100%',
-        alignItems: 'center',
-        marginTop: 20,
+        marginTop: 50,
     },
 });

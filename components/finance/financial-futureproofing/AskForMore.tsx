@@ -1,6 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { ChevronRight, Zap, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions, Modal, Linking } from 'react-native';
+import { ChevronRight, Zap, ArrowLeft, ChevronLeft, X, Check } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useStorage } from '@/hooks/useStorage';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+
+const { width, height } = Dimensions.get('window');
 
 interface AskForMoreProps {
     onComplete: () => void;
@@ -8,11 +20,16 @@ interface AskForMoreProps {
 }
 
 export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1 = scenario, 2 = choices, 3 = response, 4 = formula, 5 = conclusion
-    const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
+    const [currentScreen, setCurrentScreen] = useState(-1);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [showVideoModal, setShowVideoModal] = useState(false);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const [selectedChoice, setSelectedChoice] = useStorage<number | null>('ASK_FOR_MORE_CHOICE', null);
 
     const handleStart = () => {
-        setCurrentScreen(1);
+        setCurrentScreen(0);
+        scrollToTop();
     };
 
     const handleBack = () => {
@@ -22,27 +39,65 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
     };
 
     const goBack = () => {
-        if (currentScreen === 1) {
+        if (currentScreen === -1) {
+            if (onBack) onBack();
+        } else if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen === 1) {
             setCurrentScreen(0);
         } else if (currentScreen > 1 && currentScreen <= 5) {
             setCurrentScreen(currentScreen - 1);
         }
+        scrollToTop();
     };
 
-    const handleChoiceSelect = (choiceNumber: number) => {
-        setSelectedChoice(choiceNumber);
-        setCurrentScreen(3);
+    const handleChoiceSelect = async (choiceNumber: number) => {
+        await setSelectedChoice(choiceNumber);
+        scrollToTop();
     };
 
     const handleContinue = () => {
-        if (currentScreen === 3) {
+        if (currentScreen === 2 && selectedChoice !== null) {
+            setCurrentScreen(3);
+        } else if (currentScreen === 3) {
             setCurrentScreen(4);
         } else if (currentScreen === 4) {
             setCurrentScreen(5);
         } else if (currentScreen === 5) {
+            setCurrentScreen(6);
+        } else if (currentScreen === 6) {
             onComplete();
         } else {
             setCurrentScreen(currentScreen + 1);
+        }
+        scrollToTop();
+    };
+
+    const openVideoModal = () => {
+        setShowVideoModal(true);
+        setIsPlaying(true);
+    };
+
+    const closeVideoModal = () => {
+        setIsPlaying(false);
+        setShowVideoModal(false);
+    };
+
+    const openYouTubeShort = async () => {
+        const youtubeUrl = `https://www.youtube.com/shorts/s-hpQ9XBGP4`;
+
+        try {
+            const supported = await Linking.canOpenURL(youtubeUrl);
+
+            if (supported) {
+                await Linking.openURL(youtubeUrl);
+            } else {
+                console.log("YouTube app not available, opening in modal");
+                openVideoModal();
+            }
+        } catch (error) {
+            console.log("Error opening YouTube:", error);
+            openVideoModal();
         }
     };
 
@@ -59,53 +114,53 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
         }
     };
 
-    // Intro Screen
-    if (currentScreen === 0) {
+    // NEW: Welcome Screen
+    if (currentScreen === -1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Ask for More</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Zap size={32} color="#E2DED0" />
-                                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.introTitle}>Ask for More</Text>
+                            <Text style={commonStyles.introTitle}>Ask for More</Text>
 
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introDescription}>
                                 In the dance world, talking about money can feel uncomfortable. But knowing your value and advocating for it is a non-negotiable skill for financial futureproofing.
                             </Text>
 
-                            <Text style={styles.introSubtext}>
+                            <Text style={commonStyles.introDescription}>
                                 Let's practice. Choose how you'd handle this common scenario.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={handleStart}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Begin Practice</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <View style={styles.celebrationBox}>
+                                <Text style={styles.celebrationTitle}>What You'll Learn</Text>
+                                <Text style={styles.celebrationItem}>• How to negotiate with confidence</Text>
+                                <Text style={styles.celebrationItem}>• Professional scripts for asking for more</Text>
+                                <Text style={styles.celebrationItem}>• Overcoming people-pleasing tendencies</Text>
+                                <Text style={styles.celebrationItem}>• Setting your financial worth</Text>
+                            </View>
+
+                            <Text style={styles.welcomeFooter}>
+                                This practice will give you concrete tools to advocate for your financial value in any professional situation.
+                            </Text>
+
+                            <PrimaryButton title="Begin Practice" onPress={handleStart} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -113,25 +168,21 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
     }
 
     // Scenario Screen
-    if (currentScreen === 1) {
+    if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Salary Negotiation</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.scenarioCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.scenarioTitle}>Salary Negotiation Scenario</Text>
 
                             <Text style={styles.scenarioText}>
@@ -146,17 +197,8 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
                                 What do you do?
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={() => setCurrentScreen(2)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>See Your Options</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="See Your Options" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -164,59 +206,100 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
     }
 
     // Choices Screen
-    if (currentScreen === 2) {
+    if (currentScreen === 1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Options</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.choicesCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.choicesTitle}>Choose Your Response</Text>
 
                             <View style={styles.choicesContainer}>
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 1 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(1)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        "Yes, that's fine!" You accept immediately, pushing down the feeling that you're undervaluing yourself.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 1 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 1 && styles.choiceTextSelected
+                                        ]}>
+                                            "Yes, that's fine!" You accept immediately, pushing down the feeling that you're undervaluing yourself.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 2 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(2)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        "Thank you! I'm really excited to get started. Based on my [X years] of experience and the industry standard, my salary expectation is $65,000. Is that possible?" You negotiate politely and professionally.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 2 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 2 && styles.choiceTextSelected
+                                        ]}>
+                                            "Thank you! I'm really excited to get started. Based on my [X years] of experience and the industry standard, my salary expectation is $65,000. Is that possible?" You negotiate politely and professionally.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 3 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(3)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        "No, thank you." You decline and walk away, feeling frustrated.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 3 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 3 && styles.choiceTextSelected
+                                        ]}>
+                                            "No, thank you." You decline and walk away, feeling frustrated.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={selectedChoice === null}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -224,40 +307,27 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
     }
 
     // Response Screen
-    if (currentScreen === 3) {
+    if (currentScreen === 2) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Choice Analysis</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.responseCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.responseTitle}>Your Choice Analysis</Text>
 
                             <Text style={styles.responseText}>{getResponseText()}</Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>Learn the Best Approach</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Learn the Best Approach" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -265,25 +335,21 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
     }
 
     // Formula Screen
-    if (currentScreen === 4) {
+    if (currentScreen === 3) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Best Approach</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.formulaCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.formulaTitle}>The Best Approach: Polite, Prepared Negotiation</Text>
 
                             <Text style={styles.formulaText}>
@@ -317,17 +383,8 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
                                 This approach is collaborative, not confrontational.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Continue" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -335,29 +392,26 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
     }
 
     // Conclusion Screen
-    if (currentScreen === 5) {
+    if (currentScreen === 4) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Remember This</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.conclusionCard}>
-                            <View style={styles.conclusionIconContainer}>
-                                <View style={[styles.conclusionIconGradient, { backgroundColor: '#5A7D7B' }]}>
-                                    <Zap size={32} color="#E2DED0" />
-                                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.conclusionTitle}>Remember This</Text>
@@ -378,19 +432,125 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
                                 See you tomorrow.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={onComplete}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Mark As Complete" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
+            </View>
+        );
+    }
+
+    // NEW: Reflection Screen with Journal
+    if (currentScreen === 5) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.reflectionTitle}>Your Negotiation Power</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                You now have the tools to confidently negotiate your worth. Remember that asking for what you deserve is not greedy—it's professional and shows self-respect.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Every time you advocate for your financial value, you're not just earning more money—you're building a career based on mutual respect and professional boundaries.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Take a moment to reflect on how you can apply these negotiation skills in your current or next professional opportunity.
+                            </Text>
+
+                            {/* YouTube Short Thumbnail */}
+                            <TouchableOpacity
+                                style={styles.videoThumbnailContainer}
+                                onPress={openYouTubeShort}
+                                activeOpacity={0.8}
+                            >
+                                <Image
+                                    source={{ uri: 'https://img.youtube.com/vi/s-hpQ9XBGP4/maxresdefault.jpg' }}
+                                    style={styles.videoThumbnail}
+                                    resizeMode="cover"
+                                />
+                                <View style={styles.playButtonOverlay}>
+                                    <View style={styles.playButton}>
+                                        <Text style={styles.playIcon}>▶</Text>
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
+
+                            <JournalEntrySection
+                                pathTag="financial-futureproofing"
+                                day="3"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Ask For More"
+                                journalInstruction="What would change in your life if you felt confident negotiating your worth in every professional situation?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <View style={styles.journalCallout}>
+                                <Text style={styles.journalCalloutTitle}>Your Personal Space</Text>
+                                <Text style={styles.journalCalloutText}>
+                                    Remember, feel free to use the journal tab at any time to jot down your thoughts. This app is for you! Use it how you'd like to!
+                                </Text>
+                            </View>
+
+                            <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+                        </Card>
+                    </View>
+                </ScrollView>
+
+                {/* Keep the modal as fallback */}
+                <Modal
+                    visible={showVideoModal}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={closeVideoModal}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <TouchableOpacity
+                                style={styles.closeButton}
+                                onPress={closeVideoModal}
+                                activeOpacity={0.8}
+                            >
+                                <X size={28} color="#FFFFFF" />
+                            </TouchableOpacity>
+
+                            <View style={styles.videoPlayerContainer}>
+                                <YoutubePlayer
+                                    height={height * 0.75}
+                                    play={isPlaying}
+                                    videoId={'ShIxdYpquqA'}
+                                    webViewProps={{
+                                        allowsFullscreenVideo: true,
+                                    }}
+                                    onChangeState={(state) => {
+                                        console.log('Video state:', state);
+                                    }}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
             </View>
         );
     }
@@ -399,131 +559,40 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    introCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#647C90',
-        textAlign: 'center',
+    // Welcome Screen Styles
+    celebrationBox: {
+        width: '100%',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
         marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 15,
-    },
-    introSubtext: {
-        fontFamily: 'Montserrat-Italic',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        marginBottom: 32,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
         borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderColor: 'rgba(146, 132, 144, 0.2)',
     },
-    startButtonText: {
+    celebrationTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        color: '#647C90',
+        marginBottom: 12,
         fontWeight: '600',
+        textAlign: 'center',
     },
-    scenarioCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    celebrationItem: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 24,
+        marginBottom: 8,
     },
+    welcomeFooter: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 30,
+        lineHeight: 22,
+    },
+    // Scenario Styles
     scenarioTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -534,10 +603,10 @@ const styles = StyleSheet.create({
     },
     scenarioText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
+        fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
-        lineHeight: 24,
+        lineHeight: 26,
         marginBottom: 20,
     },
     scenarioQuestion: {
@@ -548,39 +617,7 @@ const styles = StyleSheet.create({
         marginBottom: 32,
         fontStyle: 'italic',
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choicesCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+    // Choices Styles
     choicesTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -591,34 +628,47 @@ const styles = StyleSheet.create({
     },
     choicesContainer: {
         gap: 16,
+        marginBottom: 24,
     },
     choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 16,
-        padding: 20,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderWidth: 2,
         borderColor: 'transparent',
+    },
+    choiceButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
+    },
+    choiceContent: {
+        padding: 20,
+        paddingRight: 50,
     },
     choiceText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
-        lineHeight: 22,
+        lineHeight: 24,
         textAlign: 'center',
     },
-    responseCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    choiceTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
     },
+    selectedIndicator: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    // Response Styles
     responseTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -635,18 +685,7 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 32,
     },
-    formulaCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+    // Formula Styles
     formulaTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 20,
@@ -703,33 +742,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 32,
     },
-    conclusionCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    conclusionIconContainer: {
-        marginBottom: 24,
-    },
-    conclusionIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
+    // Conclusion Styles
     conclusionTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -754,25 +767,102 @@ const styles = StyleSheet.create({
         marginBottom: 32,
         fontWeight: '600',
     },
-    completeButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
+    // Journal Callout
+    journalCallout: {
+        width: '100%',
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 25,
         borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderColor: 'rgba(100, 124, 144, 0.2)',
     },
-    completeButtonText: {
+    journalCalloutTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
         fontWeight: '600',
+    },
+    journalCalloutText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 22,
+    },
+    // YouTube Thumbnail Styles
+    videoThumbnailContainer: {
+        width: '100%',
+        marginBottom: 25,
+        borderRadius: 16,
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 5,
+        position: 'relative',
+    },
+    videoThumbnail: {
+        width: '100%',
+        height: 200,
+        borderRadius: 16,
+    },
+    playButtonOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    },
+    playButton: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#FF0000',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    playIcon: {
+        color: '#FFFFFF',
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginLeft: 4,
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: width * 0.9,
+        maxWidth: 500,
+        position: 'relative',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: -50,
+        right: 0,
+        zIndex: 10,
+        padding: 10,
+    },
+    videoPlayerContainer: {
+        width: '100%',
+        aspectRatio: 9 / 16,
+        backgroundColor: '#000',
+        borderRadius: 16,
+        overflow: 'hidden',
     },
 });
