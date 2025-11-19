@@ -136,6 +136,15 @@ interface Day6LifestyleCreepRiskResult {
     [key: string]: any;
 }
 
+// ADD INTERFACE FOR DAY1 CONFIDENCE GAP RESULT
+interface Day1ConfidenceGapResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
 const screenWidth = Dimensions.get('window').width;
 
 // Helper functions moved outside to avoid initialization issues
@@ -192,6 +201,8 @@ export default function ReportsScreen() {
     const [day2SpendingTemperatureResult, setDay2SpendingTemperatureResult] = useState<Day2SpendingTemperatureResult | null>(null);
     // ADD STATE FOR DAY6 LIFESTYLE CREEP RISK RESULT
     const [day6LifestyleCreepRiskResult, setDay6LifestyleCreepRiskResult] = useState<Day6LifestyleCreepRiskResult | null>(null);
+    // ADD STATE FOR DAY1 CONFIDENCE GAP RESULT
+    const [day1ConfidenceGapResult, setDay1ConfidenceGapResult] = useState<Day1ConfidenceGapResult | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -317,6 +328,12 @@ export default function ReportsScreen() {
             const loadedDay6LifestyleCreepRiskResult = await storageService.load<Day6LifestyleCreepRiskResult>(STORAGE_KEYS.DAY6_LIFESTYLE_CREEP_RISK);
             if (loadedDay6LifestyleCreepRiskResult) {
                 setDay6LifestyleCreepRiskResult(loadedDay6LifestyleCreepRiskResult);
+            }
+
+            // ADD LOADING FOR DAY1 CONFIDENCE GAP RESULT
+            const loadedDay1ConfidenceGapResult = await storageService.load<Day1ConfidenceGapResult>(STORAGE_KEYS.DAY1_CONFIDENCE_GAP);
+            if (loadedDay1ConfidenceGapResult) {
+                setDay1ConfidenceGapResult(loadedDay1ConfidenceGapResult);
             }
 
             setLoading(false);
@@ -750,6 +767,36 @@ Keep up the great work on your pivot journey!
         );
     };
 
+    // ADD FUNCTION TO RENDER DAY1 CONFIDENCE GAP RESULT
+    const renderDay1ConfidenceGapResult = () => {
+        if (!day1ConfidenceGapResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Confidence Gap Assessment</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: day1ConfidenceGapResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {day1ConfidenceGapResult.title || 'Your Confidence Gap Profile'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {day1ConfidenceGapResult.description || 'Confidence gap assessment completed'}
+                            </Text>
+                            {day1ConfidenceGapResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{day1ConfidenceGapResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
     // Conditionally render the appropriate component based on path name - UPDATED
     const renderPathSpecificContent = () => {
         if (!selectedPath) return null;
@@ -770,6 +817,8 @@ Keep up the great work on your pivot journey!
             return renderDay2SpendingTemperatureResult();
         } else if (selectedPath.pathName === 'Financial Futureproofing') {
             return renderDay6LifestyleCreepRiskResult();
+        } else if (selectedPath.pathName === 'Prep Your Pivot') {
+            return renderDay1ConfidenceGapResult();
         }
 
         return null;
