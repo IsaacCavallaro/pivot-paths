@@ -252,6 +252,10 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
+                day="4"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="Dream Bigger"
                 journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling as you continue this journey?"
                 moodLabel=""
                 saveButtonText="Save Entry"

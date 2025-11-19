@@ -221,20 +221,20 @@ export default function ReportsScreen() {
     const getFilteredJournalEntries = useMemo(() => {
         if (!selectedPath) return [];
 
-        // Normalize path IDs for comparison
-        const selectedPathId = selectedPath.pathId.toLowerCase();
-        const formattedSelectedPath = formatPathTag(selectedPath.pathId).toLowerCase();
+        // Use the path title for more accurate filtering
+        const selectedPathTitle = selectedPath.pathName.toLowerCase();
 
         return journalEntries.filter(entry => {
-            if (!entry.pathTag) return false;
+            if (!entry.pathTitle && !entry.pathTag) return false;
 
-            const entryPathTag = entry.pathTag.toLowerCase();
+            const entryPathTitle = (entry.pathTitle || '').toLowerCase();
+            const entryPathTag = (entry.pathTag || '').toLowerCase();
 
-            // Match exact path ID or formatted path name
-            return entryPathTag === selectedPathId ||
-                entryPathTag === formattedSelectedPath ||
-                entryPathTag.includes(selectedPathId) ||
-                selectedPathId.includes(entryPathTag);
+            // Match by path title (most accurate) or fallback to path tag
+            return entryPathTitle === selectedPathTitle ||
+                entryPathTitle.includes(selectedPathTitle) ||
+                selectedPathTitle.includes(entryPathTitle) ||
+                entryPathTag === selectedPath.pathId.toLowerCase();
         });
     }, [journalEntries, selectedPath]);
 

@@ -518,6 +518,10 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
+                day="5"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="Values Discovery"
                 journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling as you continue this journey?"
                 moodLabel=""
                 saveButtonText="Save Entry"
@@ -640,6 +644,10 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
+                day="5"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="Values Discovery"
                 journalInstruction="As you're watching, write your reflections as a journal entry below."
                 moodLabel=""
                 saveButtonText="Add to Journal"

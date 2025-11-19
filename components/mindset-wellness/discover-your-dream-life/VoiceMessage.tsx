@@ -98,6 +98,10 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
+                day="7"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="Visualize your dream life"
                 journalInstruction="A quick check in before we start this session"
                 moodLabel=""
                 saveButtonText="Save Entry"
@@ -229,6 +233,10 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
 
               <JournalEntrySection
                 pathTag="post-visualization-reflection"
+                day="7"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="Visualize your dream life"
                 journalInstruction="Reflect on your visualization experience"
                 moodLabel=""
                 saveButtonText="Save Reflection"

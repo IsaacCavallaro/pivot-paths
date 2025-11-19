@@ -503,6 +503,10 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
+                day="3"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="What's The Alternative"
                 journalInstruction="If you could put family and friends before your dance career, what would that mean to you?"
                 moodLabel=""
                 saveButtonText="Save Entry"
