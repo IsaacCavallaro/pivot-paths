@@ -191,7 +191,10 @@ export default function EnhancedJournalScreen() {
             >
                 {/* Write Mode Header */}
                 <View style={[styles.header, { backgroundColor: '#647C90' }]}>
-                    <TouchableOpacity onPress={() => setShowWriteMode(false)}>
+                    <TouchableOpacity onPress={() => {
+                        setShowWriteMode(false);
+                        loadEntries(); // This will reload entries when closing
+                    }}>
                         <X size={24} color="#E2DED0" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>New Entry</Text>
