@@ -241,7 +241,11 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="your-first-experiment"
+                                pathTag="map-your-direction"
+                                day="7"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Your First Experiment"
                                 journalInstruction="Before we begin, what career ideas are you most excited to explore through this experiment?"
                                 moodLabel=""
                                 saveButtonText="Save Entry"

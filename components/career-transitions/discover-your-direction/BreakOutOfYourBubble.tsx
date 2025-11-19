@@ -98,6 +98,10 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
 
                             <JournalEntrySection
                                 pathTag="pre-bubble-breakout"
+                                day="5"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Break Out Of Your Bubble"
                                 journalInstruction="How are you feeling about stepping outside your comfort zone?"
                                 moodLabel=""
                                 saveButtonText="Save Entry"

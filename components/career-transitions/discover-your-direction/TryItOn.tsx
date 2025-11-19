@@ -519,6 +519,10 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
 
                             <JournalEntrySection
                                 pathTag="try-it-on-reflection"
+                                day="4"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Try It On"
                                 journalInstruction="Which career scenario felt most natural to you? What surprised you about your choices in these roleplay situations?"
                                 moodLabel=""
                                 saveButtonText="Save Reflection"

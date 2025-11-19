@@ -292,7 +292,11 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="discover-dream-life"
+                                pathTag="map-your-direction"
+                                day="6"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Deal Breakers"
                                 journalInstruction="Before we begin, reflect on your past experiences. What work situations have made you feel drained or unhappy? What environments have felt energizing?"
                                 moodLabel=""
                                 saveButtonText="Save Entry"
