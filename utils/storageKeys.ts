@@ -10,5 +10,14 @@ export const STORAGE_KEYS = {
     BEYOND_IDENTITY_MATCHED_PAIRS: 'beyongIdentityrMatchedPairs',
     STRENGTH_MATCHED_PAIRS: 'strengthMatchedPairs',
     DEAL_BREAKER_MATCHED_PAIRS: 'dealBreakerMatchedPairs',
-    DANCE_MATCHED_PAIRS: 'danceMatchedPairs'
+    DANCE_MATCHED_PAIRS: 'danceMatchedPairs',
+    DAY7_CURIOSITY_RESULT: 'day7CuriosityResult',
+    DAY1_ENERGY_AUDIT_RESULT: 'day1EnergyAuditResult',
+    DAY7_REFLECT_AND_ADJUST: 'day7ReflectAndAdjustResult',
+    WHAT_ENERGIZES_YOU_RESULT: 'whatEnergizesYouResult',
+    DAY2_LEARNING_STYLE_RESULT: 'day2LearningStyleResult',
+    DAY2_MONEY_MINDSET_RESULT: 'day2MoneyMindsetsResult',
+    DAY2_SPENDING_TEMP_CHECK: 'day2SpendingTemperatureResult',
+    DAY6_LIFESTYLE_CREEP_RISK: 'day6LifestyleCreepResult',
+    DAY1_CONFIDENCE_GAP: 'day1ConfidenceGapResult'
 };

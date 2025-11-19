@@ -69,6 +69,82 @@ interface ValuesResult {
     color: string;
 }
 
+interface CuriosityResult {
+    // Add the structure for curiosity result based on your data
+    [key: string]: any;
+}
+
+// ADD INTERFACES FOR ENERGY AUDIT RESULTS
+interface EnergyAuditResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
+interface ReflectAndAdjustResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
+// ADD INTERFACE FOR WHAT ENERGIZES YOU RESULT
+interface WhatEnergizesYouResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
+// ADD INTERFACE FOR DAY2 LEARNING STYLE RESULT
+interface Day2LearningStyleResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
+// ADD INTERFACE FOR DAY2 MONEY MINDSET RESULT
+interface Day2MoneyMindsetResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
+// ADD INTERFACE FOR DAY2 SPENDING TEMPERATURE RESULT
+interface Day2SpendingTemperatureResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
+// ADD INTERFACE FOR DAY6 LIFESTYLE CREEP RISK RESULT
+interface Day6LifestyleCreepRiskResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
+// ADD INTERFACE FOR DAY1 CONFIDENCE GAP RESULT
+interface Day1ConfidenceGapResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
 const screenWidth = Dimensions.get('window').width;
 
 // Helper functions moved outside to avoid initialization issues
@@ -111,6 +187,22 @@ export default function ReportsScreen() {
     const [skillsQuizResult, setSkillsQuizResult] = useState<DreamerResult | null>(null);
     const [roleplayScenarioChoice, setRoleplayScenarioChoice] = useState<string | null>(null);
     const [valuesDiscoveryResult, setValuesDiscoveryResult] = useState<ValuesResult | null>(null);
+    const [curiosityResult, setCuriosityResult] = useState<CuriosityResult | null>(null);
+    // ADD STATE FOR ENERGY AUDIT RESULTS
+    const [energyAuditResult, setEnergyAuditResult] = useState<EnergyAuditResult | null>(null);
+    const [reflectAndAdjustResult, setReflectAndAdjustResult] = useState<ReflectAndAdjustResult | null>(null);
+    // ADD STATE FOR WHAT ENERGIZES YOU RESULT
+    const [whatEnergizesYouResult, setWhatEnergizesYouResult] = useState<WhatEnergizesYouResult | null>(null);
+    // ADD STATE FOR DAY2 LEARNING STYLE RESULT
+    const [day2LearningStyleResult, setDay2LearningStyleResult] = useState<Day2LearningStyleResult | null>(null);
+    // ADD STATE FOR DAY2 MONEY MINDSET RESULT
+    const [day2MoneyMindsetResult, setDay2MoneyMindsetResult] = useState<Day2MoneyMindsetResult | null>(null);
+    // ADD STATE FOR DAY2 SPENDING TEMPERATURE RESULT
+    const [day2SpendingTemperatureResult, setDay2SpendingTemperatureResult] = useState<Day2SpendingTemperatureResult | null>(null);
+    // ADD STATE FOR DAY6 LIFESTYLE CREEP RISK RESULT
+    const [day6LifestyleCreepRiskResult, setDay6LifestyleCreepRiskResult] = useState<Day6LifestyleCreepRiskResult | null>(null);
+    // ADD STATE FOR DAY1 CONFIDENCE GAP RESULT
+    const [day1ConfidenceGapResult, setDay1ConfidenceGapResult] = useState<Day1ConfidenceGapResult | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -190,6 +282,58 @@ export default function ReportsScreen() {
             const loadedValuesDiscoveryResult = await storageService.load<ValuesResult>(STORAGE_KEYS.VALUES_DISCOVERY_RESULT);
             if (loadedValuesDiscoveryResult) {
                 setValuesDiscoveryResult(loadedValuesDiscoveryResult);
+            }
+
+            const loadedCuriosityResult = await storageService.load<CuriosityResult>(STORAGE_KEYS.DAY7_CURIOSITY_RESULT);
+            if (loadedCuriosityResult) {
+                setCuriosityResult(loadedCuriosityResult);
+            }
+
+            // ADD LOADING FOR ENERGY AUDIT RESULTS
+            const loadedEnergyAuditResult = await storageService.load<EnergyAuditResult>(STORAGE_KEYS.DAY1_ENERGY_AUDIT_RESULT);
+            if (loadedEnergyAuditResult) {
+                setEnergyAuditResult(loadedEnergyAuditResult);
+            }
+
+            const loadedReflectAndAdjustResult = await storageService.load<ReflectAndAdjustResult>(STORAGE_KEYS.DAY7_REFLECT_AND_ADJUST);
+            if (loadedReflectAndAdjustResult) {
+                setReflectAndAdjustResult(loadedReflectAndAdjustResult);
+            }
+
+            // ADD LOADING FOR WHAT ENERGIZES YOU RESULT
+            const loadedWhatEnergizesYouResult = await storageService.load<WhatEnergizesYouResult>(STORAGE_KEYS.WHAT_ENERGIZES_YOU_RESULT);
+            if (loadedWhatEnergizesYouResult) {
+                setWhatEnergizesYouResult(loadedWhatEnergizesYouResult);
+            }
+
+            // ADD LOADING FOR DAY2 LEARNING STYLE RESULT
+            const loadedDay2LearningStyleResult = await storageService.load<Day2LearningStyleResult>(STORAGE_KEYS.DAY2_LEARNING_STYLE_RESULT);
+            if (loadedDay2LearningStyleResult) {
+                setDay2LearningStyleResult(loadedDay2LearningStyleResult);
+            }
+
+            // ADD LOADING FOR DAY2 MONEY MINDSET RESULT
+            const loadedDay2MoneyMindsetResult = await storageService.load<Day2MoneyMindsetResult>(STORAGE_KEYS.DAY2_MONEY_MINDSET_RESULT);
+            if (loadedDay2MoneyMindsetResult) {
+                setDay2MoneyMindsetResult(loadedDay2MoneyMindsetResult);
+            }
+
+            // ADD LOADING FOR DAY2 SPENDING TEMPERATURE RESULT
+            const loadedDay2SpendingTemperatureResult = await storageService.load<Day2SpendingTemperatureResult>(STORAGE_KEYS.DAY2_SPENDING_TEMP_CHECK);
+            if (loadedDay2SpendingTemperatureResult) {
+                setDay2SpendingTemperatureResult(loadedDay2SpendingTemperatureResult);
+            }
+
+            // ADD LOADING FOR DAY6 LIFESTYLE CREEP RISK RESULT
+            const loadedDay6LifestyleCreepRiskResult = await storageService.load<Day6LifestyleCreepRiskResult>(STORAGE_KEYS.DAY6_LIFESTYLE_CREEP_RISK);
+            if (loadedDay6LifestyleCreepRiskResult) {
+                setDay6LifestyleCreepRiskResult(loadedDay6LifestyleCreepRiskResult);
+            }
+
+            // ADD LOADING FOR DAY1 CONFIDENCE GAP RESULT
+            const loadedDay1ConfidenceGapResult = await storageService.load<Day1ConfidenceGapResult>(STORAGE_KEYS.DAY1_CONFIDENCE_GAP);
+            if (loadedDay1ConfidenceGapResult) {
+                setDay1ConfidenceGapResult(loadedDay1ConfidenceGapResult);
             }
 
             setLoading(false);
@@ -392,6 +536,294 @@ Keep up the great work on your pivot journey!
         );
     };
 
+    const renderCuriosityResult = () => {
+        if (!curiosityResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Curiosity Assessment</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {curiosityResult.title || 'Your Curiosity Profile'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {curiosityResult.description || 'Curiosity assessment completed'}
+                            </Text>
+                            {curiosityResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{curiosityResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    const renderEnergyAuditResult = () => {
+        if (!energyAuditResult && !reflectAndAdjustResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    {/* Energy Audit Result */}
+                    {energyAuditResult && (
+                        <View style={styles.quizResultSection}>
+                            <Text style={styles.profileSectionTitle}>Energy Audit</Text>
+                            <View style={[styles.resultCard, { borderLeftColor: energyAuditResult.color || '#647C90' }]}>
+                                <Text style={styles.resultTitle}>
+                                    {energyAuditResult.title || 'Your Energy Profile'}
+                                </Text>
+                                <Text style={styles.resultDescription}>
+                                    {energyAuditResult.description || 'Energy audit assessment completed'}
+                                </Text>
+                                {energyAuditResult.subtitle && (
+                                    <View style={styles.subtitleContainer}>
+                                        <Text style={styles.resultSubtitle}>{energyAuditResult.subtitle}</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                    )}
+
+                    {/* Reflect and Adjust Result */}
+                    {reflectAndAdjustResult && (
+                        <View style={styles.quizResultSection}>
+                            <Text style={styles.profileSectionTitle}>Reflect & Adjust</Text>
+                            <View style={[styles.resultCard, { borderLeftColor: reflectAndAdjustResult.color || '#647C90' }]}>
+                                <Text style={styles.resultTitle}>
+                                    {reflectAndAdjustResult.title || 'Your Reflection'}
+                                </Text>
+                                <Text style={styles.resultDescription}>
+                                    {reflectAndAdjustResult.description || 'Reflection and adjustment completed'}
+                                </Text>
+                                {reflectAndAdjustResult.subtitle && (
+                                    <View style={styles.subtitleContainer}>
+                                        <Text style={styles.resultSubtitle}>{reflectAndAdjustResult.subtitle}</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                    )}
+                </View>
+            </View>
+        );
+    };
+
+    // ADD FUNCTION TO RENDER WHAT ENERGIZES YOU RESULT
+    const renderWhatEnergizesYouResult = () => {
+        if (!whatEnergizesYouResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>What Energizes You</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: whatEnergizesYouResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {whatEnergizesYouResult.title || 'Your Energy Profile'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {whatEnergizesYouResult.description || 'Energy assessment completed'}
+                            </Text>
+                            {whatEnergizesYouResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{whatEnergizesYouResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    // ADD FUNCTION TO RENDER DAY2 LEARNING STYLE RESULT
+    const renderDay2LearningStyleResult = () => {
+        if (!day2LearningStyleResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Learning Style</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: day2LearningStyleResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {day2LearningStyleResult.title || 'Your Learning Style'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {day2LearningStyleResult.description || 'Learning style assessment completed'}
+                            </Text>
+                            {day2LearningStyleResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{day2LearningStyleResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    // ADD FUNCTION TO RENDER DAY2 MONEY MINDSET RESULT
+    const renderDay2MoneyMindsetResult = () => {
+        if (!day2MoneyMindsetResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Money Mindset</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: day2MoneyMindsetResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {day2MoneyMindsetResult.title || 'Your Money Mindset'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {day2MoneyMindsetResult.description || 'Money mindset assessment completed'}
+                            </Text>
+                            {day2MoneyMindsetResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{day2MoneyMindsetResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    // ADD FUNCTION TO RENDER DAY2 SPENDING TEMPERATURE RESULT
+    const renderDay2SpendingTemperatureResult = () => {
+        if (!day2SpendingTemperatureResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Spending Temperature</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: day2SpendingTemperatureResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {day2SpendingTemperatureResult.title || 'Your Spending Temperature'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {day2SpendingTemperatureResult.description || 'Spending temperature assessment completed'}
+                            </Text>
+                            {day2SpendingTemperatureResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{day2SpendingTemperatureResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    // ADD FUNCTION TO RENDER DAY6 LIFESTYLE CREEP RISK RESULT
+    const renderDay6LifestyleCreepRiskResult = () => {
+        if (!day6LifestyleCreepRiskResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Lifestyle Creep Risk</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: day6LifestyleCreepRiskResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {day6LifestyleCreepRiskResult.title || 'Your Lifestyle Creep Risk Assessment'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {day6LifestyleCreepRiskResult.description || 'Lifestyle creep risk assessment completed'}
+                            </Text>
+                            {day6LifestyleCreepRiskResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{day6LifestyleCreepRiskResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    // ADD FUNCTION TO RENDER DAY1 CONFIDENCE GAP RESULT
+    const renderDay1ConfidenceGapResult = () => {
+        if (!day1ConfidenceGapResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Confidence Gap Assessment</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: day1ConfidenceGapResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {day1ConfidenceGapResult.title || 'Your Confidence Gap Profile'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {day1ConfidenceGapResult.description || 'Confidence gap assessment completed'}
+                            </Text>
+                            {day1ConfidenceGapResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{day1ConfidenceGapResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    // Conditionally render the appropriate component based on path name - UPDATED
+    const renderPathSpecificContent = () => {
+        if (!selectedPath) return null;
+
+        if (selectedPath.pathName === 'Mindset Shift') {
+            return renderCuriosityResult();
+        } else if (selectedPath.pathName === 'Discover Dream Life') {
+            return renderDreamerProfile();
+        } else if (selectedPath.pathName === 'Work Life Balance') {
+            return renderEnergyAuditResult();
+        } else if (selectedPath.pathName === 'Map Your Direction') {
+            return renderWhatEnergizesYouResult();
+        } else if (selectedPath.pathName === 'Upskilling Pathfinder') {
+            return renderDay2LearningStyleResult();
+        } else if (selectedPath.pathName === 'Money Mindsets') {
+            return renderDay2MoneyMindsetResult();
+        } else if (selectedPath.pathName === 'Budgeting For Dancers') {
+            return renderDay2SpendingTemperatureResult();
+        } else if (selectedPath.pathName === 'Financial Futureproofing') {
+            return renderDay6LifestyleCreepRiskResult();
+        } else if (selectedPath.pathName === 'Prep Your Pivot') {
+            return renderDay1ConfidenceGapResult();
+        }
+
+        return null;
+    };
+
     if (loading) {
         return (
             <View style={styles.container}>
@@ -563,8 +995,8 @@ Keep up the great work on your pivot journey!
                             </View>
                         )}
 
-                        {/* Dreamer Profile Section */}
-                        {renderDreamerProfile()}
+                        {/* Conditionally render path-specific content */}
+                        {renderPathSpecificContent()}
 
                         <View style={styles.exportCard}>
                             <Download size={32} color="#647C90" />
@@ -1183,7 +1615,6 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '500',
     },
-    // NEW STYLES FOR QUIZ RESULTS
     quizResultSection: {
         marginBottom: 20,
     },
