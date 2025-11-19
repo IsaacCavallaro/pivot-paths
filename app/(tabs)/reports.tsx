@@ -23,7 +23,7 @@ import {
     Share2,
     ChevronRight
 } from 'lucide-react-native';
-// import { PieChart } from 'react-native-svg-charts';
+import { PieChart } from 'react-native-svg-charts';
 
 import { useStorage } from '@/hooks/useStorage';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
@@ -506,12 +506,12 @@ Keep up the great work on your journaling journey! 📝✨
                                     <View style={styles.chartContainer}>
                                         <Text style={styles.chartTitle}>Mood Distribution</Text>
                                         <View style={styles.pieChartWrapper}>
-                                            {/* <PieChart
+                                            <PieChart
                                                 style={{ height: 200, width: 200 }}
                                                 data={getMoodPieData()}
                                                 innerRadius={'40%'}
                                                 padAngle={0.02}
-                                            /> */}
+                                            />
                                             <View style={styles.pieChartCenter}>
                                                 <Text style={styles.pieChartCenterText}>
                                                     {insights.totalEntries}
