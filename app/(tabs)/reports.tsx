@@ -328,41 +328,38 @@ export default function ReportsScreen() {
 
     const exportReport = async () => {
         try {
+            // Build mood distribution section
+            const moodDistributionText = Object.entries(insights.moodStats).length > 0
+                ? `Mood Distribution:\n${Object.entries(insights.moodStats)
+                    .map(([mood, count]) => `${getMoodEmoji(mood)} ${mood}: ${count} entries (${((count / insights.totalEntries) * 100).toFixed(0)}%)`)
+                    .join('\n')}`
+                : 'Mood Distribution: No data available';
+
+            // Build dreamer profile section
+            const dreamerProfileText = skillsQuizResult || valuesDiscoveryResult
+                ? `\n${skillsQuizResult ? `Dreamer Type: ${skillsQuizResult.title}\n${skillsQuizResult.description}` : ''}${valuesDiscoveryResult ? `\nCore Values: ${valuesDiscoveryResult.title}\n${valuesDiscoveryResult.description}` : ''}`
+                : ' No data available';
+
             const reportText = `
 Your Journal Insights Report - ${selectedPath?.pathName || 'All Journeys'}
 ============================
 
-Total Entries: ${insights.totalEntries}
-Categories: ${insights.pathCount}
-Most Common Mood: ${insights.mostCommonMood}
-Average Entry Length: ${insights.avgLength} characters
+${moodDistributionText}
 
-Mood Distribution:
-${Object.entries(insights.moodStats)
-                    .map(([mood, count]) => `${getMoodEmoji(mood)} ${mood}: ${count} entries (${((count / insights.totalEntries) * 100).toFixed(0)}%)`)
-                    .join('\n')}
+${dreamerProfileText}
 
-Entries by Category:
-${Object.entries(insights.entriesByPath)
-                    .map(([path, entries]) => `${formatPathTag(path)}: ${entries.length} entries`)
-                    .join('\n')}
-
-Dreamer Type: ${skillsQuizResult?.title || 'N/A'}
-Core Values: ${valuesDiscoveryResult?.title || 'N/A'}
-
-Keep up the great work on your journaling journey! 📝✨
-            `.trim();
+Keep up the great work on your pivot journey!
+        `.trim();
 
             await Share.share({
                 message: reportText,
-                title: `My ${selectedPath?.pathName || 'Journal'} Insights Report`
+                title: `${selectedPath?.pathName || 'Journal'} Insights Report`
             });
         } catch (error) {
             Alert.alert('Error', 'Failed to export report');
         }
     };
 
-    // NEW: Render Dreamer Profile section with detailed results
     const renderDreamerProfile = () => {
         if (!skillsQuizResult && !valuesDiscoveryResult) {
             return null;
