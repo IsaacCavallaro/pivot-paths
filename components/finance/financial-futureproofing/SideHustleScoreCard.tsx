@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, TrendingUp, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, Dimensions, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { ChevronRight, TrendingUp, ArrowLeft, Check } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { useStorage } from '@/hooks/useStorage';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+
+const { width, height } = Dimensions.get('window');
 
 interface SideHustleChoice {
     id: number;
@@ -15,9 +25,7 @@ interface SideHustleScoreCardProps {
     onBack?: () => void;
 }
 
-const { width, height } = Dimensions.get('window');
-
-const sideHustleChoices: SideHustleChoice[] = [
+const sideHustleOptions: SideHustleChoice[] = [
     {
         id: 1,
         option1: 'Dog Walking',
@@ -50,19 +58,35 @@ const sideHustleChoices: SideHustleChoice[] = [
     }
 ];
 
+// Mapping function to convert specific choices to their story representations
+const getStoryMapping = (choice: string): string => {
+    const mappings: { [key: string]: string } = {
+        'Sell Crafts Online': 'selling your crafts online',
+        'Start a Youtube channel': 'a YouTube channel'
+    };
+
+    return mappings[choice] || choice;
+};
+
 export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleScoreCardProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-5 = choices, 6-11 = story
-    const [choices, setChoices] = useState<{ [key: string]: string }>({});
+    const [currentScreen, setCurrentScreen] = useState(-1);
     const [randomizedChoices, setRandomizedChoices] = useState<SideHustleChoice[]>([]);
+    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry: addMorningJournalEntry } = useJournaling('financial-futureproofing');
+    const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('financial-futureproofing');
+    const [userChoices, setUserChoices] = useStorage<{ [key: string]: string }>('SIDE_HUSTLE_CHOICES', {});
 
     useEffect(() => {
-        // Randomize the order of choices when component mounts
-        const shuffled = [...sideHustleChoices].sort(() => Math.random() - 0.5);
+        const shuffled = [...sideHustleOptions].sort(() => Math.random() - 0.5);
         setRandomizedChoices(shuffled);
     }, []);
 
     const handleStartGame = () => {
-        setCurrentScreen(1);
+        setCurrentScreen(0);
+        scrollToTop();
     };
 
     const handleBack = () => {
@@ -72,31 +96,49 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
     };
 
     const goBack = () => {
-        if (currentScreen === 1) {
+        if (currentScreen === -1) {
+            if (onBack) onBack();
+        } else if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen === 1) {
             setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        } else if (currentScreen > 1 && currentScreen <= 6) {
             setCurrentScreen(currentScreen - 1);
         }
+        scrollToTop();
     };
 
-    const handleChoice = (choiceKey: string, selectedOption: string) => {
-        const newChoices = { ...choices, [choiceKey]: selectedOption };
-        setChoices(newChoices);
+    const handleContinue = async () => {
+        if (selectedOption === null || isTransitioning) return;
+
+        setIsTransitioning(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        const choiceIndex = currentScreen - 1;
+        const currentChoice = randomizedChoices[choiceIndex];
+
+        if (currentChoice) {
+            const newChoices = { ...userChoices, [currentChoice.storyKey]: selectedOption };
+            await setUserChoices(newChoices);
+        }
 
         if (currentScreen < 5) {
             setCurrentScreen(currentScreen + 1);
+            setSelectedOption(null);
         } else {
-            // Skip to story screen 7 (Your Hustle, Your Rules)
             setCurrentScreen(7);
         }
+        scrollToTop();
+        setIsTransitioning(false);
     };
 
     const handleContinueStory = () => {
-        if (currentScreen < 11) {
+        if (currentScreen < 12) {
             setCurrentScreen(currentScreen + 1);
         } else {
             onComplete();
         }
+        scrollToTop();
     };
 
     const getStoryText = (screenNumber: number) => {
@@ -104,13 +146,13 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
             case 7:
                 return "Your Hustle, Your Rules";
             case 8:
-                return `You decided to bring in extra cash through ${choices.hustle1?.toLowerCase()}. The flexible hours let you work around your dance schedule, and you love the variety.`;
+                return `You decided to bring in extra cash through ${userChoices.hustle1?.toLowerCase()}. The flexible hours let you work around your dance schedule, and you love the variety.`;
             case 9:
-                return `You decided to build your skills as a ${choices.hustle2?.toLowerCase()}. You love the creative challenge and the ability to work from anywhere on your own schedule. But it isn't quite enough.`;
+                return `You decided to build your skills as a ${userChoices.hustle2?.toLowerCase()}. You love the creative challenge and the ability to work from anywhere on your own schedule. But it isn't quite enough.`;
             case 10:
-                return `You dabble in ${choices.hustle3?.toLowerCase()} and start learning more about ${choices.hustle4?.toLowerCase()}. You're not only making extra money that you put into savings but you're learning valuable skills for the future.`;
+                return `You dabble in ${userChoices.hustle3?.toLowerCase()} and start learning more about ${userChoices.hustle4?.toLowerCase()}. You're not only making extra money that you put into savings but you're learning valuable skills for the future.`;
             case 11:
-                return `In the meantime, you take one of your other passions and start ${choices.hustle5 === 'Sell Crafts Online' ? 'selling your crafts online' : 'a YouTube channel'}. It feels amazing to finally have some agency in your life and build other income streams while you're still dancing.`;
+                return `In the meantime, you take one of your other passions and start ${getStoryMapping(userChoices.hustle5 || '').toLowerCase()}. It feels amazing to finally have some agency in your life and build other income streams while you're still dancing.`;
             case 12:
                 return "How does that feel? This isn't a far-off fantasy. This is what's possible when you direct your famous dancer discipline toward other goals.\n\nYour first step is simple: pick one side hustle from your choices and research how to get started this week. You don't have to commit forever, just try it.\n\nCome back tomorrow for more.";
             default:
@@ -118,53 +160,100 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
         }
     };
 
-    // Intro Screen
-    if (currentScreen === 0) {
+    // NEW: Intro Screen with Morning Journal
+    if (currentScreen === -1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Side Hustle Scorecard</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <TrendingUp size={32} color="#E2DED0" />
-                                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
-                            <Text style={styles.introTitle}>Side Hustle Scorecard</Text>
-                            <Text style={styles.introDescription}>
+
+                            <Text style={commonStyles.introTitle}>Side Hustle Scorecard</Text>
+
+                            <Text style={commonStyles.introDescription}>
                                 Your financial goals need fuel. A side hustle is a powerful way to generate extra cash to build your future, fast.
-                                {'\n\n'}
-                                This is a game of instincts. Choose the side gigs that sound most appealing to you. We'll use your choices to show you the impact that extra income can have.
-                                {'\n\n'}
-                                Don't overthink it! There's no right or wrong.
                             </Text>
-                            <TouchableOpacity style={styles.startButton} onPress={handleStartGame} activeOpacity={0.8}>
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Begin</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+
+                            <Text style={commonStyles.introDescription}>
+                                This is a game of instincts. Choose the side gigs that sound most appealing to you. We'll use your choices to show you the impact that extra income can have.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="financial-futureproofing"
+                                day="2"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Side Hustle Scorecard"
+                                journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling about exploring side hustle opportunities?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Continue" onPress={handleStartGame} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Choice Screens (1-5)
+    // Original Intro Screen (now screen 0)
+    if (currentScreen === 0) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.introTitle}>Side Hustle Scorecard</Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                This is a game of instincts. Choose the side gigs that sound most appealing to you. We'll use your choices to show you the impact that extra income can have.
+                            </Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                Don't overthink it! There's no right or wrong.
+                            </Text>
+
+                            <PrimaryButton title="Begin" onPress={() => setCurrentScreen(1)} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Choice Screens (1-5) - UPDATED WITH HIGHLIGHT AND CONTINUE BUTTON
     if (currentScreen >= 1 && currentScreen <= 5) {
         const choiceIndex = currentScreen - 1;
         const currentChoice = randomizedChoices[choiceIndex];
@@ -172,44 +261,79 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
         if (!currentChoice) return null;
 
         return (
-            <View style={styles.container}>
-                {/* Sticky Header with Progress */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.progressText}>{currentScreen} of 5</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${(currentScreen / 5) * 100}%` }]} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader
+                    onBack={goBack}
+                    title={`${currentScreen} of 5`}
+                    progress={currentScreen / 5}
+                />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.choiceCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.choiceButtons}>
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
-                                    onPress={() => handleChoice(currentChoice.storyKey, currentChoice.option1)}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedOption === currentChoice.option1 && styles.choiceButtonSelected
+                                    ]}
+                                    onPress={() => setSelectedOption(currentChoice.option1)}
                                     activeOpacity={0.8}
+                                    disabled={isTransitioning}
                                 >
-                                    <Text style={styles.choiceButtonText}>{currentChoice.option1}</Text>
+                                    <View style={styles.optionContent}>
+                                        {selectedOption === currentChoice.option1 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceButtonText,
+                                            selectedOption === currentChoice.option1 && styles.choiceButtonTextSelected
+                                        ]}>
+                                            {currentChoice.option1}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
-                                    onPress={() => handleChoice(currentChoice.storyKey, currentChoice.option2)}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedOption === currentChoice.option2 && styles.choiceButtonSelected
+                                    ]}
+                                    onPress={() => setSelectedOption(currentChoice.option2)}
                                     activeOpacity={0.8}
+                                    disabled={isTransitioning}
                                 >
-                                    <Text style={styles.choiceButtonText}>{currentChoice.option2}</Text>
+                                    <View style={styles.optionContent}>
+                                        {selectedOption === currentChoice.option2 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceButtonText,
+                                            selectedOption === currentChoice.option2 && styles.choiceButtonTextSelected
+                                        ]}>
+                                            {currentChoice.option2}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={selectedOption === null || isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -223,29 +347,26 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
         const isFinal = currentScreen === 12;
 
         return (
-            <View style={styles.container}>
-                <View style={styles.storyBackground}>
-                    <View style={styles.storyBackgroundPattern} />
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Side Hustle Scorecard</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
-
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.storyCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             {isTitle ? (
-                                <Text style={styles.storyTitle}>{storyText}</Text>
+                                <View style={styles.storyTitleContainer}>
+                                    <Text style={styles.storyTitle}>{storyText}</Text>
+                                    <View style={styles.titleUnderline} />
+                                </View>
                             ) : (
-                                <>
+                                <View style={styles.storyTextContainer}>
                                     {isFinal && (
                                         <View style={styles.finalHeader}>
                                             <TrendingUp size={24} color="#928490" />
@@ -253,36 +374,34 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
                                             <TrendingUp size={24} color="#928490" />
                                         </View>
                                     )}
-                                    <View style={styles.storyTextContainer}>
-                                        <Text style={styles.storyText}>{storyText}</Text>
-                                    </View>
-                                </>
+                                    <Text style={styles.storyText}>{storyText}</Text>
+                                </View>
                             )}
 
                             {isFinal && (
-                                <Text style={styles.alternativeClosing}>
-                                    Come back tomorrow for more.
-                                </Text>
+                                <JournalEntrySection
+                                    pathTag="financial-futureproofing"
+                                    day="2"
+                                    category="finance"
+                                    pathTitle="Money Mindsets"
+                                    dayTitle="Side Hustle Scorecard"
+                                    journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after exploring side hustle possibilities?"
+                                    moodLabel=""
+                                    saveButtonText="Save Entry"
+                                />
                             )}
 
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinueStory} activeOpacity={0.8}>
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>
-                                        {isFinal ? 'Mark As Complete' : 'Continue'}
-                                    </Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={styles.alternativeClosing}>
+                                {isFinal ? 'Come back tomorrow for more.' : ''}
+                            </Text>
+
+                            <PrimaryButton
+                                title={isFinal ? 'Mark As Complete' : 'Continue'}
+                                onPress={handleContinueStory}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
-
-                {!isFinal && (
-                    <TouchableOpacity style={styles.bottomBackButton} onPress={goBack}>
-                        <ChevronLeft size={24} color="#647C90" />
-                        <Text style={styles.bottomBackButtonText}>Back</Text>
-                    </TouchableOpacity>
-                )}
             </View>
         );
     }
@@ -291,163 +410,6 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    storyBackground: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 0,
-    },
-    storyBackgroundPattern: {
-        flex: 1,
-        opacity: 0.03,
-        backgroundColor: '#928490',
-        transform: [{ rotate: '45deg' }, { scale: 1.5 }],
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-        zIndex: 1,
-    },
-    centeredContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: height - 200,
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-        marginTop: 60,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-        fontStyle: 'italic',
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choiceCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
     choiceButtons: {
         gap: 20,
     },
@@ -460,32 +422,55 @@ const styles = StyleSheet.create({
         minHeight: 80,
         justifyContent: 'center',
     },
+    choiceButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
+    },
     choiceButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
     },
-    storyCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
+    choiceButtonTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
+    },
+    optionContent: {
+        paddingRight: 40,
+    },
+    selectedIndicator: {
+        position: 'absolute',
+        top: '50%',
+        right: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
+        transform: [{ translateY: -12 }],
+    },
+    storyTitleContainer: {
+        alignItems: 'center',
+        marginBottom: 40,
     },
     storyTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
+        fontSize: 32,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
+        lineHeight: 38,
         fontWeight: '700',
+    },
+    titleUnderline: {
+        height: 4,
+        width: 60,
+        backgroundColor: '#928490',
+        borderRadius: 2,
+        marginTop: 16,
+        opacity: 0.6,
     },
     storyTextContainer: {
         width: '100%',
@@ -497,28 +482,7 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 28,
-    },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-        minWidth: width * 0.5,
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
+        marginTop: 10,
     },
     alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
@@ -526,7 +490,7 @@ const styles = StyleSheet.create({
         color: '#647C90',
         textAlign: 'center',
         marginBottom: 32,
-        marginTop: 5,
+        marginTop: 0,
         fontWeight: '600',
     },
     finalHeader: {
@@ -542,19 +506,5 @@ const styles = StyleSheet.create({
         color: '#647C90',
         textAlign: 'center',
         fontWeight: '700',
-    },
-    bottomBackButton: {
-        position: 'absolute',
-        bottom: 30,
-        left: 30,
-        flexDirection: 'row',
-        alignItems: 'center',
-        zIndex: 10,
-    },
-    bottomBackButtonText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
-        marginLeft: 8,
     },
 });

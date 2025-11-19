@@ -344,6 +344,10 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
+                day="2"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="Myth Buster"
                 journalInstruction="Before we begin, let’s take a moment to check in with yourself. How are you feeling after yesterday’s quiz? Is there anything you’re hoping to gain today?"
                 moodLabel=""
                 saveButtonText="Save Entry"

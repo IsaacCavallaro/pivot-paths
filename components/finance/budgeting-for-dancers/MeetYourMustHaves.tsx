@@ -1,7 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Target, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { ChevronRight, Target, ArrowLeft, Check } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useStorage } from '@/hooks/useStorage';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 
 interface ChoicePair {
     id: number;
@@ -31,70 +38,65 @@ interface MeetYourMustHavesProps {
 }
 
 export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHavesProps) {
-    const [currentPairIndex, setCurrentPairIndex] = useState(0);
-    const [userChoices, setUserChoices] = useState<UserChoices>({});
-    const [screenHistory, setScreenHistory] = useState<Array<{ pairIndex: number, showResults: boolean }>>([]);
-    const [currentResultIndex, setCurrentResultIndex] = useState(0); // Moved to top level
+    const [currentScreen, setCurrentScreen] = useState(-1);
+    const [userChoices, setUserChoices] = useStorage<UserChoices>('MUST_HAVES_CHOICES', {});
+    const [currentResultIndex, setCurrentResultIndex] = useState(0);
 
-    const handleBack = useCallback(() => {
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+
+    const handleStartGame = () => {
+        setCurrentScreen(0);
+        scrollToTop();
+    };
+
+    const handleBack = () => {
         if (onBack) {
             onBack();
         }
-    }, [onBack]);
-
-    const handleStartGame = () => {
-        setScreenHistory([{ pairIndex: 0, showResults: false }]);
-        setCurrentResultIndex(0); // Reset result index
-    };
-
-    const handleChoiceSelect = (choiceNumber: number) => {
-        const newChoices = { ...userChoices, [currentPairIndex + 1]: choiceNumber };
-        setUserChoices(newChoices);
-
-        if (currentPairIndex < choicePairs.length - 1) {
-            // Move to next pair
-            const newPairIndex = currentPairIndex + 1;
-            setCurrentPairIndex(newPairIndex);
-            setScreenHistory([...screenHistory, { pairIndex: newPairIndex, showResults: false }]);
-        } else {
-            // All pairs completed, go to results
-            setScreenHistory([...screenHistory, { pairIndex: -1, showResults: false }]);
-        }
-    };
-
-    const handleContinue = () => {
-        setScreenHistory([...screenHistory, { pairIndex: -2, showResults: true }]);
-    };
-
-    const handleComplete = () => {
-        onComplete();
     };
 
     const goBack = () => {
-        if (screenHistory.length <= 1) {
-            // If we're at the first screen, go back to intro
-            setScreenHistory([]);
-            setCurrentPairIndex(0);
-            setCurrentResultIndex(0); // Reset result index
-            return;
+        if (currentScreen === -1) {
+            if (onBack) onBack();
+        } else if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen === 1) {
+            setCurrentScreen(0);
+        } else if (currentScreen > 1 && currentScreen <= 6) {
+            setCurrentScreen(currentScreen - 1);
         }
+        scrollToTop();
+    };
 
-        // Remove current screen from history
-        const newHistory = [...screenHistory];
-        newHistory.pop();
-        setScreenHistory(newHistory);
+    const handleChoiceSelect = async (choiceNumber: number) => {
+        const newChoices = { ...userChoices, [currentScreen + 1]: choiceNumber };
+        await setUserChoices(newChoices);
+        scrollToTop();
+    };
 
-        // Get previous screen state
-        const prevScreen = newHistory[newHistory.length - 1];
-
-        if (prevScreen.pairIndex >= 0) {
-            setCurrentPairIndex(prevScreen.pairIndex);
+    const handleContinue = () => {
+        if (currentScreen === 8) {
+            setCurrentScreen(9);
+        } else if (currentScreen === 9) {
+            setCurrentScreen(10);
+        } else if (currentScreen === 10) {
+            setCurrentScreen(11);
+        } else if (currentScreen === 11) {
+            onComplete();
+        } else {
+            setCurrentScreen(currentScreen + 1);
         }
+        scrollToTop();
+    };
 
-        // Reset result index when going back from results screens
-        if (prevScreen.pairIndex !== -2) {
+    const handleNextResult = () => {
+        if (currentResultIndex < getPersonalizedResults().length - 1) {
+            setCurrentResultIndex(currentResultIndex + 1);
+        } else {
+            setCurrentScreen(11);
             setCurrentResultIndex(0);
         }
+        scrollToTop();
     };
 
     // Generate personalized results based on user choices
@@ -140,51 +142,130 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
         return results;
     };
 
-    // Intro Screen
-    if (screenHistory.length === 0) {
+    // Day 5 Welcome Screen
+    if (currentScreen === -1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Meet Your Must-Haves</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
                                     <Target size={32} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <Text style={styles.introTitle}>Meet Your Must-Haves</Text>
+                            <Text style={commonStyles.introTitle}>Meet Your Must-Haves</Text>
 
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introDescription}>
                                 This is a game of instincts. We're going to uncover what you truly value by having you choose between common spending categories. Your choices will help us build a personalized snapshot of your financial priorities. Don't overthink it!
-                                {"\n\n"}
+                            </Text>
+
+                            <Text style={commonStyles.introDescription}>
                                 There's no right or wrong. Let's see what you build.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={handleStartGame}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Begin Choosing</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
+                            <PrimaryButton title="Begin Choosing" onPress={handleStartGame} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Choice Screens (0-8)
+    if (currentScreen >= 0 && currentScreen <= 8) {
+        const currentPair = choicePairs[currentScreen];
+        const choiceProgress = ((currentScreen + 1) / choicePairs.length) * 100;
+
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={styles.progressContainer}>
+                                <Text style={styles.progressText}>
+                                    {currentScreen + 1} of {choicePairs.length} choices
+                                </Text>
+                                <View style={styles.progressBar}>
+                                    <View style={[styles.progressFill, { width: `${choiceProgress}%` }]} />
                                 </View>
-                            </TouchableOpacity>
-                        </View>
+                            </View>
+
+                            <Text style={styles.choiceTitle}>Which would you choose?</Text>
+
+                            <View style={styles.choicesContainer}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.choiceButton,
+                                        userChoices[currentScreen + 1] === 1 && styles.choiceButtonSelected
+                                    ]}
+                                    onPress={() => handleChoiceSelect(1)}
+                                    activeOpacity={0.8}
+                                >
+                                    <View style={styles.choiceContent}>
+                                        {userChoices[currentScreen + 1] === 1 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            userChoices[currentScreen + 1] === 1 && styles.choiceTextSelected
+                                        ]}>
+                                            {currentPair.option1}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[
+                                        styles.choiceButton,
+                                        userChoices[currentScreen + 1] === 2 && styles.choiceButtonSelected
+                                    ]}
+                                    onPress={() => handleChoiceSelect(2)}
+                                    activeOpacity={0.8}
+                                >
+                                    <View style={styles.choiceContent}>
+                                        {userChoices[currentScreen + 1] === 2 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            userChoices[currentScreen + 1] === 2 && styles.choiceTextSelected
+                                        ]}>
+                                            {currentPair.option2}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={!userChoices[currentScreen + 1]}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -192,26 +273,21 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
     }
 
     // Results Overview Screen
-    const currentScreen = screenHistory[screenHistory.length - 1];
-    if (currentScreen.pairIndex === -1) {
+    if (currentScreen === 9) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Explore Your Spending Values</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.overviewCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.overviewIconContainer}>
                                 <View style={[styles.overviewIconGradient, { backgroundColor: '#928490' }]}>
                                     <Target size={40} color="#E2DED0" />
@@ -220,17 +296,8 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
 
                             <Text style={styles.overviewTitle}>Explore Your Spending Values</Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>See Your Results</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="See Your Results" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -238,83 +305,54 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
     }
 
     // Results Screens
-    if (currentScreen.pairIndex === -2) {
+    if (currentScreen === 10) {
         const personalizedResults = getPersonalizedResults();
 
-        const handleNextResult = () => {
-            if (currentResultIndex < personalizedResults.length - 1) {
-                setCurrentResultIndex(currentResultIndex + 1);
-            } else {
-                // All results shown, go to final screen
-                setScreenHistory([...screenHistory, { pairIndex: -3, showResults: true }]);
-                // Reset the result index for potential future use
-                setCurrentResultIndex(0);
-            }
-        };
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-        if (currentResultIndex < personalizedResults.length) {
-            return (
-                <View style={styles.container}>
-                    {/* Sticky Header */}
-                    <View style={[styles.stickyHeader, { backgroundColor: '#5A7D7B' }]}>
-                        <View style={styles.headerRow}>
-                            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                                <ArrowLeft size={28} color="#E2DED0" />
-                            </TouchableOpacity>
-                            <View style={styles.headerTitleContainer}>
-                                <Text style={styles.titleText}>Your Results</Text>
-                            </View>
-                            <View style={styles.backButton} />
-                        </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={styles.resultTitle}>Here's what your choices reveal</Text>
+
+                            <Text style={styles.resultText}>{personalizedResults[currentResultIndex]}</Text>
+
+                            <PrimaryButton
+                                title={currentResultIndex < personalizedResults.length - 1 ? 'Continue' : 'See Summary'}
+                                onPress={handleNextResult}
+                            />
+                        </Card>
                     </View>
-
-                    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                        <View style={styles.content}>
-                            <View style={styles.resultCard}>
-                                <Text style={styles.resultTitle}>Here's what your choices reveal</Text>
-
-                                <Text style={styles.resultText}>{personalizedResults[currentResultIndex]}</Text>
-
-                                <TouchableOpacity
-                                    style={styles.continueButton}
-                                    onPress={handleNextResult}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={[styles.continueButtonContent, { backgroundColor: '#5A7D7B' }]}>
-                                        <Text style={styles.continueButtonText}>
-                                            {currentResultIndex < personalizedResults.length - 1 ? 'Continue' : 'See Summary'}
-                                        </Text>
-                                        <ChevronRight size={16} color="#E2DED0" />
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
+                </ScrollView>
+            </View>
+        );
     }
 
-    // Final Summary Screen
-    if (screenHistory[screenHistory.length - 1].pairIndex === -3) {
+    // Final Summary Screen with Journal
+    if (currentScreen === 11) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Values</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.finalCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.finalIconContainer}>
                                 <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
                                     <Target size={40} color="#E2DED0" />
@@ -331,223 +369,60 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
                                 Let's keep going tomorrow.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={handleComplete}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <JournalEntrySection
+                                pathTag="budgeting-for-dancers"
+                                day="5"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Meet Your Must Haves"
+                                journalInstruction="How do your spending choices reflect your core values? What surprised you about your must-haves?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <View style={styles.journalCallout}>
+                                <Text style={styles.journalCalloutTitle}>Your Personal Space</Text>
+                                <Text style={styles.journalCalloutText}>
+                                    Remember, feel free to use the journal tab at any time to jot down your thoughts. This app is for you! Use it how you'd like to!
+                                </Text>
+                            </View>
+
+                            <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Choice Screens
-    const currentPair = choicePairs[currentPairIndex];
-    const choiceProgress = ((currentPairIndex + 1) / choicePairs.length) * 100;
-
-    return (
-        <View style={styles.container}>
-            {/* Sticky Header */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.titleText}>Make Your Choice</Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-
-                {/* Progress Bar */}
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>
-                        {currentPairIndex + 1} of {choicePairs.length} choices
-                    </Text>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${choiceProgress}%` }]} />
-                    </View>
-                </View>
-            </View>
-
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.content}>
-                    <View style={styles.choiceCard}>
-                        <Text style={styles.choiceTitle}>Which would you choose?</Text>
-
-                        <View style={styles.choicesContainer}>
-                            <TouchableOpacity
-                                style={styles.choiceButton}
-                                onPress={() => handleChoiceSelect(1)}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.choiceText}>{currentPair.option1}</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles.choiceButton}
-                                onPress={() => handleChoiceSelect(2)}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.choiceText}>{currentPair.option2}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </ScrollView>
-        </View>
-    );
+    return null;
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 140,
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 15,
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
+    // Progress Styles
     progressContainer: {
         alignItems: 'center',
+        marginBottom: 30,
     },
     progressText: {
         fontFamily: 'Montserrat-Medium',
         fontSize: 14,
-        color: '#E2DED0',
+        color: '#928490',
         marginBottom: 10,
     },
     progressBar: {
         width: '100%',
         height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
         borderRadius: 3,
         overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#E2DED0',
+        backgroundColor: '#928490',
         borderRadius: 3,
     },
-    // Intro Screen Styles
-    introCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
     // Choice Screen Styles
-    choiceCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
     choiceTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -558,37 +433,62 @@ const styles = StyleSheet.create({
     },
     choicesContainer: {
         gap: 16,
+        marginBottom: 24,
     },
     choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 16,
-        padding: 24,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderWidth: 2,
         borderColor: 'transparent',
+    },
+    choiceButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
+    },
+    choiceContent: {
+        padding: 24,
+        paddingRight: 50,
         minHeight: 120,
         justifyContent: 'center',
     },
     choiceText: {
-        fontFamily: 'Montserrat-SemiBold',
+        fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 22,
     },
-    // Overview Screen Styles
-    overviewCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
+    choiceTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
+    },
+    selectedIndicator: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    // Intro Screen Styles
+    introIconGradient: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
         alignItems: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
         elevation: 5,
     },
+    // Overview Screen Styles
     overviewIconContainer: {
         marginBottom: 24,
     },
@@ -602,6 +502,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
+        elevation: 5,
     },
     overviewTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -612,19 +513,6 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     // Result Screen Styles
-    resultCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
     resultTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -642,19 +530,6 @@ const styles = StyleSheet.create({
         marginBottom: 32,
     },
     // Final Screen Styles
-    finalCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
     finalIconContainer: {
         marginBottom: 24,
     },
@@ -668,6 +543,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
+        elevation: 5,
     },
     finalTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -685,47 +561,29 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 32,
     },
-    // Common Button Styles
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 30,
+    // Journal Callout
+    journalCallout: {
+        width: '100%',
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 25,
         borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderColor: 'rgba(100, 124, 144, 0.2)',
     },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    completeButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    completeButtonText: {
+    journalCalloutTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
         fontWeight: '600',
+    },
+    journalCalloutText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 22,
     },
 });

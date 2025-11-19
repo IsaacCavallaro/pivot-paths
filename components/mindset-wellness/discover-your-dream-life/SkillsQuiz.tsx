@@ -424,6 +424,10 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
+                day="1"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="Dream Bigger Game"
                 journalInstruction="Before we begin, let’s take a moment to check in with yourself. How are you feeling as you begin this journey?"
                 moodLabel=""
                 saveButtonText="Add to Journal"
@@ -659,6 +663,10 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
+                day="day-1"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="Dream Bigger Game"
                 journalInstruction="As you're watching, write your reflections as a journal entry below."
                 moodLabel="How are you feeling?"
                 saveButtonText="Add to Journal"

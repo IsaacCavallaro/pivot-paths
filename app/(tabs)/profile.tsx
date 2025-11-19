@@ -81,7 +81,8 @@ export default function ProfileScreen() {
         'journalEntries',
         'pathProgress',
         'roleplayScenarioChoice',
-        'valuesDiscoveryResult'
+        'valuesDiscoveryResult',
+        'starvingArtistrMatchedPairs'
       ]);
 
       // Reset local state

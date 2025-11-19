@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, AlertTriangle, ArrowLeft, ChevronLeft, Plane, Briefcase, Heart } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { ChevronRight, AlertTriangle, ArrowLeft, ChevronLeft, Plane, Briefcase, Heart, Check } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useStorage } from '@/hooks/useStorage';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 
 interface EmergencyProps {
     onComplete: () => void;
@@ -9,12 +17,14 @@ interface EmergencyProps {
 }
 
 export default function Emergency({ onComplete, onBack }: EmergencyProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-12 = scenario screens
-    const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
-    const [currentScenario, setCurrentScenario] = useState(1); // 1, 2, or 3
+    const [currentScreen, setCurrentScreen] = useState(-1);
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const [selectedChoice, setSelectedChoice] = useStorage<number | null>('EMERGENCY_SCENARIO_CHOICE', null);
+    const [currentScenario, setCurrentScenario] = useStorage<number>('EMERGENCY_CURRENT_SCENARIO', 1);
 
     const handleStart = () => {
-        setCurrentScreen(1);
+        setCurrentScreen(0);
+        scrollToTop();
     };
 
     const handleBack = () => {
@@ -24,63 +34,50 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
     };
 
     const goBack = () => {
-        if (currentScreen === 0) {
-            handleBack();
+        if (currentScreen === -1) {
+            if (onBack) onBack();
+        } else if (currentScreen === 0) {
+            setCurrentScreen(-1);
         } else if (currentScreen === 1) {
             setCurrentScreen(0);
         } else if (currentScreen > 1 && currentScreen <= 12) {
             setCurrentScreen(currentScreen - 1);
         }
+        scrollToTop();
     };
 
-    const handleChoiceSelect = (choiceNumber: number) => {
-        setSelectedChoice(choiceNumber);
-        // Move to response screen based on current scenario
-        if (currentScenario === 1) {
-            setCurrentScreen(4);
-        } else if (currentScenario === 2) {
-            setCurrentScreen(8);
-        } else if (currentScenario === 3) {
-            setCurrentScreen(11);
-        }
+    const handleChoiceSelect = async (choiceNumber: number) => {
+        await setSelectedChoice(choiceNumber);
+        scrollToTop();
     };
 
     const handleContinue = () => {
-        if (currentScreen === 0) {
-            setCurrentScreen(1);
-        } else if (currentScreen === 1) {
-            setCurrentScreen(2);
-        } else if (currentScreen === 2) {
+        if (currentScreen === 2 && selectedChoice !== null) {
             setCurrentScreen(3);
-        } else if (currentScreen === 3 && selectedChoice !== null) {
-            // After choice response, go to follow-up
+        } else if (currentScreen === 3) {
+            setCurrentScreen(4);
+        } else if (currentScreen === 4) {
             setCurrentScreen(5);
         } else if (currentScreen === 5) {
-            // End of scenario 1, start scenario 2
             setCurrentScenario(2);
             setCurrentScreen(6);
-        } else if (currentScreen === 6) {
+        } else if (currentScreen === 6 && selectedChoice !== null) {
             setCurrentScreen(7);
-        } else if (currentScreen === 7 && selectedChoice !== null) {
-            // After choice response, go to follow-up
-            setCurrentScreen(8);
-        } else if (currentScreen === 8) {
-            // End of scenario 2, start scenario 3
+        } else if (currentScreen === 7) {
             setCurrentScenario(3);
+            setCurrentScreen(8);
+        } else if (currentScreen === 8 && selectedChoice !== null) {
             setCurrentScreen(9);
         } else if (currentScreen === 9) {
             setCurrentScreen(10);
-        } else if (currentScreen === 10 && selectedChoice !== null) {
-            // After choice response, go to follow-up
+        } else if (currentScreen === 10) {
             setCurrentScreen(11);
         } else if (currentScreen === 11) {
-            // Go to conclusion
-            setCurrentScreen(12);
-        } else if (currentScreen === 12) {
             onComplete();
         } else {
             setCurrentScreen(currentScreen + 1);
         }
+        scrollToTop();
     };
 
     const getResponseText = () => {
@@ -119,292 +116,271 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
         return "";
     };
 
-    const getHeaderColor = () => {
-        if (currentScreen === 0) return '#928490';
-        if (currentScreen >= 1 && currentScreen <= 5) return '#928490'; // Scenario 1
-        if (currentScreen >= 6 && currentScreen <= 8) return '#928490'; // Scenario 2
-        if (currentScreen >= 9 && currentScreen <= 11) return '#928490'; // Scenario 3
-        return '#647C90'; // Conclusion
-    };
-
-    const getHeaderTitle = () => {
-        if (currentScreen === 0) return "Emergency!";
-        if (currentScreen === 1) return "Scenario 1";
-        if (currentScreen === 2) return "Your Options";
-        if (currentScreen === 3) return "Your Choice";
-        if (currentScreen === 4) return "The Big Picture";
-        if (currentScreen === 5) return "Scenario 2";
-        if (currentScreen === 6) return "Your Options";
-        if (currentScreen === 7) return "Your Choice";
-        if (currentScreen === 8) return "Scenario 3";
-        if (currentScreen === 9) return "Your Options";
-        if (currentScreen === 10) return "Your Choice";
-        if (currentScreen === 11) return "Conclusion";
-        return "Emergency!";
-    };
-
-    // Intro Screen (Screen 1)
-    if (currentScreen === 0) {
+    // NEW: Day 4 Welcome Screen
+    if (currentScreen === -1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: getHeaderColor() }]}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
                                     <AlertTriangle size={32} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <Text style={styles.introTitle}>Emergency!</Text>
+                            <Text style={commonStyles.introTitle}>Your Financial Safety Net</Text>
 
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introDescription}>
                                 Life is full of surprises. An emergency fund isn't just money in the bank… it's your ticket to handling a crisis with grace, not panic.
                             </Text>
 
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introDescription}>
                                 Let's walk through a few scenarios. Choose what you'd do, and we'll show you how a safety net changes the game.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={handleStart}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: getHeaderColor() }]}>
-                                    <Text style={styles.startButtonText}>Begin</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <View style={styles.celebrationBox}>
+                                <Text style={styles.celebrationTitle}>What You'll Explore</Text>
+                                <Text style={styles.celebrationItem}>• How to handle unexpected career opportunities</Text>
+                                <Text style={styles.celebrationItem}>• Navigating career transitions with confidence</Text>
+                                <Text style={styles.celebrationItem}>• Being there for family during emergencies</Text>
+                                <Text style={styles.celebrationItem}>• Building financial peace of mind</Text>
+                            </View>
+
+                            <Text style={styles.welcomeFooter}>
+                                Your emergency fund is more than just savings—it's your freedom to make choices that align with your values, not just your bank account.
+                            </Text>
+
+                            <PrimaryButton title="Begin Scenarios" onPress={handleStart} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Scenario 1 Intro (Screen 2)
-    if (currentScreen === 1) {
+    // Scenario 1 Intro
+    if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.scenarioCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={styles.scenarioIconContainer}>
+                                <View style={[styles.scenarioIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Plane size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
                             <Text style={styles.scenarioTitle}>Scenario 1: The Unexpected Audition</Text>
 
                             <Text style={styles.scenarioText}>
                                 It's a Tuesday afternoon. Your agent calls: there's a last-minute audition for a dream job tomorrow in Los Angeles. Flights and a hotel will cost at least $800. What do you do?
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
-                                    <Text style={styles.continueButtonText}>See Your Options</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="See Your Options" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Scenario 1 Choices (Screen 3)
-    if (currentScreen === 2) {
+    // Scenario 1 Choices
+    if (currentScreen === 1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.choicesCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.choicesTitle}>What would you do?</Text>
 
                             <View style={styles.choicesContainer}>
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 1 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(1)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        Put it all on a credit card. This opportunity is worth the debt!
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 1 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 1 && styles.choiceTextSelected
+                                        ]}>
+                                            Put it all on a credit card. This opportunity is worth the debt!
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 2 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(2)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        Politely decline. You feel a pit in your stomach, but your bank account is already too tight.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 2 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 2 && styles.choiceTextSelected
+                                        ]}>
+                                            Politely decline. You feel a pit in your stomach, but your bank account is already too tight.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 3 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(3)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        You check your dedicated "Opportunity Fund", book the trip, and go to bed stress-free.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 3 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 3 && styles.choiceTextSelected
+                                        ]}>
+                                            You check your dedicated "Opportunity Fund", book the trip, and go to bed stress-free.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={selectedChoice === null}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Scenario 1 Response (Screen 4)
-    if (currentScreen === 3) {
+    // Scenario 1 Response
+    if (currentScreen === 2) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.responseCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.responseTitle}>Your Choice</Text>
 
                             <Text style={styles.responseText}>{getResponseText()}</Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Continue" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Scenario 1 Follow-up (Screen 5)
-    if (currentScreen === 4) {
+    // Scenario 1 Follow-up
+    if (currentScreen === 3) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.followUpCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.followUpTitle}>The Big Picture</Text>
 
                             <Text style={styles.followUpText}>
                                 An emergency fund turns a crisis or a huge opportunity into a simple, manageable event. It's the difference between reacting from a place of fear and responding from a place of power.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
-                                    <Text style={styles.continueButtonText}>Next Scenario</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Next Scenario" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Scenario 2 Intro (Screen 6)
-    if (currentScreen === 5) {
+    // Scenario 2 Intro
+    if (currentScreen === 4) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.scenarioCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.scenarioIconContainer}>
-                                <View style={[styles.scenarioIconGradient, { backgroundColor: getHeaderColor() }]}>
+                                <View style={[styles.scenarioIconGradient, { backgroundColor: '#928490' }]}>
                                     <Briefcase size={32} color="#E2DED0" />
                                 </View>
                             </View>
@@ -415,146 +391,161 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
                                 You're unexpectedly injured and you've decided to pivot! You land an entry-level interview in a new field. The job offers huge opportunities for growth but initially, it's a pay cut. What's your move?
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
-                                    <Text style={styles.continueButtonText}>See Your Options</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="See Your Options" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Scenario 2 Choices (Screen 7)
-    if (currentScreen === 6) {
+    // Scenario 2 Choices
+    if (currentScreen === 5) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.choicesCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.choicesTitle}>What would you do?</Text>
 
                             <View style={styles.choicesContainer}>
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 1 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(1)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        Panic and decline. You can't afford the pay cut, so you stay in the familiar grind of dance gigs.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 1 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 1 && styles.choiceTextSelected
+                                        ]}>
+                                            Panic and decline. You can't afford the pay cut, so you stay in the familiar grind of dance gigs.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 2 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(2)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        Take the job but pile on extra teaching hours nights/weekends to make ends meet, risking burnout.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 2 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 2 && styles.choiceTextSelected
+                                        ]}>
+                                            Take the job but pile on extra teaching hours nights/weekends to make ends meet, risking burnout.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 3 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(3)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        Confidently accept, knowing your emergency fund can cover the income gap for the first year.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 3 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 3 && styles.choiceTextSelected
+                                        ]}>
+                                            Confidently accept, knowing your emergency fund can cover the income gap for the first year.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={selectedChoice === null}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Scenario 2 Response (Screen 8)
-    if (currentScreen === 7) {
+    // Scenario 2 Response
+    if (currentScreen === 6) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.responseCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.responseTitle}>Your Choice</Text>
 
                             <Text style={styles.responseText}>{getResponseText()}</Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
-                                    <Text style={styles.continueButtonText}>Next Scenario</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Next Scenario" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Scenario 3 Intro (Screen 9)
-    if (currentScreen === 8) {
+    // Scenario 3 Intro
+    if (currentScreen === 7) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.scenarioCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.scenarioIconContainer}>
-                                <View style={[styles.scenarioIconGradient, { backgroundColor: getHeaderColor() }]}>
+                                <View style={[styles.scenarioIconGradient, { backgroundColor: '#928490' }]}>
                                     <Heart size={32} color="#E2DED0" />
                                 </View>
                             </View>
@@ -565,153 +556,168 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
                                 You get a call that a parent back home has had a medical emergency. You need to book a last-minute flight across the country and may need to stay for a while to help out. What is your first thought?
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
-                                    <Text style={styles.continueButtonText}>See Your Options</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="See Your Options" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Scenario 3 Choices (Screen 10)
-    if (currentScreen === 9) {
+    // Scenario 3 Choices
+    if (currentScreen === 8) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.choicesCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.choicesTitle}>What is your first thought?</Text>
 
                             <View style={styles.choicesContainer}>
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 1 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(1)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        "How much will this cost?" Your first feeling is dread, overshadowing your concern.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 1 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 1 && styles.choiceTextSelected
+                                        ]}>
+                                            "How much will this cost?" Your first feeling is dread, overshadowing your concern.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 2 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(2)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        "I need to ask my director for an advance on my pay." You feel uncomfortable adding a financial conversation to a stressful time.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 2 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 2 && styles.choiceTextSelected
+                                        ]}>
+                                            "I need to ask my director for an advance on my pay." You feel uncomfortable adding a financial conversation to a stressful time.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 3 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(3)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        "I'll book the next flight out." Your first and only thought is getting home.
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 3 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 3 && styles.choiceTextSelected
+                                        ]}>
+                                            "I'll book the next flight out." Your first and only thought is getting home.
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={selectedChoice === null}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Scenario 3 Response (Screen 11)
-    if (currentScreen === 10) {
+    // Scenario 3 Response
+    if (currentScreen === 9) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.responseCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.responseTitle}>Your Choice</Text>
 
                             <Text style={styles.responseText}>{getResponseText()}</Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: getHeaderColor() }]}>
-                                    <Text style={styles.continueButtonText}>Conclusion</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Continue to Conclusion" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Conclusion (Screen 12)
-    if (currentScreen === 11) {
+    // Conclusion with Journal
+    if (currentScreen === 10) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.conclusionCard}>
-                            <View style={styles.conclusionIconContainer}>
-                                <View style={[styles.conclusionIconGradient, { backgroundColor: getHeaderColor() }]}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <View style={[styles.conclusionIconGradient, { backgroundColor: '#647C90' }]}>
                                     <AlertTriangle size={32} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <Text style={styles.conclusionTitle}>Your Financial Safety Net</Text>
+                            <Text style={commonStyles.reflectionTitle}>Your Financial Safety Net</Text>
 
-                            <Text style={styles.conclusionText}>
+                            <Text style={commonStyles.reflectionDescription}>
                                 An emergency fund isn't about being paranoid. It's about being prepared. It's the key that unlocks:
                             </Text>
 
@@ -725,25 +731,30 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
                                 • <Text style={styles.conclusionBold}>Family Support</Text> without hesitation
                             </Text>
 
-                            <Text style={styles.conclusionText}>
+                            <Text style={commonStyles.reflectionDescription}>
                                 Your first goal is $500. Then go for one month's expenses. Then three. Start building your safety net today. You never know when you'll need to use it, but you'll always be glad it's there.
                             </Text>
 
-                            <Text style={styles.conclusionClosing}>
-                                Come back tomorrow for more.
-                            </Text>
+                            <JournalEntrySection
+                                pathTag="budgeting-for-dancers"
+                                day="4"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Emergency"
+                                journalInstruction="Which emergency scenario resonated most with you, and what would having a financial safety net mean for your peace of mind?"
+                                moodLabel=""
+                                saveButtonText="Save Reflection"
+                            />
 
-                            <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={onComplete}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.completeButtonContent, { backgroundColor: getHeaderColor() }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <View style={styles.journalCallout}>
+                                <Text style={styles.journalCalloutTitle}>Your Financial Future</Text>
+                                <Text style={styles.journalCalloutText}>
+                                    Remember, small consistent steps build your emergency fund. Even $20 per week adds up to over $1,000 in a year. Start where you are and build from there.
+                                </Text>
+                            </View>
+
+                            <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -754,63 +765,40 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
+    // Welcome Screen Styles
+    celebrationBox: {
+        width: '100%',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(146, 132, 144, 0.2)',
     },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
+    celebrationTitle: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        marginBottom: 12,
+        fontWeight: '600',
         textAlign: 'center',
     },
-    introCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    celebrationItem: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 24,
+        marginBottom: 8,
     },
-    introIconContainer: {
-        marginBottom: 24,
+    welcomeFooter: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 30,
+        lineHeight: 22,
     },
+    // Icon Styles
     introIconGradient: {
         width: 80,
         height: 80,
@@ -821,56 +809,6 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    scenarioCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
     },
     scenarioIconContainer: {
         marginBottom: 24,
@@ -886,6 +824,18 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 8,
     },
+    conclusionIconGradient: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+    },
+    // Scenario Styles
     scenarioTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -902,39 +852,7 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 32,
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choicesCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+    // Choices Styles
     choicesTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -945,13 +863,23 @@ const styles = StyleSheet.create({
     },
     choicesContainer: {
         gap: 16,
+        marginBottom: 24,
     },
     choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 16,
-        padding: 20,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderWidth: 2,
         borderColor: 'transparent',
+    },
+    choiceButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
+    },
+    choiceContent: {
+        padding: 20,
+        paddingRight: 50,
     },
     choiceText: {
         fontFamily: 'Montserrat-Regular',
@@ -960,19 +888,22 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         textAlign: 'center',
     },
-    responseCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    choiceTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
     },
+    selectedIndicator: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    // Response Styles
     responseTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -989,19 +920,7 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 32,
     },
-    followUpCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+    // Follow-up Styles
     followUpTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -1018,49 +937,7 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 32,
     },
-    conclusionCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    conclusionIconContainer: {
-        marginBottom: 24,
-    },
-    conclusionIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    conclusionTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 25,
-        fontWeight: '700',
-    },
-    conclusionText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
-    },
+    // Conclusion Styles
     conclusionBullet: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
@@ -1073,34 +950,29 @@ const styles = StyleSheet.create({
     conclusionBold: {
         fontFamily: 'Montserrat-SemiBold',
     },
-    conclusionClosing: {
+    // Journal Callout
+    journalCallout: {
+        width: '100%',
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 25,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 124, 144, 0.2)',
+    },
+    journalCalloutTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 32,
-        marginTop: 20,
+        marginBottom: 12,
         fontWeight: '600',
     },
-    completeButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
+    journalCalloutText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 22,
     },
 });

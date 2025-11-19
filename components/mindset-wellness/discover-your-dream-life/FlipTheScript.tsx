@@ -353,6 +353,10 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
+                day="6"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="Flip The Script"
                 journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling as you continue this journey?"
                 moodLabel=""
                 saveButtonText="Save Entry"
@@ -491,7 +495,11 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
-                journalInstruction="    Write your own script for how you'll talk about your transition. What feels authentic and empowering to you?"
+                day="6"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="Flip The Script"
+                journalInstruction="Write your own script for how you'll talk about your transition. What feels authentic and empowering to you?"
                 moodLabel=""
                 saveButtonText="Save Entry"
               />

@@ -1,9 +1,17 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, Dimensions, Image, ScrollView, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, PiggyBank, ArrowLeft, ChevronLeft, Target, Trash2 } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+
+const { width, height } = Dimensions.get('window');
 
 interface ChallengeOption {
     id: number;
@@ -78,142 +86,419 @@ interface SavingsSprintProps {
 }
 
 export default function SavingsSprint({ onComplete, onBack }: SavingsSprintProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0: intro, 1-3: challenge details, 4: choose, 5: mission
+    const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
     const [selectedChallenge, setSelectedChallenge] = useState<number | null>(null);
-    const [screenHistory, setScreenHistory] = useState<number[]>([0]);
+    const [screenHistory, setScreenHistory] = useState<Array<{ challengeIndex: number, showDetail: boolean }>>([]);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry } = useJournaling('budgeting-for-dancers');
+
+    // Animation values
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const cardScale = useRef(new Animated.Value(1)).current;
+    const progressAnim = useRef(new Animated.Value(0)).current;
 
     const handleBack = useCallback(() => {
-        if (onBack && screenHistory.length === 1) {
+        if (onBack) {
             onBack();
-            return;
         }
+    }, [onBack]);
 
-        if (screenHistory.length > 1) {
-            const newHistory = [...screenHistory];
-            newHistory.pop();
-            setScreenHistory(newHistory);
-            setCurrentScreen(newHistory[newHistory.length - 1]);
-        }
-    }, [onBack, screenHistory]);
-
-    const navigateTo = (screen: number) => {
-        setScreenHistory([...screenHistory, screen]);
-        setCurrentScreen(screen);
+    const handleStartChallengeWalkthrough = () => {
+        setScreenHistory([{ challengeIndex: 0, showDetail: false }]);
+        scrollToTop();
     };
+
+    const handleContinueToChallenges = () => {
+        setScreenHistory([{ challengeIndex: -3, showDetail: false }]);
+        scrollToTop();
+    };
+
+    const handleContinue = useCallback(() => {
+        if (currentChallengeIndex < challengeOptions.length - 1) {
+            // Fade out current content
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => {
+                const newChallengeIndex = currentChallengeIndex + 1;
+
+                // Reset animations BEFORE updating state
+                fadeAnim.setValue(0);
+
+                // Update state
+                setCurrentChallengeIndex(newChallengeIndex);
+
+                // Animate in the next content with a slight delay
+                setTimeout(() => {
+                    Animated.parallel([
+                        Animated.timing(fadeAnim, {
+                            toValue: 1,
+                            duration: 300,
+                            useNativeDriver: true,
+                        }),
+                        Animated.spring(progressAnim, {
+                            toValue: (newChallengeIndex + 1) / challengeOptions.length,
+                            tension: 50,
+                            friction: 7,
+                            useNativeDriver: false,
+                        })
+                    ]).start();
+                }, 50);
+
+                setScreenHistory(prev => [...prev, { challengeIndex: newChallengeIndex, showDetail: false }]);
+                scrollToTop();
+            });
+        } else {
+            // Smooth transition to choose screen
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+            }).start(() => {
+                setScreenHistory(prev => [...prev, { challengeIndex: -2, showDetail: false }]);
+                fadeAnim.setValue(1);
+                scrollToTop();
+            });
+        }
+    }, [currentChallengeIndex, fadeAnim, progressAnim, scrollToTop]);
 
     const handleSelectChallenge = (id: number) => {
         setSelectedChallenge(id);
-        navigateTo(4); // Go to choose your style screen
+        // Smooth transition to mission screen
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true,
+        }).start(() => {
+            setScreenHistory(prev => [...prev, { challengeIndex: -1, showDetail: false }]);
+            fadeAnim.setValue(1);
+            scrollToTop();
+        });
     };
 
     const handleComplete = () => {
-        onComplete();
+        // Add a subtle scale animation on complete
+        Animated.sequence([
+            Animated.timing(cardScale, {
+                toValue: 1.02,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(cardScale, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            })
+        ]).start(() => {
+            onComplete();
+        });
     };
 
-    // Intro Screen
-    if (currentScreen === 0) {
-        return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        {onBack ? (
-                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
-                                <ArrowLeft size={24} color="#E2DED0" />
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={styles.backIconWrapper} />
-                        )}
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>30-Day Savings Sprint</Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                </View>
+    const goBack = () => {
+        if (screenHistory.length <= 1) {
+            setScreenHistory([]);
+            setCurrentChallengeIndex(0);
+            setSelectedChallenge(null);
+            fadeAnim.setValue(1);
+            cardScale.setValue(1);
+            scrollToTop();
+            return;
+        }
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <View style={styles.introIcon}>
-                                <PiggyBank size={32} color="#928490" />
+        const newHistory = [...screenHistory];
+        newHistory.pop();
+        setScreenHistory(newHistory);
+
+        const prevScreen = newHistory[newHistory.length - 1];
+        if (prevScreen.challengeIndex === -1 || prevScreen.challengeIndex === -2 || prevScreen.challengeIndex === -3) {
+            return;
+        }
+
+        // Animate the transition back
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setCurrentChallengeIndex(prevScreen.challengeIndex);
+            setSelectedChallenge(null);
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+            scrollToTop();
+        });
+    };
+
+    // Progress animation interpolation
+    const progressWidth = progressAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0%', '100%'],
+    });
+
+    // Update progress when currentChallengeIndex changes
+    React.useEffect(() => {
+        Animated.spring(progressAnim, {
+            toValue: (currentChallengeIndex + 1) / challengeOptions.length,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: false,
+        }).start();
+    }, [currentChallengeIndex]);
+
+    // Intro Screen with Journal
+    if (screenHistory.length === 0) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <PiggyBank size={48} color="#928490" />
                             </View>
 
-                            <Text style={styles.introTitle}>The 30-Day Savings Sprint</Text>
-
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introTitle}>The 30-Day Savings Sprint</Text>
+                            <Text style={commonStyles.introDescription}>
                                 Think you can't save? Think again. This isn't about huge sacrifices, it's about small, consistent actions that prove you are in control of your money.
                             </Text>
 
-                            <Text style={styles.introSubtext}>
-                                Let's walk through three simple challenges. Your only job is to pick one and start.
-                            </Text>
+                            <JournalEntrySection
+                                pathTag="budgeting-for-dancers"
+                                day="2"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Know Your Value"
+                                journalInstruction="Before we begin, let's check in with your current relationship with saving. What comes to mind when you think about saving money?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
 
-                            <TouchableOpacity style={styles.startButton} onPress={() => navigateTo(1)}>
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Let's begin</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
+                            <PrimaryButton title="Let's begin" onPress={handleContinueToChallenges} />
+                        </Card>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
 
-    // Challenge Detail Screens (1-3)
-    if (currentScreen >= 1 && currentScreen <= 3) {
-        const challenge = challengeOptions[currentScreen - 1];
-        const progress = ((currentScreen) / 3) * 100;
+    // Savings Sprint Intro Screen
+    const currentScreen = screenHistory[screenHistory.length - 1];
+    if (currentScreen.challengeIndex === -3) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <PiggyBank size={48} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>Your Savings Journey</Text>
+                            <Text style={styles.introDescription}>
+                                Let's walk through three simple challenges. Your only job is to pick one and start. Remember, this isn't about huge amounts - it's about building the habit.
+                            </Text>
+
+                            <PrimaryButton title="Start Exploring Challenges" onPress={handleStartChallengeWalkthrough} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Choose Challenge Screen
+    if (currentScreen.challengeIndex === -2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: cardScale }] }}>
+                            <Card style={commonStyles.baseCard}>
+                                <Text style={styles.chooseTitle}>Choose Your Saving Style</Text>
+                                <Text style={styles.chooseDescription}>
+                                    Reflect for a moment. Which challenge felt the most doable?
+                                </Text>
+
+                                {challengeOptions.map((challenge) => (
+                                    <TouchableOpacity
+                                        key={challenge.id}
+                                        style={[
+                                            styles.challengeOption,
+                                            selectedChallenge === challenge.id && styles.challengeOptionSelected
+                                        ]}
+                                        onPress={() => setSelectedChallenge(challenge.id)}
+                                    >
+                                        <View style={styles.challengeOptionIcon}>
+                                            {challenge.icon}
+                                        </View>
+                                        <View style={styles.challengeOptionText}>
+                                            <Text style={styles.challengeOptionTitle}>
+                                                {challenge.id === 1 && "The Daily Habit (Spare Change)"}
+                                                {challenge.id === 2 && "The One-Time Win (10% Transfer)"}
+                                                {challenge.id === 3 && "The Bonus Round (Declutter)"}
+                                            </Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+
+                                <Text style={styles.chooseFooter}>
+                                    There is no wrong answer. The best challenge is the one you'll actually do.
+                                </Text>
+
+                                <PrimaryButton
+                                    title="Confirm Selection"
+                                    onPress={() => selectedChallenge && handleSelectChallenge(selectedChallenge)}
+                                    disabled={!selectedChallenge}
+                                />
+                            </Card>
+                        </Animated.View>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Mission Screen with Journal
+    if (currentScreen.challengeIndex === -1) {
+        const selectedChallengeData = challengeOptions.find(c => c.id === selectedChallenge);
 
         return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
-                            <ChevronLeft size={24} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>
-                                {currentScreen} of 3
-                            </Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${progress}%` }]} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <Text style={styles.challengeTitle}>{challenge.title}</Text>
-                            <Text style={styles.challengeDescription}>{challenge.description}</Text>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: cardScale }] }}>
+                            <Card style={commonStyles.baseCard}>
+                                <View style={commonStyles.introIconContainer}>
+                                    <PiggyBank size={48} color="#647C90" />
+                                </View>
+
+                                <View style={commonStyles.finalHeader}>
+                                    <Text style={commonStyles.finalHeading}>Your Mission</Text>
+                                </View>
+
+                                <View style={commonStyles.finalTextContainer}>
+                                    <Text style={commonStyles.finalText}>
+                                        You've chosen your challenge! Now it's time to put it into action. Remember, the goal isn't perfection - it's progress.
+                                    </Text>
+                                </View>
+
+                                <View style={styles.missionSteps}>
+                                    <Text style={styles.missionStep}>1. Pick one challenge to commit to for the next 30 days.</Text>
+                                    <Text style={styles.missionStep}>2. Schedule it. Put the actionable step in your calendar or set those reminders.</Text>
+                                    <Text style={styles.missionStep}>3. Name your savings goal. What is this pot of money for? Emergency Fund, Pivot Savings, Breathing Room</Text>
+                                </View>
+
+                                <Text style={styles.missionEncouragement}>
+                                    You are building proof that you can do this.
+                                </Text>
+
+                                <JournalEntrySection
+                                    pathTag="budgeting-for-dancers"
+                                    day="2"
+                                    category="finance"
+                                    pathTitle="Money Mindsets"
+                                    dayTitle="Know Your Value"
+                                    journalInstruction="What excites you most about starting this savings challenge? What feels challenging?"
+                                    moodLabel=""
+                                    saveButtonText="Save Entry"
+                                />
+
+                                <View style={commonStyles.finalButtonContainer}>
+                                    <PrimaryButton
+                                        title="Mark As Complete"
+                                        onPress={handleComplete}
+                                    />
+                                </View>
+                            </Card>
+                        </Animated.View>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Challenge Detail Screens
+    const currentChallenge = challengeOptions[currentChallengeIndex];
+
+    return (
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${currentChallengeIndex + 1} of ${challengeOptions.length}`}
+                progress={(currentChallengeIndex + 1) / challengeOptions.length}
+            />
+
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: cardScale }] }}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={styles.challengeTitle}>{currentChallenge.title}</Text>
+                            <Text style={styles.challengeDescription}>{currentChallenge.description}</Text>
 
                             <View style={styles.infoCard}>
                                 <Text style={styles.infoLabel}>The Goal:</Text>
-                                <Text style={styles.infoText}>{challenge.goal}</Text>
+                                <Text style={styles.infoText}>{currentChallenge.goal}</Text>
 
                                 <Text style={styles.infoLabel}>The Target:</Text>
-                                <Text style={styles.infoText}>{challenge.target}</Text>
+                                <Text style={styles.infoText}>{currentChallenge.target}</Text>
 
                                 <Text style={styles.infoLabel}>The Result:</Text>
-                                <Text style={styles.infoText}>{challenge.result}</Text>
+                                <Text style={styles.infoText}>{currentChallenge.result}</Text>
 
                                 <Text style={styles.infoLabel}>Best for:</Text>
-                                <Text style={styles.infoText}>{challenge.bestFor}</Text>
+                                <Text style={styles.infoText}>{currentChallenge.bestFor}</Text>
                             </View>
 
                             <Text style={styles.sectionTitle}>How to Do It</Text>
 
                             <View style={styles.stepsContainer}>
-                                {challenge.steps.map((step, index) => (
+                                {currentChallenge.steps.map((step, index) => (
                                     <View key={index} style={styles.stepRow}>
                                         <View style={styles.stepNumber}>
                                             <Text style={styles.stepNumberText}>{index + 1}</Text>
@@ -224,254 +509,33 @@ export default function SavingsSprint({ onComplete, onBack }: SavingsSprintProps
                             </View>
 
                             <View style={styles.proTipContainer}>
-                                <Text style={styles.proTipText}>Pro Tip: {challenge.proTip}</Text>
+                                <Text style={styles.proTipText}>Pro Tip: {currentChallenge.proTip}</Text>
                             </View>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={() => {
-                                    if (currentScreen < 3) {
-                                        navigateTo(currentScreen + 1);
-                                    } else {
-                                        navigateTo(4); // Go to choose screen after last challenge
-                                    }
-                                }}
-                            >
-                                <LinearGradient
-                                    colors={['#928490', '#746C70']}
-                                    style={styles.continueButtonContent}
-                                >
-                                    <Text style={styles.continueButtonText}>
-                                        {currentScreen < 3 ? 'Next Challenge' : 'Choose Your Challenge'}
-                                    </Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
+                            <PrimaryButton
+                                title={currentChallengeIndex < challengeOptions.length - 1 ? 'Next Challenge' : 'Choose Your Challenge'}
+                                onPress={handleContinue}
+                            />
+                        </Card>
+                    </Animated.View>
                 </View>
-            </View>
-        );
-    }
-
-    // Choose Your Saving Style Screen
-    if (currentScreen === 4) {
-        return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
-                            <ChevronLeft size={24} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Choose Your Style</Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                </View>
-
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <Text style={styles.chooseTitle}>Choose Your Saving Style</Text>
-                            <Text style={styles.chooseDescription}>
-                                Reflect for a moment. Which challenge felt the most doable?
-                            </Text>
-
-                            {challengeOptions.map((challenge) => (
-                                <TouchableOpacity
-                                    key={challenge.id}
-                                    style={[
-                                        styles.challengeOption,
-                                        selectedChallenge === challenge.id && styles.challengeOptionSelected
-                                    ]}
-                                    onPress={() => setSelectedChallenge(challenge.id)}
-                                >
-                                    <View style={styles.challengeOptionIcon}>
-                                        {challenge.icon}
-                                    </View>
-                                    <View style={styles.challengeOptionText}>
-                                        <Text style={styles.challengeOptionTitle}>
-                                            {challenge.id === 1 && "The Daily Habit (Spare Change)"}
-                                            {challenge.id === 2 && "The One-Time Win (10% Transfer)"}
-                                            {challenge.id === 3 && "The Bonus Round (Declutter)"}
-                                        </Text>
-                                    </View>
-                                </TouchableOpacity>
-                            ))}
-
-                            <Text style={styles.chooseFooter}>
-                                There is no wrong answer. The best challenge is the one you'll actually do.
-                            </Text>
-
-                            <TouchableOpacity
-                                style={[styles.continueButton, !selectedChallenge && styles.continueButtonDisabled]}
-                                onPress={() => navigateTo(5)}
-                                disabled={!selectedChallenge}
-                            >
-                                <LinearGradient
-                                    colors={['#928490', '#928490']}
-                                    style={styles.continueButtonContent}
-                                >
-                                    <Text style={styles.continueButtonText}>Confirm Selection</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
-            </View>
-        );
-    }
-
-    // Mission Screen
-    if (currentScreen === 5) {
-        const selectedChallengeData = challengeOptions.find(c => c.id === selectedChallenge);
-
-        return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
-                            <ChevronLeft size={24} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Your Mission</Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                </View>
-
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <View style={styles.finalIcon}>
-                                <PiggyBank size={40} color="#647C90" />
-                            </View>
-                            <Text style={styles.missionTitle}>Your Mission, Should You Choose to Accept It</Text>
-
-                            <View style={styles.missionSteps}>
-                                <Text style={styles.missionStep}>1. Pick one challenge to commit to for the next 30 days.</Text>
-                                <Text style={styles.missionStep}>2. Schedule it. Put the actionable step in your calendar or set those reminders.</Text>
-                                <Text style={styles.missionStep}>3. Name your savings goal. What is this pot of money for? Emergency Fund, Pivot Savings, Breathing Room</Text>
-                            </View>
-
-                            <Text style={styles.missionEncouragement}>
-                                You are building proof that you can do this.
-                            </Text>
-
-                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#647C90' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
-            </View>
-        );
-    }
-
-    return null;
+            </ScrollView>
+        </View>
+    );
 }
 
+// Add TouchableOpacity to the styles since it's used in the component
+const TouchableOpacity = require('react-native').TouchableOpacity;
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    scrollContainer: {
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 20,
-    },
-
-    // Header Styles
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backIconWrapper: {
-        width: 40,
-        alignItems: 'center'
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center'
-    },
-    headerTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#E2DED0',
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(255,255,255,0.3)',
-        borderRadius: 3,
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-
-    // Card Styles
-    card: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-        marginTop: 150,
-    },
-
     // Intro Screen Styles
-    introIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(146,132,144,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
+        lineHeight: 34,
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
@@ -479,35 +543,7 @@ const styles = StyleSheet.create({
         color: '#746C70',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 10,
-    },
-    introSubtext: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#647C90',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 40,
-    },
-
-    // Button Styles
-    startButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        marginBottom: 30,
     },
 
     // Challenge Detail Styles
@@ -599,29 +635,6 @@ const styles = StyleSheet.create({
         lineHeight: 22,
     },
 
-    // Continue Button Styles
-    continueButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
-    },
-    continueButtonDisabled: {
-        opacity: 0.5,
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 12,
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
     // Choose Screen Styles
     chooseTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -671,22 +684,6 @@ const styles = StyleSheet.create({
     },
 
     // Mission Screen Styles
-    finalIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(100,124,144,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    missionTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 30,
-    },
     missionSteps: {
         marginBottom: 30,
         width: '100%',
@@ -704,23 +701,5 @@ const styles = StyleSheet.create({
         color: '#928490',
         textAlign: 'center',
         marginBottom: 40,
-    },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
     },
 });

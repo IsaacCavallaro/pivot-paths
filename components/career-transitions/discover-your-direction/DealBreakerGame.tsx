@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { ChevronRight, AlertTriangle, ArrowLeft } from 'lucide-react-native';
+import { ChevronRight, ArrowLeft } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useStorage } from '@/hooks/useStorage';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
 
 interface DealBreakerPair {
     id: number;
@@ -57,12 +65,22 @@ const dealBreakerPairs: DealBreakerPair[] = [
 ];
 
 export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1 = game, 2 = reflection
+    const [currentScreen, setCurrentScreen] = useState(-1);
     const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; pairId: number; type: 'dealBreaker' | 'environment' }>>([]);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
     const [currentPairIndex, setCurrentPairIndex] = useState(0);
     const [showMismatch, setShowMismatch] = useState(false);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const [dealBreakerMatchedPairs, setDealBreakerMatchedPairs] = useStorage<number[]>('DEAL_BREAKER_MATCHED_PAIRS', []);
+
+    // Ensure dealBreakerMatchedPairs is always an array
+    const matchedPairs = Array.isArray(dealBreakerMatchedPairs) ? dealBreakerMatchedPairs : [];
+
+    // Scroll to top whenever screen changes
+    useEffect(() => {
+        scrollToTop();
+    }, [currentScreen]);
 
     const handleBack = () => {
         onBack?.();
@@ -72,19 +90,23 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
         onComplete();
     };
 
-    const goBack = () => {
-        if (currentScreen === 1) {
+    const goBack = async () => {
+        if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen === 1) {
             setCurrentScreen(0);
         } else if (currentScreen === 2) {
-            // Reset game state when going back from reflection screen
-            setMatchedPairs([]);
+            await setDealBreakerMatchedPairs([]); // Reset matched pairs in storage
             setSelectedItems([]);
             setCurrentPairIndex(0);
             setShowMismatch(false);
             setCurrentScreen(1);
-        } else if (currentScreen > 1) {
+        } else if (currentScreen === 3) {
+            setCurrentScreen(2);
+        } else if (currentScreen > 3) {
             setCurrentScreen(currentScreen - 1);
         }
+        scrollToTop();
     };
 
     useEffect(() => {
@@ -124,25 +146,25 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
         setCurrentPairIndex(3); // Next pair to add
     };
 
-    const handleItemPress = (itemId: string) => {
+    const handleItemPress = async (itemId: string) => {
         if (selectedItems.includes(itemId) || showMismatch) return;
 
         const newSelected = [...selectedItems, itemId];
         setSelectedItems(newSelected);
 
         if (newSelected.length === 2) {
-            checkMatch(newSelected);
+            await checkMatch(newSelected);
         }
     };
 
-    const checkMatch = (selected: string[]) => {
+    const checkMatch = async (selected: string[]) => {
         const item1 = gameItems.find(item => item.id === selected[0]);
         const item2 = gameItems.find(item => item.id === selected[1]);
 
         if (item1 && item2 && item1.pairId === item2.pairId) {
             // Match found!
             const newMatchedPairs = [...matchedPairs, item1.pairId];
-            setMatchedPairs(newMatchedPairs);
+            await setDealBreakerMatchedPairs(newMatchedPairs);
 
             // Remove matched items and add new pair if available
             setTimeout(() => {
@@ -211,7 +233,8 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
 
     const getItemStyle = (itemId: string) => {
         const isSelected = selectedItems.includes(itemId);
-        const isMatched = gameItems.find(item => item.id === itemId && matchedPairs.includes(item.pairId));
+        const item = gameItems.find(item => item.id === itemId);
+        const isMatched = item && matchedPairs.includes(item.pairId);
 
         if (isMatched) {
             return [styles.gameButton, styles.matchedButton];
@@ -224,94 +247,188 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
         }
     };
 
-    // Intro Screen
-    if (currentScreen === 0) {
+    // Welcome Screen with Journal Section
+    if (currentScreen === -1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={styles.finalIconContainer}>
-                                    <Image
-                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                        style={styles.heroImage}
-                                    />
-                                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.introTitle}>Deal Breakers</Text>
+                            <Text style={commonStyles.introTitle}>Welcome Back!</Text>
 
-                            <Text style={styles.introDescription}>
-                                Match each deal breaker with the type of work environment or situation it aligns with. These will be the circumstances to avoid.
+                            <Text style={commonStyles.introDescription}>
+                                Today, we're exploring deal breakers - those non-negotiable factors that can make or break your satisfaction in a career.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={() => setCurrentScreen(1)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Start the Game</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={commonStyles.introDescription}>
+                                Understanding what you won't accept is just as important as knowing what you do want. This clarity will help you evaluate opportunities with confidence.
+                            </Text>
+
+                            <View style={styles.learningBox}>
+                                <Text style={styles.learningBoxTitle}>What You'll Discover:</Text>
+                                <Text style={styles.learningBoxItem}>• Your personal deal breakers in work environments</Text>
+                                <Text style={styles.learningBoxItem}>• Types of situations to avoid in your career search</Text>
+                                <Text style={styles.learningBoxItem}>• How to protect your wellbeing and values</Text>
+                            </View>
+
+                            <Text style={styles.welcomeFooter}>
+                                You'll be playing a match game to help identify deal breakers and the environments they align with.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="map-your-direction"
+                                day="6"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Deal Breakers"
+                                journalInstruction="Before we begin, reflect on your past experiences. What work situations have made you feel drained or unhappy? What environments have felt energizing?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Continue" onPress={() => setCurrentScreen(0)} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Reflection Screen
-    if (currentScreen === 2) {
+    // Intro Screen
+    if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.reflectionCard}>
-                            <View style={styles.reflectionIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Image
                                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                                    style={commonStyles.heroImage}
                                 />
                             </View>
 
-                            <Text style={styles.reflectionTitle}>Take a moment to reflect</Text>
+                            <Text style={commonStyles.introTitle}>Deal Breakers</Text>
 
-                            <Text style={styles.reflectionText}>
-                                • Which deal breakers stood out to you the most?
+                            <Text style={commonStyles.introDescription}>
+                                Match each deal breaker with the type of work environment or situation it aligns with. These will be the circumstances to avoid.
                             </Text>
 
-                            <Text style={styles.reflectionText}>
-                                • How might these influence your career choices?
+                            <PrimaryButton title="Start the Game" onPress={() => setCurrentScreen(1)} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Reflection Screen after Game Completion
+    if (currentScreen === 2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.reflectionTitle}>Take a moment to reflect</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Which deal breakers stood out to you the most?
                             </Text>
 
-                            <Text style={styles.reflectionText}>
-                                • Did you notice that a lot of what you might consider deal breakers in other industries actually already exist in your dance career?
+                            <Text style={commonStyles.reflectionDescription}>
+                                How might these influence your career choices?
                             </Text>
 
-                            <Text style={styles.reflectionText}>
+                            <Text style={commonStyles.reflectionDescription}>
+                                Did you notice that a lot of what you might consider deal breakers in other industries actually already exist in your dance career?
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="map-your-direction"
+                                day="6"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Deal Breakers"
+                                journalInstruction="Reflect on your deal breakers. Which ones feel most important to you? Are there any that surprised you?"
+                                moodLabel=""
+                                saveButtonText="Add to Journal"
+                            />
+
+                            <PrimaryButton title="Continue" onPress={() => setCurrentScreen(3)} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Congratulations Screen
+    if (currentScreen === 3) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.reflectionTitle}>Great Work!</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
                                 Knowing what you won't accept is just as important as knowing what you do want. Use these insights to guide your next steps and evaluate new opportunities with clarity and confidence.
                             </Text>
 
@@ -319,17 +436,8 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                                 See you tomorrow for the final step!
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={handleComplete}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Mark As Complete" onPress={handleComplete} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -338,28 +446,23 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
 
     // Game Screen
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>
-                            {matchedPairs.length}/{dealBreakerPairs.length} pairs matched
-                        </Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${(matchedPairs.length / dealBreakerPairs.length) * 100}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${matchedPairs.length}/${dealBreakerPairs.length} pairs matched`}
+                progress={matchedPairs.length / dealBreakerPairs.length}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.content}>
-                    <View style={styles.gameCard}>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={styles.centeredContent}>
+                    <Card style={commonStyles.baseCard}>
                         <Text style={styles.gameTitle}>Deal Breakers</Text>
                         <Text style={styles.gameInstructions}>
                             Tap to match deal breakers with their environments
@@ -410,7 +513,7 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                                 ))}
                             </View>
                         </View>
-                    </View>
+                    </Card>
                 </View>
             </ScrollView>
         </View>
@@ -418,141 +521,45 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
 }
 
 const styles = StyleSheet.create({
-    container: {
+    centeredContent: {
         flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
+        justifyContent: 'center',
+        alignItems: 'center',
         paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        marginHorizontal: 24,
         marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
     },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 15,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#928490',
-        textAlign: 'center',
-        marginBottom: 40,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
+    learningBox: {
+        width: '100%',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 20,
         borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderColor: 'rgba(146, 132, 144, 0.2)',
     },
-    startButtonText: {
+    learningBoxTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        color: '#647C90',
+        marginBottom: 12,
         fontWeight: '600',
     },
-    gameCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    learningBoxItem: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 24,
+        marginBottom: 8,
     },
+    welcomeFooter: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 30,
+        lineHeight: 22,
+    },
+    // Game Styles
     gameTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -578,7 +585,7 @@ const styles = StyleSheet.create({
     },
     columnTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 18,
+        fontSize: 16,
         color: '#647C90',
         textAlign: 'center',
         marginBottom: 15,
@@ -592,7 +599,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 2,
         borderColor: 'transparent',
-        height: 100,
+        height: 140,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -626,86 +633,12 @@ const styles = StyleSheet.create({
     mismatchButtonText: {
         color: '#dc3545',
     },
-    reflectionCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    reflectionIconContainer: {
-        marginBottom: 30,
-    },
-    reflectionIconGradient: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    reflectionTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 30,
-        fontWeight: '700',
-    },
-    reflectionText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
-    },
     reflectionClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: 10,
         fontWeight: '600',
-    },
-    completeButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    finalIconContainer: {
-        marginBottom: 30,
-    },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#647C90',
-        borderWidth: 2,
     },
 });

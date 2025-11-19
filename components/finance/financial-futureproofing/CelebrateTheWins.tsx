@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Play, Pause, ExternalLink, ArrowLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking, Image } from 'react-native';
+import { Play, Pause, ExternalLink, ArrowLeft, Star, Users, Target } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 
 const { width, height } = Dimensions.get('window');
 
@@ -12,84 +18,171 @@ interface CelebrateTheWinsProps {
 
 export default function CelebrateTheWins({ onComplete, onBack }: CelebrateTheWinsProps) {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = celebrate wins, 1 = ebook promotion
+    const [currentScreen, setCurrentScreen] = useState(0);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
 
     const handlePlayPause = () => {
-        // Placeholder for celebration functionality
         setIsPlaying(!isPlaying);
 
-        // Simulate completion after 3 seconds for demo
         if (!isPlaying) {
             setTimeout(() => {
                 setIsPlaying(false);
-                setCurrentScreen(1);
+                setCurrentScreen(2); // Now goes to journal prompt screen
+                scrollToTop();
             }, 3000);
         }
     };
 
     const handleEbookLink = () => {
-        console.log('Opening How to Pivot ebook link');
+        Linking.openURL('https://pivotfordancers.com/how-to-pivot-ebook/');
     };
 
-    const handleBack = () => {
-        if (onBack) {
-            onBack();
+    const goBack = () => {
+        if (currentScreen === 3) {
+            setCurrentScreen(2);
+        } else if (currentScreen === 2) {
+            setCurrentScreen(1);
+        } else if (currentScreen === 1) {
+            setCurrentScreen(0);
+        } else if (currentScreen === 0) {
+            if (onBack) {
+                onBack();
+            }
         }
+        scrollToTop();
     };
 
-    // Celebrate Wins Screen
+    const handleContinueToCelebration = () => {
+        setCurrentScreen(1);
+        scrollToTop();
+    };
+
+    const handleContinueToFinal = () => {
+        setCurrentScreen(3); // Go to final CTA screen
+        scrollToTop();
+    };
+
+    // Intro Screen
     if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        {onBack ? (
-                            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                                <ArrowLeft size={28} color="#E2DED0" />
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={styles.backButton} />
-                        )}
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Celebrate Your Wins</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.introTitle}>Celebrate Your Progress</Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                You've been building powerful money mindsets and taking concrete steps toward financial future-proofing. Every small win deserves recognition.
+                            </Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                Now, we're going to take a moment to celebrate your achievements and acknowledge how far you've come on this financial journey.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="financial-futureproofing"
+                                day="7"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Celebrate The Wins"
+                                journalInstruction="A quick check in before we celebrate your wins"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <View style={styles.preparationSection}>
+                                <Text style={styles.preparationTitle}>Before We Begin:</Text>
+                                <View style={styles.preparationList}>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Find a comfortable space where you can focus
+                                        </Text>
+                                    </View>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Think about your recent financial wins, big or small
+                                        </Text>
+                                    </View>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Allow yourself to feel proud of your progress
+                                        </Text>
+                                    </View>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Get ready to acknowledge your achievements
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <PrimaryButton title="I'm Ready to Celebrate" onPress={handleContinueToCelebration} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Celebration Screen (now screen 1)
+    if (currentScreen === 1) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.celebrateIcon}>
                                 <TouchableOpacity
                                     style={styles.playButton}
                                     onPress={handlePlayPause}
                                     activeOpacity={0.8}
                                 >
-                                    <LinearGradient
-                                        colors={['#647C90', '#928490']}
-                                        style={styles.playButtonGradient}
+                                    <View
+                                        style={[styles.playButtonGradient, { backgroundColor: '#928490' }]}
                                     >
                                         {isPlaying ? (
                                             <Pause size={40} color="#E2DED0" />
                                         ) : (
                                             <Play size={40} color="#E2DED0" />
                                         )}
-                                    </LinearGradient>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
 
                             <Text style={styles.celebrateTitle}>Celebrate Your Wins</Text>
 
                             <Text style={styles.celebrateDescription}>
-                                {isPlaying
-                                    ? "Celebrating your achievements..."
-                                    : "Tap to celebrate your recent wins"
-                                }
+                                {!isPlaying && "Tap to celebrate your financial achievements"}
                             </Text>
 
                             {isPlaying && (
@@ -102,132 +195,178 @@ export default function CelebrateTheWins({ onComplete, onBack }: CelebrateTheWin
                                     <Text style={styles.playingText}>Celebrating...</Text>
                                 </View>
                             )}
-                        </View>
-                    </ScrollView>
-                </View>
+                        </Card>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
 
-    // Ebook Promotion Screen
-    return (
-        <View style={styles.container}>
-            {/* Sticky Header */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <View style={styles.backButton} />
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.titleText}>Ready for more?</Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-            </View>
+    // Journal Prompt Screen (now screen 2)
+    if (currentScreen === 2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-            <View style={styles.scrollContainer}>
                 <ScrollView
-                    contentContainerStyle={styles.scrollContent}
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
                     showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
                 >
-                    <View style={styles.card}>
-                        <View style={styles.ebookIcon}>
-                            <ExternalLink size={32} color="#928490" />
-                        </View>
-
-                        <Text style={styles.ebookTitle}>Ready for more?</Text>
-
-                        <Text style={styles.ebookText}>
-                            You're ready to dream bigger and step into a full and rich life beyond dance.
-                        </Text>
-
-                        <Text style={styles.ebookText}>
-                            Now, take it one step further with our How to Pivot ebook. Dive deeper into your values, mindset, and next steps with actionable activities and real-life examples.
-                        </Text>
-
-                        <Text style={styles.ebookCallout}>
-                            Life is yours for the taking. Will you reach out and grab it?
-                        </Text>
-
-                        <TouchableOpacity style={styles.ebookButton} onPress={handleEbookLink}>
-                            <View
-                                style={[styles.ebookButtonContent, { backgroundColor: '#928490' }]}
-                            >
-                                <Text style={styles.ebookButtonText}>Get the How to Pivot Ebook</Text>
-                                <ExternalLink size={16} color="#E2DED0" />
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
-                        </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
-                            <View
-                                style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}
-                            >
-                                <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                            </View>
-                        </TouchableOpacity>
+                            <Text style={styles.journalTitle}>Reflect on Your Financial Journey</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Take a moment to capture your thoughts and feelings about your financial progress. What money mindsets have shifted? What achievements are you most proud of?
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="financial-celebration-reflection"
+                                day="7"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Celebrate The Wins"
+                                journalInstruction="Reflect on your financial wins and progress"
+                                moodLabel=""
+                                saveButtonText="Save Reflection"
+                            />
+                            <PrimaryButton title="Continue" onPress={handleContinueToFinal} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
+        );
+    }
+
+    // Ebook Promotion Screen (now screen 3)
+    return (
+        <View style={commonStyles.container}>
+            <StickyHeader onBack={goBack} />
+
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={commonStyles.baseCard}>
+                        <View style={commonStyles.introIconContainer}>
+                            <Image
+                                source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                style={commonStyles.heroImage}
+                            />
+                        </View>
+
+                        <Text style={styles.ebookTitle}>Ready for More Financial Confidence?</Text>
+
+                        <Text style={commonStyles.reflectionDescription}>
+                            You've taken incredible steps toward building financial confidence and future-proofing your life beyond dance. Now, imagine having a comprehensive guide to help you navigate financial decisions with clarity.
+                        </Text>
+
+                        <Text style={commonStyles.reflectionDescription}>
+                            Our How to Pivot ebook provides deeper insights into financial planning, mindset shifts, and practical strategies to build the abundant life you deserve.
+                        </Text>
+
+                        <Text style={styles.ebookCallout}>
+                            Your financial future is yours to design. Will you take the next step?
+                        </Text>
+
+                        {/* Ebook CTA Card */}
+                        <TouchableOpacity style={styles.ebookCard} onPress={handleEbookLink}>
+                            <View style={styles.ebookCardContent}>
+                                <View style={styles.ebookCardHeader}>
+                                    <View style={styles.ebookIconContainer}>
+                                        <Target size={24} color="#647C90" />
+                                    </View>
+                                    <Text style={styles.ebookCardTitle}>How to Pivot Ebook</Text>
+                                </View>
+
+                                <View style={styles.ebookFeatures}>
+                                    <View style={styles.featureItem}>
+                                        <Star size={16} color="#928490" />
+                                        <Text style={styles.featureText}>Financial mindset strategies</Text>
+                                    </View>
+                                    <View style={styles.featureItem}>
+                                        <Target size={16} color="#928490" />
+                                        <Text style={styles.featureText}>Practical financial planning</Text>
+                                    </View>
+                                    <View style={styles.featureItem}>
+                                        <Users size={16} color="#928490" />
+                                        <Text style={styles.featureText}>Real-life examples</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.ebookCardFooter}>
+                                    <Text style={styles.ebookCardButtonText}>Get the Ebook</Text>
+                                    <ExternalLink size={16} color="#647C90" />
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+
+                        <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+                    </Card>
+                </View>
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
+    // Preparation Section Styles
+    preparationSection: {
+        width: '100%',
+        marginBottom: 32,
+        padding: 20,
+        backgroundColor: 'rgba(146, 132, 144, 0.08)',
+        borderRadius: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: '#928490',
     },
-    scrollContainer: {
-        marginTop: 70,
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 40,
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
+    preparationTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
+        fontSize: 18,
+        color: '#647C90',
         textAlign: 'center',
+        marginBottom: 16,
+        fontWeight: '700',
     },
-    card: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
+    preparationList: {
+        gap: 12,
     },
+    preparationItem: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+    },
+    bulletPoint: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#928490',
+        marginTop: 8,
+        marginRight: 12,
+    },
+    preparationText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        lineHeight: 20,
+        flex: 1,
+    },
+    // Celebration Styles
     celebrateIcon: {
         marginBottom: 30,
     },
@@ -277,29 +416,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#647C90',
     },
-    ebookIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    ebookTitle: {
+    // Journal Prompt Styles
+    journalTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 25,
     },
-    ebookText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
+    // Ebook Styles
+    ebookTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
+        marginBottom: 25,
     },
     ebookCallout: {
         fontFamily: 'Montserrat-SemiBold',
@@ -309,40 +440,70 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         fontStyle: 'italic',
     },
-    ebookButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        marginBottom: 20,
+    // Ebook Card Styles
+    ebookCard: {
+        width: '100%',
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: 'rgba(146, 132, 144, 0.2)',
     },
-    ebookButtonContent: {
+    ebookCardContent: {
+        gap: 16,
+    },
+    ebookCardHeader: {
         flexDirection: 'row',
         alignItems: 'center',
+        marginBottom: 8,
+    },
+    ebookIconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
         justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
+        alignItems: 'center',
+        marginRight: 12,
     },
-    ebookButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
+    ebookCardTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#647C90',
+        fontWeight: '700',
     },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
+    ebookFeatures: {
+        gap: 12,
     },
-    completeButtonContent: {
+    featureItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
+        gap: 12,
     },
-    completeButtonText: {
+    featureText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        lineHeight: 20,
+    },
+    ebookCardFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(146, 132, 144, 0.1)',
+    },
+    ebookCardButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
-        color: '#E2DED0',
+        color: '#647C90',
+        fontWeight: '600',
     },
 });

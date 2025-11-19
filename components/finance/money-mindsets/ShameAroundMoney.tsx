@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking, Image } from 'react-native';
-import { Play, Pause, ExternalLink, ArrowLeft } from 'lucide-react-native';
+import { Play, Pause, ExternalLink, ArrowLeft, BookOpen, Star, Target, Users } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 
 const { width, height } = Dimensions.get('window');
 
@@ -11,7 +18,9 @@ interface ShameAroundMoneyProps {
 
 export default function ShameAroundMoney({ onComplete, onBack }: ShameAroundMoneyProps) {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentScreen, setCurrentScreen] = useState(1); // Start at screen 1 (shame around money)
+    const [currentScreen, setCurrentScreen] = useState(0);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
 
     const handlePlayPause = () => {
         setIsPlaying(!isPlaying);
@@ -19,7 +28,8 @@ export default function ShameAroundMoney({ onComplete, onBack }: ShameAroundMone
         if (!isPlaying) {
             setTimeout(() => {
                 setIsPlaying(false);
-                setCurrentScreen(2);
+                setCurrentScreen(2); // Now goes to journal prompt screen
+                scrollToTop();
             }, 3000);
         }
     };
@@ -29,36 +39,128 @@ export default function ShameAroundMoney({ onComplete, onBack }: ShameAroundMone
     };
 
     const goBack = () => {
-        if (currentScreen === 2) {
-            // Go back from ebook to shame around money
+        if (currentScreen === 3) {
+            setCurrentScreen(2);
+        } else if (currentScreen === 2) {
             setCurrentScreen(1);
         } else if (currentScreen === 1) {
+            setCurrentScreen(0);
+        } else if (currentScreen === 0) {
             if (onBack) {
                 onBack();
             }
         }
+        scrollToTop();
     };
 
-    // Shame Around Money Screen
+    const handleContinueToVoiceMessage = () => {
+        setCurrentScreen(1);
+        scrollToTop();
+    };
+
+    const handleContinueToFinal = () => {
+        setCurrentScreen(3); // Go to final CTA screen
+        scrollToTop();
+    };
+
+    // Intro Screen
+    if (currentScreen === 0) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.introTitle}>Confront Money Shame</Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                Money shame can be a heavy burden, especially for dancers navigating financial uncertainty. This exercise will help you identify and release the shame that might be holding you back from financial freedom.
+                            </Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                We'll start with a guided reflection to help you uncover and confront money shame, followed by an opportunity to reflect on your experience.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="money-mindsets"
+                                day="3"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Shame Around Money"
+                                journalInstruction="A quick check in before we start this session"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <View style={styles.preparationSection}>
+                                <Text style={styles.preparationTitle}>Before We Begin:</Text>
+                                <View style={styles.preparationList}>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Find a quiet, comfortable space to reflect
+                                        </Text>
+                                    </View>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Be honest and gentle with yourself
+                                        </Text>
+                                    </View>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Remember that money shame is common and you're not alone
+                                        </Text>
+                                    </View>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Get ready to release what no longer serves you
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <PrimaryButton title="I'm Ready to Begin" onPress={handleContinueToVoiceMessage} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Voice Message Screen (now screen 1)
     if (currentScreen === 1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.voiceIcon}>
                                 <TouchableOpacity
                                     style={styles.playButton}
@@ -93,121 +195,178 @@ export default function ShameAroundMoney({ onComplete, onBack }: ShameAroundMone
                                     <Text style={styles.playingText}>Playing...</Text>
                                 </View>
                             )}
-                        </View>
-                    </ScrollView>
-                </View>
+                        </Card>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
 
-    // Ebook Promotion Screen
-    return (
-        <View style={styles.container}>
-            {/* Sticky Header */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.backButton} />
-                </View>
-            </View>
+    // Journal Prompt Screen (now screen 2)
+    if (currentScreen === 2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-            <View style={styles.scrollContainer}>
                 <ScrollView
-                    contentContainerStyle={styles.scrollContent}
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
                     showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
                 >
-                    <View style={styles.card}>
-                        <View style={styles.finalIconContainer}>
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={styles.journalTitle}>Reflect on Money Shame</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Take a moment to reflect on what came up during the guided reflection. What feelings or thoughts emerged around money? What insights did you gain about your relationship with finances?
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="money-mindsets"
+                                day="3"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Shame Around Money"
+                                journalInstruction="Reflect on your experience with money shame"
+                                moodLabel=""
+                                saveButtonText="Save Reflection"
+                            />
+                            <PrimaryButton title="Continue" onPress={handleContinueToFinal} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Ebook Promotion Screen (now screen 3)
+    return (
+        <View style={commonStyles.container}>
+            <StickyHeader onBack={goBack} />
+
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={commonStyles.baseCard}>
+                        <View style={commonStyles.introIconContainer}>
                             <Image
                                 source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                style={styles.heroImage}
+                                style={commonStyles.heroImage}
                             />
                         </View>
 
                         <Text style={styles.ebookTitle}>How did that feel?</Text>
 
-                        <Text style={styles.ebookText}>
-                            There's often a lot of shame baked into dealing with money (dancer or not). In fact, generational shame and trauma around finances can seep into how you feel about your finances. But when you leave the past in the past, you can start to move forward. Half the battle is accepting that you're not in the best money situation. Start there.
+                        <Text style={commonStyles.reflectionDescription}>
+                            There's often a lot of shame baked into dealing with money (dancer or not). In fact, generational shame and trauma around finances can seep into how you feel about your finances. But when you leave the past in the past, you can start to move forward. Half the battle is accepting that you're not in the best money situation. Start there.
                         </Text>
+
+                        <Text style={styles.ebookCallout}>
+                            Ready to dive deeper into transforming your money mindset?
+                        </Text>
+
+                        {/* Ebook CTA Card */}
+                        <TouchableOpacity style={styles.ebookCard} onPress={handleEbookLink}>
+                            <View style={styles.ebookCardContent}>
+                                <View style={styles.ebookCardHeader}>
+                                    <View style={styles.ebookIconContainer}>
+                                        <BookOpen size={24} color="#647C90" />
+                                    </View>
+                                    <Text style={styles.ebookCardTitle}>How to Pivot Ebook</Text>
+                                </View>
+
+                                <View style={styles.ebookFeatures}>
+                                    <View style={styles.featureItem}>
+                                        <Star size={16} color="#928490" />
+                                        <Text style={styles.featureText}>Comprehensive career transition guide</Text>
+                                    </View>
+                                    <View style={styles.featureItem}>
+                                        <Target size={16} color="#928490" />
+                                        <Text style={styles.featureText}>Practical financial strategies</Text>
+                                    </View>
+                                    <View style={styles.featureItem}>
+                                        <Users size={16} color="#928490" />
+                                        <Text style={styles.featureText}>Dancer-specific advice</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.ebookCardFooter}>
+                                    <Text style={styles.ebookCardButtonText}>Learn More</Text>
+                                    <ExternalLink size={16} color="#647C90" />
+                                </View>
+                            </View>
+                        </TouchableOpacity>
 
                         <Text style={styles.reflectionClosing}>
                             See you tomorrow!
                         </Text>
 
-                        <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
-                            <View
-                                style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}
-                            >
-                                <Text style={styles.completeButtonText}>Mark as complete</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
-            </View>
+                        <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+                    </Card>
+                </View>
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
+    // Preparation Section Styles
+    preparationSection: {
+        width: '100%',
+        marginBottom: 32,
+        padding: 20,
+        backgroundColor: 'rgba(146, 132, 144, 0.08)',
+        borderRadius: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: '#928490',
     },
-    scrollContainer: {
-        marginTop: 70,
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 40,
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
+    preparationTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
+        fontSize: 18,
+        color: '#647C90',
         textAlign: 'center',
+        marginBottom: 16,
+        fontWeight: '700',
     },
-    card: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
+    preparationList: {
+        gap: 12,
     },
+    preparationItem: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+    },
+    bulletPoint: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#928490',
+        marginTop: 8,
+        marginRight: 12,
+    },
+    preparationText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        lineHeight: 20,
+        flex: 1,
+    },
+    // Voice Message Styles
     voiceIcon: {
         marginBottom: 30,
     },
@@ -257,29 +416,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#647C90',
     },
-    ebookIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    ebookTitle: {
+    // Journal Prompt Styles
+    journalTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 25,
     },
-    ebookText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
+    // Ebook Styles
+    ebookTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
+        marginBottom: 25,
     },
     ebookCallout: {
         fontFamily: 'Montserrat-SemiBold',
@@ -289,58 +440,78 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         fontStyle: 'italic',
     },
-    ebookButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        marginBottom: 20,
-    },
-    ebookButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    ebookButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-    },
-    finalIconContainer: {
-        marginBottom: 30,
-    },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#647C90',
-        borderWidth: 2,
-    },
     reflectionClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
         marginBottom: 40,
+        fontWeight: '600',
+    },
+    // Ebook Card Styles
+    ebookCard: {
+        width: '100%',
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: 'rgba(146, 132, 144, 0.2)',
+    },
+    ebookCardContent: {
+        gap: 16,
+    },
+    ebookCardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    ebookIconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    ebookCardTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#647C90',
+        fontWeight: '700',
+    },
+    ebookFeatures: {
+        gap: 12,
+    },
+    featureItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    featureText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        lineHeight: 20,
+    },
+    ebookCardFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(146, 132, 144, 0.1)',
+    },
+    ebookCardButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 16,
+        color: '#647C90',
         fontWeight: '600',
     },
 });

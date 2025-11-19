@@ -33,10 +33,11 @@ import { MOOD_OPTIONS } from '@/utils/constants';
 interface JournalEntry {
     id: string;
     pathTag: string;
-    day: number;
+    day: string; // Changed from number to string
+    date: string; // Added date field
     content: string;
     mood?: string;
-    timestamp: number;
+    timestamp: number; // This field is not in utils/interfaces.ts, but seems to be used here. I will keep it for now.
 }
 
 interface MoodStats {
@@ -220,20 +221,20 @@ export default function ReportsScreen() {
     const getFilteredJournalEntries = useMemo(() => {
         if (!selectedPath) return [];
 
-        // Normalize path IDs for comparison
-        const selectedPathId = selectedPath.pathId.toLowerCase();
-        const formattedSelectedPath = formatPathTag(selectedPath.pathId).toLowerCase();
+        // Use the path title for more accurate filtering
+        const selectedPathTitle = selectedPath.pathName.toLowerCase();
 
         return journalEntries.filter(entry => {
-            if (!entry.pathTag) return false;
+            if (!entry.pathTitle && !entry.pathTag) return false;
 
-            const entryPathTag = entry.pathTag.toLowerCase();
+            const entryPathTitle = (entry.pathTitle || '').toLowerCase();
+            const entryPathTag = (entry.pathTag || '').toLowerCase();
 
-            // Match exact path ID or formatted path name
-            return entryPathTag === selectedPathId ||
-                entryPathTag === formattedSelectedPath ||
-                entryPathTag.includes(selectedPathId) ||
-                selectedPathId.includes(entryPathTag);
+            // Match by path title (most accurate) or fallback to path tag
+            return entryPathTitle === selectedPathTitle ||
+                entryPathTitle.includes(selectedPathTitle) ||
+                selectedPathTitle.includes(entryPathTitle) ||
+                entryPathTag === selectedPath.pathId.toLowerCase();
         });
     }, [journalEntries, selectedPath]);
 
@@ -443,9 +444,6 @@ Keep up the great work on your pivot journey!
                                 ]}
                             />
                         </View>
-                        <Text style={styles.progressText}>
-                            {completedDays} of 7 days completed
-                        </Text>
                     </View>
                 </View>
             </View>

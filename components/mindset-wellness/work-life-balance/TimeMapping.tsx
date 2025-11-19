@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Sparkles, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, Dimensions, Animated, ScrollView } from 'react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
 
 const { width } = Dimensions.get('window');
 
@@ -64,45 +70,158 @@ const timeChoices: TimeChoice[] = [
 ];
 
 export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-6 = choices, 7 = results, 8 = final message
+    const [currentChoiceIndex, setCurrentChoiceIndex] = useState(0);
+    const [screenHistory, setScreenHistory] = useState<Array<{ choiceIndex: number }>>([]);
     const [choices, setChoices] = useState<{ [key: string]: string }>({});
 
-    const handleStartGame = () => {
-        setCurrentScreen(1);
-    };
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry: addMorningJournalEntry } = useJournaling('work-life-balance');
+    const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('work-life-balance');
 
-    const handleBack = () => {
+    // Animation values
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const cardScale = useRef(new Animated.Value(1)).current;
+    const progressAnim = useRef(new Animated.Value(0)).current;
+
+    const handleBack = useCallback(() => {
         if (onBack) {
             onBack();
         }
+    }, [onBack]);
+
+    const handleStartPlanning = () => {
+        setScreenHistory([{ choiceIndex: 0 }]);
+        scrollToTop();
     };
 
-    const goBack = () => {
-        if (currentScreen === 1) {
-            setCurrentScreen(0);
-        } else if (currentScreen > 1) {
-            setCurrentScreen(currentScreen - 1);
-        }
+    const handleContinueToChoices = () => {
+        setScreenHistory([{ choiceIndex: -3 }]);
+        scrollToTop();
     };
 
-    const handleChoice = (choiceKey: string, selectedOption: string) => {
+    const handleChoice = useCallback((choiceKey: string, selectedOption: string) => {
         const newChoices = { ...choices, [choiceKey]: selectedOption };
         setChoices(newChoices);
 
-        if (currentScreen < 6) {
-            setCurrentScreen(currentScreen + 1);
+        if (currentChoiceIndex < timeChoices.length - 1) {
+            // Fade out current card
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => {
+                const newChoiceIndex = currentChoiceIndex + 1;
+
+                // Reset animations BEFORE updating state
+                fadeAnim.setValue(0);
+
+                // Update state
+                setCurrentChoiceIndex(newChoiceIndex);
+
+                // Animate in the next card with a slight delay
+                setTimeout(() => {
+                    Animated.parallel([
+                        Animated.timing(fadeAnim, {
+                            toValue: 1,
+                            duration: 300,
+                            useNativeDriver: true,
+                        }),
+                        Animated.spring(progressAnim, {
+                            toValue: (newChoiceIndex + 1) / timeChoices.length,
+                            tension: 50,
+                            friction: 7,
+                            useNativeDriver: false,
+                        })
+                    ]).start();
+                }, 50);
+
+                setScreenHistory(prev => [...prev, { choiceIndex: newChoiceIndex }]);
+                scrollToTop();
+            });
         } else {
-            setCurrentScreen(7); // Results screen
+            // Smooth transition to results screen
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+            }).start(() => {
+                setScreenHistory(prev => [...prev, { choiceIndex: -2 }]);
+                fadeAnim.setValue(1);
+                scrollToTop();
+            });
         }
+    }, [currentChoiceIndex, choices, fadeAnim, progressAnim, scrollToTop]);
+
+    const handleComplete = () => {
+        // Add a subtle scale animation on complete
+        Animated.sequence([
+            Animated.timing(cardScale, {
+                toValue: 1.02,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(cardScale, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            })
+        ]).start(() => {
+            onComplete();
+        });
     };
 
-    const handleContinue = () => {
-        if (currentScreen === 7) {
-            setCurrentScreen(8); // Final message screen
-        } else if (currentScreen === 8) {
-            onComplete();
+    const goBack = () => {
+        if (screenHistory.length <= 1) {
+            setScreenHistory([]);
+            setCurrentChoiceIndex(0);
+            fadeAnim.setValue(1);
+            cardScale.setValue(1);
+            scrollToTop();
+            return;
         }
+
+        const newHistory = [...screenHistory];
+        newHistory.pop();
+        setScreenHistory(newHistory);
+
+        const prevScreen = newHistory[newHistory.length - 1];
+        if (prevScreen.choiceIndex === -1 || prevScreen.choiceIndex === -2 || prevScreen.choiceIndex === -3) {
+            return;
+        }
+
+        // Animate the transition back
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setCurrentChoiceIndex(prevScreen.choiceIndex);
+            // Reset animations
+            fadeAnim.setValue(0);
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+            scrollToTop();
+        });
     };
+
+    // Progress animation interpolation
+    const progressWidth = progressAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0%', '100%'],
+    });
+
+    // Update progress when currentChoiceIndex changes
+    React.useEffect(() => {
+        Animated.spring(progressAnim, {
+            toValue: (currentChoiceIndex + 1) / timeChoices.length,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: false,
+        }).start();
+    }, [currentChoiceIndex]);
 
     const getResultText = () => {
         const focusTime = choices.focusTime;
@@ -143,144 +262,111 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
         };
     };
 
-    // Intro Screen
-    if (currentScreen === 0) {
+    // Intro Screen with Morning Journal
+    if (screenHistory.length === 0) {
         return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        {onBack ? (
-                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
-                                <ArrowLeft size={24} color="#E2DED0" />
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={styles.backIconWrapper} />
-                        )}
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Plan Your Ideal Week</Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <View style={styles.introIcon}>
-                                <Sparkles size={32} color="#928490" />
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Text style={styles.planningIcon}>📅</Text>
                             </View>
 
-                            <Text style={styles.introTitle}>Plan Your Ideal Week</Text>
-
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introTitle}>Plan Your Ideal Week</Text>
+                            <Text style={commonStyles.introDescription}>
                                 Choose the option that feels best to you and create a balanced schedule for work, hobbies, and rest.
                             </Text>
 
-                            <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Start planning</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
+                            <JournalEntrySection
+                                pathTag="work-life-balance"
+                                day="5"
+                                category="Mindset and Wellness"
+                                pathTitle="Work Life Balance"
+                                dayTitle="Time Mapping"
+                                journalInstruction="Before we begin, take a moment to reflect: What does your ideal week look like currently? What would you like to change?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Let's Start Planning" onPress={handleContinueToChoices} />
+                        </Card>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
 
-    // Choice Screens (1-6)
-    if (currentScreen >= 1 && currentScreen <= 6) {
-        const currentChoice = timeChoices[currentScreen - 1];
-
-        if (!currentChoice) return null;
-
-        // Calculate progress for choice screens
-        const choiceProgress = ((currentScreen) / 6) * 100;
-
+    // Planning Intro Screen
+    const currentScreen = screenHistory[screenHistory.length - 1];
+    if (currentScreen.choiceIndex === -3) {
         return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
-                            <ChevronLeft size={24} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>
-                                {currentScreen} of 6
-                            </Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${choiceProgress}%` }]} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <Text style={styles.choiceQuestion}>{currentChoice.question}</Text>
-
-                            <View style={styles.choiceButtons}>
-                                <TouchableOpacity
-                                    style={styles.choiceButton}
-                                    onPress={() => handleChoice(currentChoice.resultKey, currentChoice.option1)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.choiceButtonText}>{currentChoice.option1}</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    style={styles.choiceButton}
-                                    onPress={() => handleChoice(currentChoice.resultKey, currentChoice.option2)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.choiceButtonText}>{currentChoice.option2}</Text>
-                                </TouchableOpacity>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Text style={styles.planningIcon}>⏰</Text>
                             </View>
-                        </View>
-                    </ScrollView>
-                </View>
+
+                            <Text style={styles.introTitle}>Design Your Weekly Rhythm</Text>
+                            <Text style={styles.introDescription}>
+                                Let's create a schedule that works with your natural energy patterns and personal preferences. You'll answer a few questions about your ideal timing for different activities.
+                            </Text>
+
+                            <PrimaryButton title="Begin Planning" onPress={handleStartPlanning} />
+                        </Card>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
 
-    // Results Screen (7)
-    if (currentScreen === 7) {
+    // Results Screen
+    if (currentScreen.choiceIndex === -2) {
         const results = getResultText();
 
         return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        {onBack ? (
-                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
-                                <ArrowLeft size={24} color="#E2DED0" />
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={styles.backIconWrapper} />
-                        )}
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Your Ideal Week</Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <Text style={styles.resultsTitle}>Your Ideal Weekly Rhythm</Text>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.reflectionHeader}>
+                                <Text style={styles.resultsTitle}>Your Ideal Weekly Rhythm</Text>
+                            </View>
+
+                            <View style={commonStyles.reflectionIntro}>
+                                <Text style={commonStyles.reflectionDescription}>
+                                    Based on your preferences, here's a suggested weekly schedule that aligns with your natural energy patterns and personal style.
+                                </Text>
+                            </View>
 
                             <View style={styles.scheduleSection}>
                                 <Text style={styles.scheduleHeading}>Monday–Friday</Text>
@@ -326,148 +412,147 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
                                 </View>
                             </View>
 
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={() => {
+                                    setScreenHistory(prev => [...prev, { choiceIndex: -1 }]);
+                                    scrollToTop();
+                                }}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
 
-    // Final Message Screen (8)
-    if (currentScreen === 8) {
+    // Final Screen with End of Day Journal
+    if (currentScreen.choiceIndex === -1) {
         return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backIconWrapper} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Plan Your Ideal Week</Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <View style={styles.finalIcon}>
-                                <Sparkles size={40} color="#928490" />
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Text style={styles.finalIcon}>✨</Text>
                             </View>
-                            <Text style={styles.introTitle}>Your Day, Your Terms</Text>
-                            <Text style={styles.finalText}>
-                                One of the best parts of stepping away from dance is finally gaining control of your day.
-                                But there's no perfect schedule. What matters is that it reflects you… your energy,
-                                your priorities, and your personality.
-                            </Text>
 
-                            <Text style={styles.finalText}>
-                                Even small shifts can make your days feel more aligned. Keep experimenting until your
-                                week feels like it's working for you… not the other way around.
-                            </Text>
+                            <View style={commonStyles.finalHeader}>
+                                <Text style={commonStyles.finalHeading}>Your Day, Your Terms</Text>
+                            </View>
 
-                            <Text style={styles.finalText}>
+                            <View style={commonStyles.finalTextContainer}>
+                                <Text style={commonStyles.finalText}>
+                                    One of the best parts of stepping away from dance is finally gaining control of your day.
+                                    But there's no perfect schedule. What matters is that it reflects you… your energy,
+                                    your priorities, and your personality.
+                                </Text>
+
+                                <Text style={commonStyles.finalText}>
+                                    Even small shifts can make your days feel more aligned. Keep experimenting until your
+                                    week feels like it's working for you… not the other way around.
+                                </Text>
+                            </View>
+
+                            <JournalEntrySection
+                                pathTag="work-life-balance"
+                                day="5"
+                                category="Mindset and Wellness"
+                                pathTitle="Work Life Balance"
+                                dayTitle="Time Mapping"
+                                journalInstruction="Reflect on your ideal schedule. What feels most aligned with your natural rhythms? What adjustments will you make to your current routine?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <Text style={styles.alternativeClosing}>
                                 See you tomorrow for the next step!
                             </Text>
 
-                            <TouchableOpacity style={styles.completeButton} onPress={handleContinue}>
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
+                            <View style={commonStyles.finalButtonContainer}>
+                                <PrimaryButton
+                                    title="Mark As Complete"
+                                    onPress={handleComplete}
+                                />
+                            </View>
+                        </Card>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
 
-    return null;
+    // Choice Screens
+    const currentChoice = timeChoices[currentChoiceIndex];
+
+    return (
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${currentChoiceIndex + 1} of ${timeChoices.length}`}
+                progress={(currentChoiceIndex + 1) / timeChoices.length}
+            />
+
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Animated.View
+                        style={[
+                            styles.choiceCard,
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ scale: cardScale }]
+                            }
+                        ]}
+                    >
+                        <Text style={styles.choiceQuestion}>{currentChoice.question}</Text>
+
+                        <View style={styles.choiceButtons}>
+                            <PrimaryButton
+                                title={currentChoice.option1}
+                                onPress={() => handleChoice(currentChoice.resultKey, currentChoice.option1)}
+                                variant="secondary"
+                                style={styles.choiceButton}
+                            />
+
+                            <PrimaryButton
+                                title={currentChoice.option2}
+                                onPress={() => handleChoice(currentChoice.resultKey, currentChoice.option2)}
+                                variant="secondary"
+                                style={styles.choiceButton}
+                            />
+                        </View>
+                    </Animated.View>
+                </View>
+            </ScrollView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    scrollContainer: {
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 20,
-    },
-
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backIconWrapper: {
-        width: 40,
-        alignItems: 'center'
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    headerTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#E2DED0',
-    },
-
-    card: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-        marginTop: 120,
-    },
-    introIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
+    // Intro screen styles
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
+        lineHeight: 34,
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
@@ -475,61 +560,44 @@ const styles = StyleSheet.create({
         color: '#746C70',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
-    },
-
-    startButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
-    choiceQuestion: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
-        textAlign: 'center',
         marginBottom: 30,
     },
+    // Choice card styles
+    choiceCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 32,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    choiceQuestion: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 40,
+        lineHeight: 32,
+        fontWeight: '700',
+    },
     choiceButtons: {
-        gap: 20,
+        gap: 16,
         width: '100%',
     },
     choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        borderRadius: 16,
-        padding: 24,
-        borderWidth: 2,
-        borderColor: 'transparent',
-        minHeight: 80,
-        justifyContent: 'center',
+        minHeight: 60,
     },
-    choiceButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#4E4F50',
-        textAlign: 'center',
-    },
-
+    // Results styles
     resultsTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#4E4F50',
+        fontSize: 28,
+        color: '#647C90',
         textAlign: 'center',
-        marginBottom: 30,
+        fontWeight: '700',
     },
     scheduleSection: {
         marginBottom: 30,
@@ -556,72 +624,22 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         lineHeight: 22,
     },
-
-    continueButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 12,
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
-    finalIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
+    // Icon styles
+    planningIcon: {
+        fontSize: 48,
         textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
     },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
+    finalIcon: {
+        fontSize: 56,
+        textAlign: 'center',
     },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    completeButtonText: {
+    alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
-        borderRadius: 3,
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 5,
+        marginTop: 0,
+        fontWeight: '600',
     },
 });

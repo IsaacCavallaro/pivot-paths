@@ -1,7 +1,14 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Calculator, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, Dimensions, ScrollView, Animated } from 'react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { Calculator } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -71,6 +78,14 @@ export default function BudgetingMethodsDecoded({ onComplete, onBack }: Budgetin
     const [showHowToStart, setShowHowToStart] = useState(false);
     const [screenHistory, setScreenHistory] = useState<Array<{ methodIndex: number, showHowTo: boolean }>>([]);
 
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry } = useJournaling('budgeting-for-dancers');
+
+    // Animation values
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const cardScale = useRef(new Animated.Value(1)).current;
+    const progressAnim = useRef(new Animated.Value(0)).current;
+
     const handleBack = useCallback(() => {
         if (onBack) {
             onBack();
@@ -79,177 +94,345 @@ export default function BudgetingMethodsDecoded({ onComplete, onBack }: Budgetin
 
     const handleStart = () => {
         setScreenHistory([{ methodIndex: 0, showHowTo: false }]);
+        scrollToTop();
     };
 
-    const handleContinue = () => {
+    const handleContinueToMethods = () => {
+        setScreenHistory([{ methodIndex: -3, showHowTo: false }]);
+        scrollToTop();
+    };
+
+    const handleContinue = useCallback(() => {
         if (showHowToStart) {
             // Move to next method
             if (currentMethodIndex < budgetingMethods.length - 1) {
-                const newMethodIndex = currentMethodIndex + 1;
-                setCurrentMethodIndex(newMethodIndex);
-                setShowHowToStart(false);
-                setScreenHistory([...screenHistory, { methodIndex: newMethodIndex, showHowTo: false }]);
+                // Fade out current card
+                Animated.timing(fadeAnim, {
+                    toValue: 0,
+                    duration: 300,
+                    useNativeDriver: true,
+                }).start(() => {
+                    const newMethodIndex = currentMethodIndex + 1;
+
+                    // Reset animations BEFORE updating state
+                    fadeAnim.setValue(0);
+
+                    // Update state
+                    setCurrentMethodIndex(newMethodIndex);
+                    setShowHowToStart(false);
+
+                    // Animate in the next card with a slight delay
+                    setTimeout(() => {
+                        Animated.parallel([
+                            Animated.timing(fadeAnim, {
+                                toValue: 1,
+                                duration: 300,
+                                useNativeDriver: true,
+                            }),
+                            Animated.spring(progressAnim, {
+                                toValue: (newMethodIndex + 1) / budgetingMethods.length,
+                                tension: 50,
+                                friction: 7,
+                                useNativeDriver: false,
+                            })
+                        ]).start();
+                    }, 50);
+
+                    setScreenHistory(prev => [...prev, { methodIndex: newMethodIndex, showHowTo: false }]);
+                    scrollToTop();
+                });
             } else {
                 // All methods completed, go to reflection screen
-                setScreenHistory([...screenHistory, { methodIndex: -1, showHowTo: false }]);
+                Animated.timing(fadeAnim, {
+                    toValue: 0,
+                    duration: 400,
+                    useNativeDriver: true,
+                }).start(() => {
+                    setScreenHistory(prev => [...prev, { methodIndex: -2, showHowTo: false }]);
+                    fadeAnim.setValue(1);
+                    scrollToTop();
+                });
             }
         } else {
             // Show how to start for current method
             setShowHowToStart(true);
-            setScreenHistory([...screenHistory, { methodIndex: currentMethodIndex, showHowTo: true }]);
+            setScreenHistory(prev => [...prev, { methodIndex: currentMethodIndex, showHowTo: true }]);
+            scrollToTop();
         }
-    };
+    }, [showHowToStart, currentMethodIndex, fadeAnim, progressAnim, scrollToTop]);
 
     const handleComplete = () => {
-        onComplete();
+        // Add a subtle scale animation on complete
+        Animated.sequence([
+            Animated.timing(cardScale, {
+                toValue: 1.02,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(cardScale, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            })
+        ]).start(() => {
+            onComplete();
+        });
     };
 
     const goBack = () => {
         if (screenHistory.length <= 1) {
-            // If we're at the first screen, go back to intro
             setScreenHistory([]);
             setCurrentMethodIndex(0);
             setShowHowToStart(false);
+            fadeAnim.setValue(1);
+            cardScale.setValue(1);
+            scrollToTop();
             return;
         }
 
-        // Remove current screen from history
         const newHistory = [...screenHistory];
         newHistory.pop();
         setScreenHistory(newHistory);
 
-        // Get previous screen state
         const prevScreen = newHistory[newHistory.length - 1];
-
-        if (prevScreen.methodIndex === -1) {
-            // Shouldn't happen as we handle final screen separately
+        if (prevScreen.methodIndex === -1 || prevScreen.methodIndex === -2 || prevScreen.methodIndex === -3) {
             return;
         }
 
-        setCurrentMethodIndex(prevScreen.methodIndex);
-        setShowHowToStart(prevScreen.showHowTo);
+        // Animate the transition back
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setCurrentMethodIndex(prevScreen.methodIndex);
+            setShowHowToStart(prevScreen.showHowTo);
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+            scrollToTop();
+        });
     };
 
-    // Calculate progress for method screens
-    const methodProgress = ((currentMethodIndex + 1) / budgetingMethods.length) * 100;
+    // Progress animation interpolation
+    const progressWidth = progressAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0%', '100%'],
+    });
 
-    // Intro Screen
+    // Update progress when currentMethodIndex changes
+    React.useEffect(() => {
+        Animated.spring(progressAnim, {
+            toValue: (currentMethodIndex + 1) / budgetingMethods.length,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: false,
+        }).start();
+    }, [currentMethodIndex]);
+
+    // Intro Screen with Journal
     if (screenHistory.length === 0) {
         return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        {onBack ? (
-                            <TouchableOpacity style={styles.backIconWrapper} onPress={handleBack}>
-                                <ArrowLeft size={24} color="#E2DED0" />
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={styles.backIconWrapper} />
-                        )}
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Budgeting Methods</Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <View style={styles.introIcon}>
-                                <Calculator size={32} color="#928490" />
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Calculator size={40} color="#928490" />
                             </View>
 
-                            <Text style={styles.introTitle}>Budgeting Methods Decoded</Text>
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introTitle}>Budgeting Methods Decoded</Text>
+                            <Text style={commonStyles.introDescription}>
                                 You know you need a budget, but where to start? Dancers thrive with structure so let's find a financial framework that fits your flow.
                                 {"\n\n"}
                                 We'll walk through three popular methods. Your job is to see which one is best for you.
                             </Text>
 
-                            <TouchableOpacity style={styles.startButton} onPress={handleStart}>
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Let’s Begin</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
+                            <JournalEntrySection
+                                pathTag="budgeting-for-dancers"
+                                day="3"
+                                category="finance"
+                                pathTitle="Budgeting For Dancers"
+                                dayTitle="Budgeting Methods Decoded"
+                                journalInstruction="Before we begin, what's your current relationship with budgeting? What hopes or concerns do you have?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Let's Begin" onPress={handleContinueToMethods} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Methods Intro Screen
+    const currentScreen = screenHistory[screenHistory.length - 1];
+    if (currentScreen.methodIndex === -3) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Calculator size={40} color="#928490" />
+                            </View>
+
+                            <Text style={styles.introTitle}>Find Your Financial Flow</Text>
+                            <Text style={styles.introDescription}>
+                                Budgeting isn't about restriction—it's about intention. It's deciding where your hard-earned money goes, instead of wondering where it disappeared to.
+                                {"\n\n"}
+                                Let's explore three different approaches to find the one that feels most natural to you.
+                            </Text>
+
+                            <PrimaryButton title="Explore Methods" onPress={handleStart} />
+                        </Card>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
 
     // Reflection Screen
-    const currentScreen = screenHistory[screenHistory.length - 1];
+    if (currentScreen.methodIndex === -2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.reflectionHeader}>
+                                <Text style={styles.reflectionTitle}>Find Your Fit</Text>
+                            </View>
+
+                            <View style={commonStyles.reflectionIntro}>
+                                <Text style={commonStyles.reflectionDescription}>
+                                    Reflect for a moment. Which method made the most sense to you?
+                                    {"\n\n"}
+                                    • The Simple Guide (50/30/20)
+                                    {"\n"}
+                                    • The Detailed Plan (Zero-Based)
+                                    {"\n"}
+                                    • The Physical Limit (Envelope)
+                                    {"\n\n"}
+                                    There's no wrong answer. The best budget is the one you'll actually stick with.
+                                </Text>
+                            </View>
+
+                            <View style={styles.assignmentSection}>
+                                <Text style={styles.assignmentTitle}>Your First Assignment</Text>
+                                <Text style={styles.assignmentText}>
+                                    Do this today:
+                                    {"\n\n"}
+                                    1. Choose one budgeting method to try for the next 30 days.
+                                    {"\n"}
+                                    2. Set up your system in a simple spreadsheet.
+                                    {"\n"}
+                                    3. Schedule 10 minutes in your calendar every Sunday to plan for the next week.
+                                    {"\n\n"}
+                                    You don't have to be perfect. You just have to start. The goal is awareness, not perfection.
+                                </Text>
+                            </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={() => {
+                                    setScreenHistory(prev => [...prev, { methodIndex: -1, showHowTo: false }]);
+                                    scrollToTop();
+                                }}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Final Screen with Journal
     if (currentScreen.methodIndex === -1) {
         return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
-                            <ChevronLeft size={24} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>Budgeting Methods</Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <View style={styles.finalIcon}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Calculator size={40} color="#928490" />
                             </View>
-                            <Text style={styles.introTitle}>Find Your Fit</Text>
-                            <Text style={styles.finalText}>
-                                Reflect for a moment. Which method made the most sense to you?
-                                {"\n\n"}
-                                • The Simple Guide (50/30/20)
-                                {"\n"}
-                                • The Detailed Plan (Zero-Based)
-                                {"\n"}
-                                • The Physical Limit (Envelope)
-                                {"\n\n"}
-                                There's no wrong answer. The best budget is the one you'll actually stick with.
+
+                            <View style={commonStyles.finalHeader}>
+                                <Text style={commonStyles.finalHeading}>Your Financial Foundation</Text>
+                            </View>
+
+                            <View style={commonStyles.finalTextContainer}>
+                                <Text style={commonStyles.finalText}>
+                                    With a budget, you're not restricting your life, you're funding it. You're deciding where your hard-earned money goes, instead of wondering where it disappeared to.
+                                    {"\n\n"}
+                                    This is the foundation of financial freedom.
+                                </Text>
+                            </View>
+
+                            <JournalEntrySection
+                                pathTag="budgeting-for-dancers"
+                                day="3"
+                                category="finance"
+                                pathTitle="Budgeting For Dancers"
+                                dayTitle="Budgeting Methods Decoded"
+                                journalInstruction="Which budgeting method resonated most with you? What's one small step you'll take this week to implement it?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <Text style={styles.alternativeClosing}>
+                                You're building the financial confidence to support your dance journey!
                             </Text>
 
-                            <Text style={styles.assignmentTitle}>Your First Assignment</Text>
-                            <Text style={styles.assignmentText}>
-                                Do this today:
-                                {"\n\n"}
-                                1. Choose one budgeting method to try for the next 30 days.
-                                {"\n"}
-                                2. Set up your system in a simple spreadsheet.
-                                {"\n"}
-                                3. Schedule 10 minutes in your calendar every Sunday to plan for the next week.
-                                {"\n\n"}
-                                You don't have to be perfect. You just have to start. The goal is awareness, not perfection.
-                            </Text>
-
-                            <Text style={styles.finalClosing}>
-                                With a budget, you're not restricting your life, you're funding it. You're deciding where your hard-earned money goes, instead of wondering where it disappeared to.
-                                {"\n\n"}
-                                This is the foundation of financial freedom.
-                            </Text>
-
-                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
+                            <View style={commonStyles.finalButtonContainer}>
+                                <PrimaryButton
+                                    title="Mark As Complete"
+                                    onPress={handleComplete}
+                                />
+                            </View>
+                        </Card>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
@@ -257,196 +440,87 @@ export default function BudgetingMethodsDecoded({ onComplete, onBack }: Budgetin
     // Method Screens
     const currentMethod = budgetingMethods[currentMethodIndex];
 
-    if (!showHowToStart) {
-        // Show method overview
-        return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
-                            <ChevronLeft size={24} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>
-                                {currentMethodIndex + 1} of {budgetingMethods.length}
-                            </Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${methodProgress}%` }]} />
-                    </View>
+    return (
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${currentMethodIndex + 1} of ${budgetingMethods.length}`}
+                progress={(currentMethodIndex + 1) / budgetingMethods.length}
+            />
+
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Animated.View style={[styles.methodContainer, { opacity: fadeAnim, transform: [{ scale: cardScale }] }]}>
+                        <Card style={commonStyles.baseCard}>
+                            {!showHowToStart ? (
+                                // Method Overview
+                                <>
+                                    <Text style={styles.methodTitle}>{currentMethod.title}</Text>
+                                    <Text style={styles.methodDescription}>{currentMethod.description}</Text>
+
+                                    <View style={styles.section}>
+                                        <Text style={styles.sectionTitle}>The Breakdown:</Text>
+                                        <Text style={styles.sectionContent}>{currentMethod.breakdown}</Text>
+                                    </View>
+
+                                    <View style={styles.section}>
+                                        <Text style={styles.sectionTitle}>Best for:</Text>
+                                        <Text style={styles.sectionContent}>{currentMethod.bestFor}</Text>
+                                    </View>
+
+                                    <PrimaryButton
+                                        title="How to start"
+                                        onPress={handleContinue}
+                                    />
+                                </>
+                            ) : (
+                                // How to Start
+                                <>
+                                    <Text style={styles.howToTitle}>How to Start {currentMethod.title}</Text>
+
+                                    <View style={styles.section}>
+                                        <Text style={styles.sectionTitle}>Do this:</Text>
+                                        {currentMethod.steps.map((step, index) => (
+                                            <Text key={index} style={styles.stepText}>
+                                                {index + 1}. {step}
+                                            </Text>
+                                        ))}
+                                    </View>
+
+                                    <View style={styles.section}>
+                                        <Text style={styles.sectionTitle}>Pro Tip:</Text>
+                                        <Text style={styles.proTipText}>{currentMethod.proTip}</Text>
+                                    </View>
+
+                                    <PrimaryButton
+                                        title={currentMethodIndex < budgetingMethods.length - 1 ? 'Next Method' : 'See All Methods'}
+                                        onPress={handleContinue}
+                                    />
+                                </>
+                            )}
+                        </Card>
+                    </Animated.View>
                 </View>
-
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <Text style={styles.methodTitle}>{currentMethod.title}</Text>
-                            <Text style={styles.methodDescription}>{currentMethod.description}</Text>
-
-                            <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>The Breakdown:</Text>
-                                <Text style={styles.sectionContent}>{currentMethod.breakdown}</Text>
-                            </View>
-
-                            <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>Best for:</Text>
-                                <Text style={styles.sectionContent}>{currentMethod.bestFor}</Text>
-                            </View>
-
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                                <LinearGradient
-                                    colors={['#928490', '#746C70']}
-                                    style={styles.continueButtonContent}
-                                >
-                                    <Text style={styles.continueButtonText}>How to start</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
-            </View>
-        );
-    } else {
-        // Show how to start
-        return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backIconWrapper} onPress={goBack}>
-                            <ChevronLeft size={24} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle}>
-                                {currentMethodIndex + 1} of {budgetingMethods.length}
-                            </Text>
-                        </View>
-                        <View style={styles.backIconWrapper} />
-                    </View>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${methodProgress}%` }]} />
-                    </View>
-                </View>
-
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
-                            <Text style={styles.howToTitle}>How to Start {currentMethod.title}</Text>
-
-                            <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>Do this:</Text>
-                                {currentMethod.steps.map((step, index) => (
-                                    <Text key={index} style={styles.stepText}>
-                                        {index + 1}. {step}
-                                    </Text>
-                                ))}
-                            </View>
-
-                            <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>Pro Tip:</Text>
-                                <Text style={styles.proTipText}>{currentMethod.proTip}</Text>
-                            </View>
-
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                                <LinearGradient
-                                    colors={['#5A7D7B', '#647C90']}
-                                    style={styles.continueButtonContent}
-                                >
-                                    <Text style={styles.continueButtonText}>
-                                        {currentMethodIndex < budgetingMethods.length - 1 ? 'Next Method' : 'See All Methods'}
-                                    </Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
-            </View>
-        );
-    }
+            </ScrollView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0'
-    },
-    scrollContainer: {
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 20,
-    },
-
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backIconWrapper: {
-        width: 40,
-        alignItems: 'center'
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center'
-    },
-    headerTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#E2DED0',
-    },
-
-    card: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-        marginTop: 120,
-    },
-    introIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(146,132,144,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
+        lineHeight: 34,
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
@@ -454,28 +528,11 @@ const styles = StyleSheet.create({
         color: '#746C70',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 40,
+        marginBottom: 30,
     },
-
-    startButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
+    methodContainer: {
+        width: width * 0.85,
     },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
     methodTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -527,43 +584,16 @@ const styles = StyleSheet.create({
         color: '#647C90',
         lineHeight: 20,
     },
-
-    continueButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        marginTop: 10,
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 12,
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
-    finalIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(146,132,144,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
+    reflectionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
         textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
+        fontWeight: '700',
+    },
+    assignmentSection: {
+        marginBottom: 30,
+        alignSelf: 'stretch',
     },
     assignmentTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -577,45 +607,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#746C70',
         lineHeight: 20,
-        marginBottom: 20,
     },
-    finalClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
+    alternativeClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 40,
-    },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden'
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(255,255,255,0.3)',
-        borderRadius: 3,
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
+        marginBottom: 5,
+        marginTop: 0,
+        fontWeight: '600',
     },
 });

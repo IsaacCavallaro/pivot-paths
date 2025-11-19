@@ -6,16 +6,23 @@ import { useJournaling } from '../hooks/useJournaling';
 
 interface JournalEntrySectionProps {
     pathTag: string;
+    day: string;
     journalInstruction: string;
     moodLabel: string;
     saveButtonText: string;
+    category?: string; // Add category
+    pathTitle?: string; // Add path title
+    dayTitle?: string; // Add day title for better organization
 }
-
 export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
     pathTag,
+    day,
     journalInstruction,
     moodLabel,
     saveButtonText,
+    category = 'General', // Default value
+    pathTitle = '', // Default empty
+    dayTitle = '', // Default empty
 }) => {
     const {
         journalEntry,
@@ -23,7 +30,7 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
         selectedMood,
         setSelectedMood,
         addJournalEntry,
-    } = useJournaling(pathTag);
+    } = useJournaling(pathTag, day, category, pathTitle, dayTitle); // Pass new props
 
     const handleSave = () => {
         addJournalEntry(journalEntry, selectedMood);

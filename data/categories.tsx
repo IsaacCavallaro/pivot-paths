@@ -6,7 +6,6 @@ export interface PathDay {
   content: string;
   callout?: string;
   hasQuiz?: boolean;
-  hasLeadershipExperience?: boolean;
   hasMythBuster?: boolean;
   hasRoleplay?: boolean;
   hasDreamBigger?: boolean;
@@ -160,7 +159,7 @@ export const categories: Category[] = [
       {
         id: 'mindset-shift',
         title: 'Mindset Shift',
-        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Explore who you are beyond your dancer identity',
         duration: '7 days',
         totalDays: 7,
@@ -213,7 +212,7 @@ export const categories: Category[] = [
       {
         id: 'work-life-balance',
         title: 'Work/Life Banlance',
-        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Let’s find out when your energy is at its peak and when it dips to help you plan your work, hobbies, and rest. ',
         duration: '7 days',
         totalDays: 7,
@@ -273,9 +272,9 @@ export const categories: Category[] = [
     icon: <Rocket size={24} color='rgba(226, 222, 208, 0.9)' />,
     paths: [
       {
-        id: 'skills-assessment',
+        id: 'map-your-direction',
         title: 'Map Your Direction', // previously "discover your direction"
-        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Here’s a map to help discover your direction.',
         duration: '7 days',
         totalDays: 7,
@@ -328,7 +327,7 @@ export const categories: Category[] = [
       {
         id: 'upskilling-pathfinder',
         title: 'Upskilling Pathfinder',
-        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Each step in the path helps you explore career options you may have never considered and start taking action towards landing a job in the industry that’s works for you.',
         duration: '7 days',
         totalDays: 7,
@@ -381,7 +380,7 @@ export const categories: Category[] = [
       {
         id: 'prep-your-pivot',
         title: 'Prep Your Pivot',
-        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Making a big career change is as much about mindset as it is about skills. This quick check will help you see where your confidence tends to dip, so you know what to focus on as you prep your pivot.',
         duration: '7 days',
         totalDays: 7,
@@ -496,7 +495,7 @@ export const categories: Category[] = [
       {
         id: 'budgeting-for-dancers',
         title: 'Budgeting For Dancers',
-        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Let’s talk about your money goals. Not the vague ones like ‘I should probably save more’—I’m talking about the goals that light you up. The ones that make budgeting worth it.',
         duration: '7 days',
         totalDays: 7,
@@ -549,7 +548,7 @@ export const categories: Category[] = [
       {
         id: 'financial-futureproofing',
         title: 'Financial Futureproofing ',
-        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: "Debt can feel like a weight holding you back. But think of it like a complex dance routine: it can be mastered one step at a time with a clear plan. You're not alone in this.Let's choose a strategy and build your payoff plan.",
         duration: '7 days',
         totalDays: 7,

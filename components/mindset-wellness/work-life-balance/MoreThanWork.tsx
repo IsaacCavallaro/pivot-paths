@@ -1,6 +1,15 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { ChevronRight, Heart, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, Dimensions, Image, Animated, ScrollView } from 'react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+
+const { width, height } = Dimensions.get('window');
 
 interface Activity {
     id: number;
@@ -60,6 +69,15 @@ export default function MoreThanWork({ onComplete, onBack }: MoreThanWorkProps) 
     const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
     const [screenHistory, setScreenHistory] = useState<Array<{ activityIndex: number }>>([]);
 
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry: addMorningJournalEntry } = useJournaling('financial-futureproofing');
+    const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('financial-futureproofing');
+
+    // Animation values
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const cardScale = useRef(new Animated.Value(1)).current;
+    const progressAnim = useRef(new Animated.Value(0)).current;
+
     const handleBack = useCallback(() => {
         if (onBack) {
             onBack();
@@ -68,155 +86,314 @@ export default function MoreThanWork({ onComplete, onBack }: MoreThanWorkProps) 
 
     const handleStartActivity = () => {
         setScreenHistory([{ activityIndex: 0 }]);
+        scrollToTop();
     };
 
-    const handleContinue = () => {
-        if (currentActivityIndex < activities.length - 1) {
-            const newActivityIndex = currentActivityIndex + 1;
-            setCurrentActivityIndex(newActivityIndex);
-            setScreenHistory([...screenHistory, { activityIndex: newActivityIndex }]);
-        } else {
-            // All activities completed, go to final screen
-            setScreenHistory([...screenHistory, { activityIndex: -1 }]); // -1 represents final screen
-        }
+    const handleContinueToActivities = () => {
+        setScreenHistory([{ activityIndex: -3 }]);
+        scrollToTop();
     };
+
+    const handleContinue = useCallback(() => {
+        if (currentActivityIndex < activities.length - 1) {
+            // Fade out current card
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => {
+                const newActivityIndex = currentActivityIndex + 1;
+
+                // Reset animations BEFORE updating state
+                fadeAnim.setValue(0);
+
+                // Update state
+                setCurrentActivityIndex(newActivityIndex);
+
+                // Animate in the next card with a slight delay
+                setTimeout(() => {
+                    Animated.parallel([
+                        Animated.timing(fadeAnim, {
+                            toValue: 1,
+                            duration: 300,
+                            useNativeDriver: true,
+                        }),
+                        Animated.spring(progressAnim, {
+                            toValue: (newActivityIndex + 1) / activities.length,
+                            tension: 50,
+                            friction: 7,
+                            useNativeDriver: false,
+                        })
+                    ]).start();
+                }, 50);
+
+                setScreenHistory(prev => [...prev, { activityIndex: newActivityIndex }]);
+                scrollToTop();
+            });
+        } else {
+            // Smooth transition to reflection screen
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+            }).start(() => {
+                setScreenHistory(prev => [...prev, { activityIndex: -2 }]);
+                fadeAnim.setValue(1);
+                scrollToTop();
+            });
+        }
+    }, [currentActivityIndex, fadeAnim, progressAnim, scrollToTop]);
 
     const handleComplete = () => {
-        onComplete();
+        // Add a subtle scale animation on complete
+        Animated.sequence([
+            Animated.timing(cardScale, {
+                toValue: 1.02,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(cardScale, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            })
+        ]).start(() => {
+            onComplete();
+        });
     };
 
     const goBack = () => {
         if (screenHistory.length <= 1) {
-            // If we're at the first screen, go back to intro
             setScreenHistory([]);
             setCurrentActivityIndex(0);
+            fadeAnim.setValue(1);
+            cardScale.setValue(1);
+            scrollToTop();
             return;
         }
 
-        // Remove current screen from history
         const newHistory = [...screenHistory];
         newHistory.pop();
         setScreenHistory(newHistory);
 
-        // Get previous screen state
         const prevScreen = newHistory[newHistory.length - 1];
-
-        if (prevScreen.activityIndex === -1) {
-            // Shouldn't happen as we handle final screen separately
+        if (prevScreen.activityIndex === -1 || prevScreen.activityIndex === -2 || prevScreen.activityIndex === -3) {
             return;
         }
 
-        setCurrentActivityIndex(prevScreen.activityIndex);
+        // Animate the transition back
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setCurrentActivityIndex(prevScreen.activityIndex);
+            // Reset animations
+            fadeAnim.setValue(0);
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+            scrollToTop();
+        });
     };
 
-    // Calculate progress for activity screens
-    const activityProgress = ((currentActivityIndex + 1) / activities.length) * 100;
+    // Progress animation interpolation
+    const progressWidth = progressAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0%', '100%'],
+    });
 
-    // Intro Screen
+    // Update progress when currentActivityIndex changes
+    React.useEffect(() => {
+        Animated.spring(progressAnim, {
+            toValue: (currentActivityIndex + 1) / activities.length,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: false,
+        }).start();
+    }, [currentActivityIndex]);
+
+    // Intro Screen with Morning Journal
     if (screenHistory.length === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>More Than Your Work</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
                 <ScrollView
-                    style={styles.scrollView}
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.scrollViewContent}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
                 >
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={[styles.introIcon, { backgroundColor: '#928490' }]}>
-                                    <Heart size={32} color="#E2DED0" />
-                                </View>
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.introTitle}>More Than Your Work</Text>
-
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introTitle}>More Than Your Work</Text>
+                            <Text style={commonStyles.introDescription}>
                                 As a dancer, you lived and breathed it. We all did! But now, we're going to do things differently. Of course, we hope you find meaningful work off the stage. But we also want to make sure you're still *you,* in ways that have nothing to do with your job. Here are some action ideas to remind you that you're more than work.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={handleStartActivity}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Let's Start</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <JournalEntrySection
+                                pathTag="financial-futureproofing"
+                                day="3"
+                                category="Mindset and Wellness"
+                                pathTitle="Work Life Balance"
+                                dayTitle="More Than Work"
+                                journalInstruction="Before we begin, take a moment to reflect: How do you currently define yourself outside of your work identity?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Let's Start" onPress={handleContinueToActivities} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Final Screen (handled by activityIndex = -1 in history)
+    // Activities Intro Screen
     const currentScreen = screenHistory[screenHistory.length - 1];
-    if (currentScreen.activityIndex === -1) {
+    if (currentScreen.activityIndex === -3) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Reflection</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
                 <ScrollView
-                    style={styles.scrollView}
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.scrollViewContent}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
                 >
-                    <View style={styles.content}>
-                        <View style={styles.reflectionCard}>
-                            <View style={styles.reflectionIconContainer}>
-                                <View style={[styles.reflectionIcon, { backgroundColor: '#928490' }]}>
-                                    <Heart size={40} color="#E2DED0" />
-                                </View>
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.reflectionTitle}>You're so much more</Text>
-
-                            <Text style={styles.reflectionText}>
-                                You're more than a dancer and you're more than the work you do next. You're a friend, a learner, a dreamer, an explorer, and so much more. Let these roles remind you that balance is about honoring *all parts the of you*.
+                            <Text style={styles.introTitle}>Discover Your Whole Self</Text>
+                            <Text style={styles.introDescription}>
+                                Let's explore the many facets that make you who you are beyond your professional identity. These activities will help you reconnect with the parts of yourself that exist outside of work.
                             </Text>
 
-                            <Text style={styles.reflectionClosing}>
+                            <PrimaryButton title="Begin Activities" onPress={handleStartActivity} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Reflection Screen
+    if (currentScreen.activityIndex === -2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.reflectionHeader}>
+                                <Text style={styles.reflectionTitle}>You're So Much More</Text>
+                            </View>
+
+                            <View style={commonStyles.reflectionIntro}>
+                                <Text style={commonStyles.reflectionDescription}>
+                                    You're more than a dancer and you're more than the work you do next. You're a friend, a learner, a dreamer, an explorer, and so much more. Let these roles remind you that balance is about honoring *all parts of you*.
+                                </Text>
+                            </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={() => {
+                                    setScreenHistory(prev => [...prev, { activityIndex: -1 }]);
+                                    scrollToTop();
+                                }}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Final Screen with End of Day Journal
+    if (currentScreen.activityIndex === -1) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <View style={commonStyles.finalHeader}>
+                                <Text style={commonStyles.finalHeading}>Honor All Parts of You</Text>
+                            </View>
+
+                            <View style={commonStyles.finalTextContainer}>
+                                <Text style={commonStyles.finalText}>
+                                    Remember that your worth isn't tied to your productivity or job title. The activities you explored today are reminders that you contain multitudes - each one a valuable part of your complete identity.
+                                </Text>
+                            </View>
+
+                            <JournalEntrySection
+                                pathTag="financial-futureproofing"
+                                day="3"
+                                category="Mindset and Wellness"
+                                pathTitle="Work Life Balance"
+                                dayTitle="More Than Work"
+                                journalInstruction="Reflect on today's activities. Which parts of yourself felt most alive? How can you continue to nurture these aspects of your identity?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <Text style={styles.alternativeClosing}>
                                 See you tomorrow.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={handleComplete}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <View style={commonStyles.finalButtonContainer}>
+                                <PrimaryButton
+                                    title="Mark As Complete"
+                                    onPress={handleComplete}
+                                />
+                            </View>
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -227,45 +404,38 @@ export default function MoreThanWork({ onComplete, onBack }: MoreThanWorkProps) 
     const currentActivity = activities[currentActivityIndex];
 
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>
-                            {currentActivityIndex + 1} of {activities.length} activities
-                        </Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${activityProgress}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${currentActivityIndex + 1} of ${activities.length} activities`}
+                progress={(currentActivityIndex + 1) / activities.length}
+            />
 
             <ScrollView
-                style={styles.scrollView}
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scrollViewContent}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
             >
-                <View style={styles.content}>
-                    <View style={styles.activityCard}>
+                <View style={commonStyles.centeredContent}>
+                    <Animated.View
+                        style={[
+                            styles.activityCard,
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ scale: cardScale }]
+                            }
+                        ]}
+                    >
                         <Text style={styles.activityQuestion}>{currentActivity.question}</Text>
 
-                        <TouchableOpacity
-                            style={styles.continueButton}
+                        <PrimaryButton
+                            title={currentActivity.buttonText}
                             onPress={handleContinue}
-                            activeOpacity={0.8}
-                        >
-                            <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                <Text style={styles.continueButtonText}>{currentActivity.buttonText}</Text>
-                                <ChevronRight size={16} color="#E2DED0" />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
+                        />
+                    </Animated.View>
                 </View>
             </ScrollView>
         </View>
@@ -273,138 +443,29 @@ export default function MoreThanWork({ onComplete, onBack }: MoreThanWorkProps) 
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    scrollViewContent: {
-        flexGrow: 1,
-        justifyContent: 'center',
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        marginHorizontal: 24,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginTop: 50,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
+    // Intro screen styles
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
+        fontSize: 28,
+        color: '#4E4F50',
         textAlign: 'center',
-        marginBottom: 15,
-        fontWeight: '700',
+        marginBottom: 20,
+        lineHeight: 34,
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#928490',
+        fontSize: 16,
+        color: '#746C70',
         textAlign: 'center',
-        marginBottom: 40,
+        lineHeight: 24,
+        marginBottom: 30,
     },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
+    // Activity card styles
     activityCard: {
-        marginHorizontal: 24,
+        width: width * 0.85,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
-        padding: 40,
+        padding: 32,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
@@ -421,95 +482,20 @@ const styles = StyleSheet.create({
         lineHeight: 32,
         fontWeight: '700',
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-    },
-    continueButtonText: {
+    alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 5,
+        marginTop: 0,
         fontWeight: '600',
-    },
-    reflectionCard: {
-        marginHorizontal: 24,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginTop: 50,
-    },
-    reflectionIconContainer: {
-        marginBottom: 30,
-    },
-    reflectionIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
     },
     reflectionTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
+        fontSize: 28,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 30,
         fontWeight: '700',
-    },
-    reflectionText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
-    },
-    reflectionClosing: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 40,
-        fontWeight: '600',
-    },
-    completeButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
     },
 });
