@@ -151,7 +151,7 @@ export const categories: Category[] = [
           },
           {
             day: 7,
-            title: 'Your Expansive Vision',
+            title: 'Visualize Your Dream Life',
             content: 'You\'re ready to dream bigger and step into a full and rich life beyond dance. Take it one step further with actionable next steps.',
             hasVoiceMessage: true,
           },
@@ -443,7 +443,7 @@ export const categories: Category[] = [
       {
         id: 'money-mindsets',
         title: 'Money Mindsets',
-        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'When it comes to money, dancers don’t often have the right mindset. And during your career change, you’re going to grapple with money and some hard truths about your finances.',
         duration: '7 days',
         totalDays: 7,

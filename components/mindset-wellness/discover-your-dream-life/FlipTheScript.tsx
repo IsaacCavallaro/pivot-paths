@@ -1,8 +1,14 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking, TextInput, Alert, Animated } from 'react-native';
-import { ChevronRight, MessageCircle, ArrowLeft, PlusCircle } from 'lucide-react-native';
+import { View, Text, StyleSheet, Dimensions, Image, Linking, Animated, ScrollView } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
 
 const { width, height } = Dimensions.get('window');
 
@@ -11,12 +17,6 @@ interface ScriptPair {
   oldScript: string;
   newScript: string;
   buttonText: string;
-}
-
-interface JournalEntry {
-  id: string;
-  date: string;
-  content: string;
 }
 
 const scriptPairs: ScriptPair[] = [
@@ -91,23 +91,16 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   const [currentPairIndex, setCurrentPairIndex] = useState(0);
   const [showNewScript, setShowNewScript] = useState(false);
   const [screenHistory, setScreenHistory] = useState<Array<{ pairIndex: number, showNew: boolean }>>([]);
-  const [journalEntry, setJournalEntry] = useState('');
+
+  const { scrollViewRef, scrollToTop } = useScrollToTop();
+  const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
+  const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
 
   // Enhanced animation values with useRef for better performance
   const flipAnim = useRef(new Animated.Value(0)).current;
   const cardScale = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
-
-  // ADD THIS: Ref for ScrollView to control scroll position
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  // ADD THIS: Function to scroll to top
-  const scrollToTop = useCallback(() => {
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({ y: 0, animated: false });
-    }
-  }, []);
 
   const handleBack = useCallback(() => {
     if (onBack) {
@@ -117,7 +110,12 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 
   const handleStartGame = () => {
     setScreenHistory([{ pairIndex: 0, showNew: false }]);
-    scrollToTop(); // ADD THIS
+    scrollToTop();
+  };
+
+  const handleContinueToFlipScript = () => {
+    setScreenHistory([{ pairIndex: -3, showNew: false }]);
+    scrollToTop();
   };
 
   const flipCard = useCallback(() => {
@@ -202,7 +200,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
           }, 50);
 
           setScreenHistory(prev => [...prev, { pairIndex: newPairIndex, showNew: false }]);
-          scrollToTop(); // ADD THIS
+          scrollToTop();
         });
       } else {
         // Smooth transition to reflection screen
@@ -213,7 +211,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
         }).start(() => {
           setScreenHistory(prev => [...prev, { pairIndex: -2, showNew: false }]);
           fadeAnim.setValue(1);
-          scrollToTop(); // ADD THIS
+          scrollToTop();
         });
       }
     } else {
@@ -247,7 +245,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
       flipAnim.setValue(0);
       fadeAnim.setValue(1);
       cardScale.setValue(1);
-      scrollToTop(); // ADD THIS
+      scrollToTop();
       return;
     }
 
@@ -256,7 +254,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     setScreenHistory(newHistory);
 
     const prevScreen = newHistory[newHistory.length - 1];
-    if (prevScreen.pairIndex === -1 || prevScreen.pairIndex === -2) {
+    if (prevScreen.pairIndex === -1 || prevScreen.pairIndex === -2 || prevScreen.pairIndex === -3) {
       return;
     }
 
@@ -275,63 +273,8 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
         duration: 300,
         useNativeDriver: true,
       }).start();
-      scrollToTop(); // ADD THIS
+      scrollToTop();
     });
-  };
-
-  // Function to open YouTube Short
-  const openYouTubeShort = async () => {
-    const youtubeUrl = `https://www.youtube.com/shorts/txScPvwXEcQ`;
-
-    try {
-      const supported = await Linking.canOpenURL(youtubeUrl);
-
-      if (supported) {
-        await Linking.openURL(youtubeUrl);
-      } else {
-        console.log("YouTube app not available");
-      }
-    } catch (error) {
-      console.log("Error opening YouTube:", error);
-    }
-  };
-
-  const addJournalEntry = async () => {
-    const trimmed = journalEntry.trim();
-    if (!trimmed) {
-      Alert.alert('Empty Entry', 'Please write something before adding.');
-      return;
-    }
-
-    try {
-      const newEntry: JournalEntry = {
-        id: Date.now().toString(),
-        date: new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        }),
-        content: trimmed,
-      };
-
-      // Load existing entries
-      const raw = await AsyncStorage.getItem('journalEntries');
-      const existingEntries = raw ? JSON.parse(raw) : [];
-
-      // Add new entry to the beginning
-      const updatedEntries = [newEntry, ...existingEntries];
-
-      // Save back to storage
-      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
-
-      // Clear input and show success
-      setJournalEntry('');
-      Alert.alert('Success', 'Journal entry added!');
-
-    } catch (error) {
-      console.error('Error saving journal entry:', error);
-      Alert.alert('Error', 'Failed to save journal entry.');
-    }
   };
 
   // Enhanced flip animation interpolations with perspective
@@ -380,49 +323,80 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     }).start();
   }, [currentPairIndex]);
 
-  // NEW: Intro Screen
+  // NEW: Intro Screen with Morning Journal
   if (screenHistory.length === 0) {
     return (
-      <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-              <ArrowLeft size={28} color="#E2DED0" />
-            </TouchableOpacity>
-            <View style={styles.backButton} />
-          </View>
-        </View>
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={handleBack} />
 
         <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollView}
+          style={commonStyles.scrollView}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1 }}
           onContentSizeChange={() => scrollToTop()}
           onLayout={() => scrollToTop()}
         >
-          <View style={styles.centeredContent}>
-            <View style={styles.introCard}>
-              <View style={styles.introIconContainer}>
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <View style={commonStyles.introIconContainer}>
                 <Image
                   source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                  style={styles.heroImage}
+                  style={commonStyles.heroImage}
                 />
               </View>
 
-              <Text style={styles.introTitle}>Look at you!</Text>
-              <Text style={styles.introDescription}>
+              <Text style={commonStyles.introTitle}>Look at you!</Text>
+              <Text style={commonStyles.introDescription}>
                 You're almost at the end of this path and you've already dug through a lot. It's not easy and it's ok if this is all still really uncomfortable. You're taking action and you're turning up. The rest is a matter of time, trust me. Let's keep going, one small step at a time.
               </Text>
 
-              <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
-                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.startButtonText}>Let's go</Text>
-                  <ChevronRight size={16} color="#E2DED0" />
-                </View>
-              </TouchableOpacity>
-            </View>
+              <JournalEntrySection
+                pathTag="discover-dream-life"
+                journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling as you continue this journey?"
+                moodLabel="How are you feeling right now?"
+                saveButtonText="Save Entry"
+              />
+
+              <PrimaryButton title="Let's go" onPress={handleContinueToFlipScript} />
+            </Card>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // NEW: Flip the Script Intro Screen
+  const currentScreen = screenHistory[screenHistory.length - 1];
+  if (currentScreen.pairIndex === -3) {
+    return (
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={commonStyles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
+        >
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <View style={commonStyles.introIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={commonStyles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.introTitle}>Flip the Script</Text>
+              <Text style={styles.introDescription}>
+                One of the scariest parts of leaving your dance career is answering the dreaded small-talk question, "So, what have you been up to?" … But what if we flipped the script and talked about our pivot with confidence?
+              </Text>
+
+              <PrimaryButton title="Start Flipping" onPress={handleStartGame} />
+            </Card>
           </View>
         </ScrollView>
       </View>
@@ -430,156 +404,109 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   }
 
   // NEW: Reflection Screen
-  const currentScreen = screenHistory[screenHistory.length - 1];
   if (currentScreen.pairIndex === -2) {
     return (
-      <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-              <ArrowLeft size={28} color="#E2DED0" />
-            </TouchableOpacity>
-            <View style={styles.backButton} />
-          </View>
-        </View>
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
 
         <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollView}
+          style={commonStyles.scrollView}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1 }}
           onContentSizeChange={() => scrollToTop()}
           onLayout={() => scrollToTop()}
         >
-          <View style={styles.centeredContent}>
-            <View style={styles.reflectionCard}>
-              {/* Header */}
-              <View style={styles.reflectionHeader}>
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <View style={commonStyles.reflectionHeader}>
                 <Text style={styles.reflectionTitle}>Navigating Imposter Syndrome</Text>
               </View>
 
-              {/* Introduction Text */}
-              <View style={styles.reflectionIntro}>
-                <Text style={styles.reflectionDescription}>
+              <View style={commonStyles.reflectionIntro}>
+                <Text style={commonStyles.reflectionDescription}>
                   A big part of flipping the script with confidence is navigating imposter syndrome. To end today, let's watch this 5-minute clip to dive deeper into imposter syndrome in dancers and how to get through it.
                 </Text>
               </View>
 
-              {/* YouTube Video Player */}
-              <View style={styles.videoSection}>
-                <View style={styles.videoContainer}>
+              <View style={commonStyles.videoSection}>
+                <View style={commonStyles.videoContainer}>
                   <View style={styles.youtubePlayer}>
                     <YoutubePlayer
                       height={140}
                       play={false}
                       videoId={'w9Tzx-sZhTg'}
-                      webViewStyle={styles.youtubeWebView}
+                      webViewStyle={commonStyles.youtubeWebView}
                     />
                   </View>
                 </View>
               </View>
 
-              {/* Continue Button */}
-              <TouchableOpacity
-                style={styles.continueButton}
+              <PrimaryButton
+                title="Continue"
                 onPress={() => {
                   setScreenHistory(prev => [...prev, { pairIndex: -1, showNew: false }]);
                   scrollToTop();
                 }}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.continueButtonText}>Continue</Text>
-                  <ChevronRight size={16} color="#E2DED0" />
-                </View>
-              </TouchableOpacity>
-            </View>
+              />
+            </Card>
           </View>
         </ScrollView>
       </View>
     );
   }
 
-  // Final Screen (Updated with journal entry)
+  // Final Screen (Updated with End of Day Journal)
   if (currentScreen.pairIndex === -1) {
     return (
-      <View style={styles.container}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-              <ArrowLeft size={28} color="#E2DED0" />
-            </TouchableOpacity>
-            <View style={styles.backButton} />
-          </View>
-        </View>
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
 
         <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollView}
+          style={commonStyles.scrollView}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1 }}
           onContentSizeChange={() => scrollToTop()}
           onLayout={() => scrollToTop()}
         >
-          <View style={styles.centeredContent}>
-            <View style={styles.finalCard}>
-              <View style={styles.finalIconContainer}>
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <View style={commonStyles.introIconContainer}>
                 <Image
                   source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                  style={styles.heroImage}
+                  style={commonStyles.heroImage}
                 />
               </View>
 
-              <View style={styles.finalHeader}>
-                <Text style={styles.finalHeading}>Now it's your turn</Text>
+              <View style={commonStyles.finalHeader}>
+                <Text style={commonStyles.finalHeading}>Now It's Your Turn</Text>
               </View>
 
-              <View style={styles.finalTextContainer}>
-                <Text style={styles.finalText}>
-                  Write your own script for how you'll talk about your transition. What feels authentic and empowering to you?
+              <View style={commonStyles.finalTextContainer}>
+                <Text style={commonStyles.finalText}>
+                  It's not easy to own your story, especially when dance has given you a story since age 3. But as scary as it is, now it's time to write your own story and unveil the next chapter.
                 </Text>
               </View>
 
-              {/* Journal Entry Section */}
-              <View style={styles.journalSection}>
-                <View style={styles.journalInputContainer}>
-                  <TextInput
-                    style={styles.journalTextInput}
-                    placeholder="Write your own empowering script here..."
-                    placeholderTextColor="#928490"
-                    multiline
-                    value={journalEntry}
-                    onChangeText={setJournalEntry}
-                  />
-                  <TouchableOpacity
-                    style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
-                    onPress={addJournalEntry}
-                  >
-                    <PlusCircle size={24} color="#E2DED0" />
-                    <Text style={styles.journalAddButtonText}>Add to Journal</Text>
-                  </TouchableOpacity>
-                </View>
+              <JournalEntrySection
+                pathTag="discover-dream-life"
+                journalInstruction="    Write your own script for how you'll talk about your transition. What feels authentic and empowering to you?"
+                moodLabel=""
+                saveButtonText="Save Entry"
+              />
 
-                <Text style={styles.journalNote}>
-                  We'll keep these entries safe in your personal journal.
-                </Text>
-              </View>
+              <Text style={styles.alternativeClosing}>
+                The last day of this path is coming up next!
+              </Text>
 
-              <View style={styles.finalButtonContainer}>
-                <TouchableOpacity
-                  style={styles.continueButton}
+              <View style={commonStyles.finalButtonContainer}>
+                <PrimaryButton
+                  title="Mark As Complete"
                   onPress={handleComplete}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                    <Text style={styles.continueButtonText}>Mark As Complete</Text>
-                    <ChevronRight size={16} color="#E2DED0" />
-                  </View>
-                </TouchableOpacity>
+                />
               </View>
-            </View>
+            </Card>
           </View>
         </ScrollView>
       </View>
@@ -590,32 +517,22 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   const currentPair = scriptPairs[currentPairIndex];
 
   return (
-    <View style={styles.container}>
-      {/* Sticky Header with Progress */}
-      <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backButton} onPress={goBack}>
-            <ArrowLeft size={28} color="#E2DED0" />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.progressText}>{currentPairIndex + 1} of {scriptPairs.length}</Text>
-          </View>
-          <View style={styles.backButton} />
-        </View>
-        <View style={styles.progressBar}>
-          <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
-        </View>
-      </View>
+    <View style={commonStyles.container}>
+      <StickyHeader
+        onBack={goBack}
+        title={`${currentPairIndex + 1} of ${scriptPairs.length}`}
+        progress={(currentPairIndex + 1) / scriptPairs.length}
+      />
 
       <ScrollView
         ref={scrollViewRef}
-        style={styles.scrollView}
+        style={commonStyles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
         onContentSizeChange={() => scrollToTop()}
         onLayout={() => scrollToTop()}
       >
-        <View style={styles.centeredContent}>
+        <View style={commonStyles.centeredContent}>
           <View style={styles.flipContainer}>
             {/* Front of card (old script view) */}
             <Animated.View
@@ -637,18 +554,10 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
                 </View>
               </View>
 
-              <TouchableOpacity
-                style={styles.continueButton}
+              <PrimaryButton
+                title="Flip the script!"
                 onPress={handleContinue}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.continueButtonText}>
-                    Flip the script!
-                  </Text>
-                  <ChevronRight size={16} color="#E2DED0" />
-                </View>
-              </TouchableOpacity>
+              />
             </Animated.View>
 
             {/* Back of card (new script view) */}
@@ -672,18 +581,10 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
                 </View>
               </View>
 
-              <TouchableOpacity
-                style={styles.continueButton}
+              <PrimaryButton
+                title={currentPair.buttonText}
                 onPress={handleContinue}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                  <Text style={styles.continueButtonText}>
-                    {currentPair.buttonText}
-                  </Text>
-                  <ChevronRight size={16} color="#E2DED0" />
-                </View>
-              </TouchableOpacity>
+              />
             </Animated.View>
           </View>
         </View>
@@ -693,117 +594,22 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#E2DED0',
-  },
-  stickyHeader: {
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 20,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  scrollView: {
-    flex: 1,
-    marginTop: 100,
-    zIndex: 1,
-  },
-  centeredContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: height - 200,
-    paddingBottom: 30,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backButton: {
-    width: 28,
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  progressText: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 16,
-    color: '#E2DED0',
-    textAlign: 'center',
-  },
-  progressBar: {
-    width: '100%',
-    height: 6,
-    backgroundColor: 'rgba(226, 222, 208, 0.3)',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginTop: 12,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#E2DED0',
-    borderRadius: 3,
-  },
-  introCard: {
-    width: width * 0.85,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-    marginVertical: 20,
-  },
-  introIconContainer: {
-    marginBottom: 24,
-  },
+  // NEW: Styles for the intro screen
   introTitle: {
     fontFamily: 'Merriweather-Bold',
-    fontSize: 32,
-    color: '#647C90',
+    fontSize: 28,
+    color: '#4E4F50',
     textAlign: 'center',
     marginBottom: 20,
-    fontWeight: '700',
+    lineHeight: 34,
   },
   introDescription: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
-    color: '#928490',
+    color: '#746C70',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 32,
-  },
-  startButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-  startButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#E2DED0',
-  },
-  startButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
-    color: '#E2DED0',
-    marginRight: 8,
-    fontWeight: '600',
+    marginBottom: 30,
   },
   // UPDATED: Flip container and card styles for entire card flip
   flipContainer: {
@@ -887,213 +693,29 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     fontStyle: 'italic',
   },
-  continueButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-  continueButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#E2DED0',
-    minWidth: width * 0.5,
-  },
-  continueButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
-    color: '#E2DED0',
-    marginRight: 8,
-    fontWeight: '600',
-  },
-  finalCard: {
-    width: width * 0.85,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-    marginVertical: 20,
-  },
-  finalIconContainer: {
-    marginBottom: 30,
-  },
-  finalIconGradient: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  finalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 30,
-    gap: 12,
-  },
-  finalHeading: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 24,
-    color: '#647C90',
-    textAlign: 'center',
-    fontWeight: '700',
-  },
-  finalTextContainer: {
-    width: '100%',
-    marginBottom: 32,
-  },
-  finalText: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
   alternativeClosing: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 18,
     color: '#647C90',
     textAlign: 'center',
-    marginBottom: 32,
-    marginTop: 20,
+    marginBottom: 5,
+    marginTop: 0,
     fontWeight: '600',
-  },
-  finalButtonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  heroImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderColor: '#647C90',
-    borderWidth: 2,
-  },
-  // NEW: Reflection Screen Styles
-  reflectionCard: {
-    width: width * 0.85,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-    marginVertical: 20,
-  },
-  reflectionHeader: {
-    alignItems: 'center',
-    marginBottom: 32,
   },
   reflectionTitle: {
     fontFamily: 'Merriweather-Bold',
     fontSize: 28,
     color: '#647C90',
     textAlign: 'center',
-    marginBottom: 20,
     fontWeight: '700',
-  },
-  reflectionIntro: {
-    marginBottom: 32,
-    padding: 20,
-    backgroundColor: 'rgba(146, 132, 144, 0.05)',
-    borderRadius: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#928490',
-  },
-  reflectionDescription: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 16,
-  },
-  videoSection: {
-    marginBottom: 32,
-  },
-  videoContainer: {
-    width: '100%',
-    marginBottom: 25,
   },
   youtubePlayer: {
     borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 5,
-  },
-  youtubeWebView: {
-    borderRadius: 16,
-  },
-  // Journal Section Styles
-  journalSection: {
-    width: '100%',
-    marginBottom: 32,
-  },
-  journalInputContainer: {
-    marginBottom: 16,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  journalTextInput: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    color: '#4E4F50',
-    minHeight: 100,
-    textAlignVertical: 'top',
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: 'rgba(146, 132, 144, 0.1)',
-    borderRadius: 8,
-  },
-  journalAddButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  journalAddButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 16,
-    color: '#E2DED0',
-    marginLeft: 8,
-    fontWeight: '600',
-  },
-  journalNote: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 14,
-    color: '#928490',
-    textAlign: 'center',
-    lineHeight: 20,
-    fontStyle: 'italic',
   },
 });
