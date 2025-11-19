@@ -8,6 +8,7 @@ import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 
 const { width, height } = Dimensions.get('window');
 
@@ -497,7 +498,14 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 </View>
               </TouchableOpacity>
 
-              {/* Journal Callout */}
+
+              <JournalEntrySection
+                pathTag="discover-dream-life"
+                journalInstruction="If you could put family and friends before your dance career, what would that mean to you?"
+                moodLabel=""
+                saveButtonText="Save Entry"
+              />
+
               <View style={styles.journalCallout}>
                 <Text style={styles.journalCalloutTitle}>Your Personal Space</Text>
                 <Text style={styles.journalCalloutText}>

@@ -724,13 +724,6 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
                 There are so many ways to build a dream life beyond dance. When you start with your values and open your mind to unique ways to bring those values together, you'll realize that dance was just one piece of the puzzle.
               </Text>
 
-              <JournalEntrySection
-                pathTag="discover-dream-life"
-                journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?"
-                moodLabel="How are you feeling now?"
-                saveButtonText="Save End of Day Entry"
-              />
-
               <Text style={styles.alternativeClosing}>
                 See you again tomorrow.
               </Text>

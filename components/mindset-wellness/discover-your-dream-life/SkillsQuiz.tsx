@@ -699,13 +699,6 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
                 You’ve taken the first step toward becoming an Expansive Dreamer. By understanding your current dreaming style, you’re already opening yourself up to new possibilities beyond your dance dreams.
               </Text>
 
-              <JournalEntrySection
-                pathTag="discover-dream-life"
-                journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself againn. How are you feeling after taking these first steps towards a new chapter?"
-                moodLabel="How are you feeling now?"
-                saveButtonText="Save Entry"
-              />
-
               <Text style={styles.congratulationsClosing}>
                 Your expansive future awaits!
               </Text>
