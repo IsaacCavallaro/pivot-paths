@@ -118,6 +118,24 @@ interface Day2MoneyMindsetResult {
     [key: string]: any;
 }
 
+// ADD INTERFACE FOR DAY2 SPENDING TEMPERATURE RESULT
+interface Day2SpendingTemperatureResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
+// ADD INTERFACE FOR DAY6 LIFESTYLE CREEP RISK RESULT
+interface Day6LifestyleCreepRiskResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
 const screenWidth = Dimensions.get('window').width;
 
 // Helper functions moved outside to avoid initialization issues
@@ -170,6 +188,10 @@ export default function ReportsScreen() {
     const [day2LearningStyleResult, setDay2LearningStyleResult] = useState<Day2LearningStyleResult | null>(null);
     // ADD STATE FOR DAY2 MONEY MINDSET RESULT
     const [day2MoneyMindsetResult, setDay2MoneyMindsetResult] = useState<Day2MoneyMindsetResult | null>(null);
+    // ADD STATE FOR DAY2 SPENDING TEMPERATURE RESULT
+    const [day2SpendingTemperatureResult, setDay2SpendingTemperatureResult] = useState<Day2SpendingTemperatureResult | null>(null);
+    // ADD STATE FOR DAY6 LIFESTYLE CREEP RISK RESULT
+    const [day6LifestyleCreepRiskResult, setDay6LifestyleCreepRiskResult] = useState<Day6LifestyleCreepRiskResult | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -283,6 +305,18 @@ export default function ReportsScreen() {
             const loadedDay2MoneyMindsetResult = await storageService.load<Day2MoneyMindsetResult>(STORAGE_KEYS.DAY2_MONEY_MINDSET_RESULT);
             if (loadedDay2MoneyMindsetResult) {
                 setDay2MoneyMindsetResult(loadedDay2MoneyMindsetResult);
+            }
+
+            // ADD LOADING FOR DAY2 SPENDING TEMPERATURE RESULT
+            const loadedDay2SpendingTemperatureResult = await storageService.load<Day2SpendingTemperatureResult>(STORAGE_KEYS.DAY2_SPENDING_TEMP_CHECK);
+            if (loadedDay2SpendingTemperatureResult) {
+                setDay2SpendingTemperatureResult(loadedDay2SpendingTemperatureResult);
+            }
+
+            // ADD LOADING FOR DAY6 LIFESTYLE CREEP RISK RESULT
+            const loadedDay6LifestyleCreepRiskResult = await storageService.load<Day6LifestyleCreepRiskResult>(STORAGE_KEYS.DAY6_LIFESTYLE_CREEP_RISK);
+            if (loadedDay6LifestyleCreepRiskResult) {
+                setDay6LifestyleCreepRiskResult(loadedDay6LifestyleCreepRiskResult);
             }
 
             setLoading(false);
@@ -656,6 +690,66 @@ Keep up the great work on your pivot journey!
         );
     };
 
+    // ADD FUNCTION TO RENDER DAY2 SPENDING TEMPERATURE RESULT
+    const renderDay2SpendingTemperatureResult = () => {
+        if (!day2SpendingTemperatureResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Spending Temperature</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: day2SpendingTemperatureResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {day2SpendingTemperatureResult.title || 'Your Spending Temperature'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {day2SpendingTemperatureResult.description || 'Spending temperature assessment completed'}
+                            </Text>
+                            {day2SpendingTemperatureResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{day2SpendingTemperatureResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    // ADD FUNCTION TO RENDER DAY6 LIFESTYLE CREEP RISK RESULT
+    const renderDay6LifestyleCreepRiskResult = () => {
+        if (!day6LifestyleCreepRiskResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Lifestyle Creep Risk</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: day6LifestyleCreepRiskResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {day6LifestyleCreepRiskResult.title || 'Your Lifestyle Creep Risk Assessment'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {day6LifestyleCreepRiskResult.description || 'Lifestyle creep risk assessment completed'}
+                            </Text>
+                            {day6LifestyleCreepRiskResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{day6LifestyleCreepRiskResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
     // Conditionally render the appropriate component based on path name - UPDATED
     const renderPathSpecificContent = () => {
         if (!selectedPath) return null;
@@ -672,6 +766,10 @@ Keep up the great work on your pivot journey!
             return renderDay2LearningStyleResult();
         } else if (selectedPath.pathName === 'Money Mindsets') {
             return renderDay2MoneyMindsetResult();
+        } else if (selectedPath.pathName === 'Budgeting For Dancers') {
+            return renderDay2SpendingTemperatureResult();
+        } else if (selectedPath.pathName === 'Financial Futureproofing') {
+            return renderDay6LifestyleCreepRiskResult();
         }
 
         return null;
