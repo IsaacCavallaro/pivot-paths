@@ -495,7 +495,7 @@ export const categories: Category[] = [
       {
         id: 'budgeting-for-dancers',
         title: 'Budgeting For Dancers',
-        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Let’s talk about your money goals. Not the vague ones like ‘I should probably save more’—I’m talking about the goals that light you up. The ones that make budgeting worth it.',
         duration: '7 days',
         totalDays: 7,
