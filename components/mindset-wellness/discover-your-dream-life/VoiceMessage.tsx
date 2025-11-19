@@ -28,7 +28,7 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
     if (!isPlaying) {
       setTimeout(() => {
         setIsPlaying(false);
-        setCurrentScreen(2);
+        setCurrentScreen(2); // Now goes to journal prompt screen
         scrollToTop();
       }, 3000);
     }
@@ -39,7 +39,9 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
   };
 
   const goBack = () => {
-    if (currentScreen === 2) {
+    if (currentScreen === 3) {
+      setCurrentScreen(2);
+    } else if (currentScreen === 2) {
       setCurrentScreen(1);
     } else if (currentScreen === 1) {
       setCurrentScreen(0);
@@ -53,6 +55,11 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
 
   const handleContinueToVoiceMessage = () => {
     setCurrentScreen(1);
+    scrollToTop();
+  };
+
+  const handleContinueToFinal = () => {
+    setCurrentScreen(3); // Go to final CTA screen
     scrollToTop();
   };
 
@@ -191,7 +198,50 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
     );
   }
 
-  // Mentorship Promotion Screen (now screen 2)
+  // NEW: Journal Prompt Screen (now screen 2)
+  if (currentScreen === 2) {
+    return (
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={commonStyles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
+        >
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <View style={commonStyles.introIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={commonStyles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.journalTitle}>Reflect on Your Experience</Text>
+
+              <Text style={commonStyles.reflectionDescription}>
+                Take a moment to capture your thoughts and feelings after the visualization exercise. What insights emerged? What felt most meaningful to you?
+              </Text>
+
+              <JournalEntrySection
+                pathTag="post-visualization-reflection"
+                journalInstruction="Reflect on your visualization experience"
+                moodLabel="How are you feeling now?"
+                saveButtonText="Save Reflection"
+              />
+              <PrimaryButton title="Continue" onPress={handleContinueToFinal} />
+            </Card>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Mentorship Promotion Screen (now screen 3)
   return (
     <View style={commonStyles.container}>
       <StickyHeader onBack={goBack} />
@@ -357,6 +407,53 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-Medium',
     fontSize: 14,
     color: '#647C90',
+  },
+  // NEW: Journal Prompt Styles
+  journalTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 28,
+    color: '#4E4F50',
+    textAlign: 'center',
+    marginBottom: 25,
+  },
+  reflectionPrompts: {
+    width: '100%',
+    marginBottom: 32,
+    padding: 20,
+    backgroundColor: 'rgba(100, 124, 144, 0.08)',
+    borderRadius: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#647C90',
+  },
+  promptsTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 16,
+    fontWeight: '700',
+  },
+  promptsList: {
+    gap: 12,
+  },
+  promptItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  promptBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#647C90',
+    marginTop: 8,
+    marginRight: 12,
+  },
+  promptText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 14,
+    color: '#4E4F50',
+    lineHeight: 20,
+    flex: 1,
   },
   // Mentorship Styles
   mentorshipTitle: {
