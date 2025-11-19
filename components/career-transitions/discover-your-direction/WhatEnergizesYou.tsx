@@ -477,7 +477,7 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="what-energizes-you"
+                                pathTag="map-your-direction"
                                 day="2"
                                 category="Career Transitions"
                                 pathTitle="Map Your Direction"
@@ -720,7 +720,11 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
                             </View>
 
                             <JournalEntrySection
-                                pathTag="what-energizes-you"
+                                pathTag="map-your-direction"
+                                day="2"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="What Energizes You?"
                                 journalInstruction="As you're watching, write your reflections as a journal entry below."
                                 moodLabel="How are you feeling?"
                                 saveButtonText="Add to Journal"

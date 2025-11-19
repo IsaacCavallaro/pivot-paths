@@ -246,7 +246,7 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="spark-curiosity"
+                                pathTag="map-your-direction"
                                 day="3"
                                 category="Career Transitions"
                                 pathTitle="Map Your Direction"
@@ -331,7 +331,7 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
                             </View>
 
                             <JournalEntrySection
-                                pathTag="spark-curiosity"
+                                pathTag="map-your-direction"
                                 day="3"
                                 category="Career Transitions"
                                 pathTitle="Map Your Direction"
@@ -392,7 +392,7 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
                             </View>
 
                             <JournalEntrySection
-                                pathTag="spark-curiosity"
+                                pathTag="map-your-direction"
                                 day="3"
                                 category="Career Transitions"
                                 pathTitle="Map Your Direction"

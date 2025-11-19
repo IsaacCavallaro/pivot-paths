@@ -385,7 +385,11 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="discover-dream-life"
+                                pathTag="map-your-direction"
+                                day="6"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Deal Breakers"
                                 journalInstruction="Reflect on your deal breakers. Which ones feel most important to you? Are there any that surprised you?"
                                 moodLabel=""
                                 saveButtonText="Add to Journal"

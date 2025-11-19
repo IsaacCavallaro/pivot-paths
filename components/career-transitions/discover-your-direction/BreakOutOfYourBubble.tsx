@@ -97,7 +97,7 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="pre-bubble-breakout"
+                                pathTag="map-your-direction"
                                 day="5"
                                 category="Career Transitions"
                                 pathTitle="Map Your Direction"
@@ -232,7 +232,11 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="post-bubble-reflection"
+                                pathTag="map-your-direction"
+                                day="5"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Break Out Of Your Bubble"
                                 journalInstruction="Reflect on your bubble-breaking experience"
                                 moodLabel=""
                                 saveButtonText="Save Reflection"

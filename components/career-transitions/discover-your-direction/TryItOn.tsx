@@ -518,7 +518,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="try-it-on-reflection"
+                                pathTag="map-your-direction"
                                 day="4"
                                 category="Career Transitions"
                                 pathTitle="Map Your Direction"

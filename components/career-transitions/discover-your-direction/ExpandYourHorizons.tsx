@@ -265,11 +265,11 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="expand-your-horizons"
+                                pathTag="map-your-direction"
                                 day="1"
                                 category="Career Transitions"
                                 pathTitle="Map Your Direction"
-                                dayTitle="Break Out Of Your Bubble"
+                                dayTitle="Expand Your Horizons"
                                 journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling about exploring new career possibilities?"
                                 moodLabel=""
                                 saveButtonText="Save Entry"
@@ -552,7 +552,11 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
                             </View>
 
                             <JournalEntrySection
-                                pathTag="expand-your-horizons"
+                                pathTag="map-your-direction"
+                                day="1"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Expand Your Horizons"
                                 journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after exploring these new career possibilities?"
                                 moodLabel=""
                                 saveButtonText="Save Entry"
