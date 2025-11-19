@@ -1,7 +1,13 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Target, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, Dimensions, Image, Linking, Animated, ScrollView } from 'react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
 
 const { width, height } = Dimensions.get('window');
 
@@ -60,6 +66,15 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [screenHistory, setScreenHistory] = useState<Array<{ stepIndex: number }>>([]);
 
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry: addMorningJournalEntry } = useJournaling('your-first-experiment');
+    const { addJournalEntry: addReflectionJournalEntry } = useJournaling('your-first-experiment');
+
+    // Animation values
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const cardScale = useRef(new Animated.Value(1)).current;
+    const progressAnim = useRef(new Animated.Value(0)).current;
+
     const handleBack = useCallback(() => {
         if (onBack) {
             onBack();
@@ -68,128 +83,254 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
 
     const handleStartExperiment = () => {
         setScreenHistory([{ stepIndex: 0 }]);
+        scrollToTop();
     };
 
-    const handleContinue = () => {
-        if (currentStepIndex < experimentSteps.length - 1) {
-            // Move to next step
-            const newStepIndex = currentStepIndex + 1;
-            setCurrentStepIndex(newStepIndex);
-            setScreenHistory([...screenHistory, { stepIndex: newStepIndex }]);
-        } else {
-            // All steps completed, go to final screen
-            setScreenHistory([...screenHistory, { stepIndex: -1 }]); // -1 represents final screen
-        }
+    const handleContinueToSteps = () => {
+        setScreenHistory([{ stepIndex: -2 }]);
+        scrollToTop();
     };
+
+    const handleContinue = useCallback(() => {
+        // Fade out current card
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            if (currentStepIndex < experimentSteps.length - 1) {
+                // Move to next step
+                const newStepIndex = currentStepIndex + 1;
+
+                // Reset animations BEFORE updating state
+                fadeAnim.setValue(0);
+                cardScale.setValue(1);
+
+                // Update state
+                setCurrentStepIndex(newStepIndex);
+
+                // Animate in the next card with a slight delay
+                setTimeout(() => {
+                    Animated.parallel([
+                        Animated.timing(fadeAnim, {
+                            toValue: 1,
+                            duration: 300,
+                            useNativeDriver: true,
+                        }),
+                        Animated.spring(progressAnim, {
+                            toValue: (newStepIndex + 1) / experimentSteps.length,
+                            tension: 50,
+                            friction: 7,
+                            useNativeDriver: false,
+                        })
+                    ]).start();
+                }, 50);
+
+                setScreenHistory(prev => [...prev, { stepIndex: newStepIndex }]);
+                scrollToTop();
+            } else {
+                // All steps completed, go to reflection screen
+                setScreenHistory(prev => [...prev, { stepIndex: -1 }]);
+                fadeAnim.setValue(1);
+                scrollToTop();
+            }
+        });
+    }, [currentStepIndex, fadeAnim, cardScale, progressAnim, scrollToTop]);
 
     const handleComplete = () => {
-        onComplete();
+        // Add a subtle scale animation on complete
+        Animated.sequence([
+            Animated.timing(cardScale, {
+                toValue: 1.02,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(cardScale, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            })
+        ]).start(() => {
+            onComplete();
+        });
     };
 
     const goBack = () => {
         if (screenHistory.length <= 1) {
-            // If we're at the first screen, go back to intro
             setScreenHistory([]);
             setCurrentStepIndex(0);
+            fadeAnim.setValue(1);
+            cardScale.setValue(1);
+            scrollToTop();
             return;
         }
 
-        // Remove current screen from history
         const newHistory = [...screenHistory];
         newHistory.pop();
         setScreenHistory(newHistory);
 
-        // Get previous screen state
         const prevScreen = newHistory[newHistory.length - 1];
-
-        if (prevScreen.stepIndex === -1) {
-            // Shouldn't happen as we handle final screen separately
+        if (prevScreen.stepIndex === -1 || prevScreen.stepIndex === -2) {
             return;
         }
 
-        setCurrentStepIndex(prevScreen.stepIndex);
+        // Animate the transition back
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setCurrentStepIndex(prevScreen.stepIndex);
+            // Reset animations
+            fadeAnim.setValue(0);
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+            scrollToTop();
+        });
     };
 
     const handleOpenMentorship = () => {
         Linking.openURL('https://pivotfordancers.com/services/mentorship/');
     };
 
-    // Intro Screen
+    // Progress animation interpolation
+    const progressWidth = progressAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0%', '100%'],
+    });
+
+    // Update progress when currentStepIndex changes
+    React.useEffect(() => {
+        Animated.spring(progressAnim, {
+            toValue: (currentStepIndex + 1) / experimentSteps.length,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: false,
+        }).start();
+    }, [currentStepIndex]);
+
+    // Intro Screen with Journal
     if (screenHistory.length === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Image
                                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                                    style={commonStyles.heroImage}
                                 />
                             </View>
 
-                            <Text style={styles.introTitle}>Take the Leap: Your First Career Experiment</Text>
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introTitle}>Take the Leap: Your First Career Experiment</Text>
+                            <Text style={commonStyles.introDescription}>
                                 It's time to put ideas into action. Today, you're going to try one small experiment to explore a career you're curious about. The goal isn't perfection… it's discovery.
                             </Text>
 
-                            <TouchableOpacity style={styles.startButton} onPress={handleStartExperiment}>
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Let's experiment</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <JournalEntrySection
+                                pathTag="your-first-experiment"
+                                journalInstruction="Before we begin, what career ideas are you most excited to explore through this experiment?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Let's experiment" onPress={handleContinueToSteps} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Final Screen (handled by stepIndex = -1 in history)
+    // Experiment Steps Intro Screen
     const currentScreen = screenHistory[screenHistory.length - 1];
-    if (currentScreen.stepIndex === -1) {
+    if (currentScreen.stepIndex === -2) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.finalCard}>
-                            <View style={styles.finalIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Image
                                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                                    style={commonStyles.heroImage}
                                 />
                             </View>
 
-                            <View style={styles.finalHeader}>
-                                <Text style={styles.finalHeading}>Make Progress Every Day</Text>
+                            <Text style={styles.stepsIntroTitle}>Your Experiment Journey</Text>
+                            <Text style={styles.stepsIntroDescription}>
+                                Follow these 6 simple steps to conduct your first career experiment. Each step is designed to be completed in a day or less. Remember, the goal is learning, not perfection!
+                            </Text>
+
+                            <PrimaryButton title="Start Step 1" onPress={handleStartExperiment} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Reflection Screen (after completing all steps)
+    if (currentScreen.stepIndex === -1) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <View style={styles.finalTextContainer}>
-                                <Text style={styles.finalText}>
+                            <View style={commonStyles.finalHeader}>
+                                <Text style={commonStyles.finalHeading}>Make Progress Every Day</Text>
+                            </View>
+
+                            <View style={commonStyles.finalTextContainer}>
+                                <Text style={commonStyles.finalText}>
                                     Every big career change starts with small daily experiments. You don't need to know everything today. The goal is to learn, test, and explore, one step at a time.
                                 </Text>
                             </View>
+
+                            <JournalEntrySection
+                                pathTag="your-first-experiment"
+                                journalInstruction="Reflect on your experiment experience. What did you learn? What surprised you? What would you do differently next time?"
+                                moodLabel=""
+                                saveButtonText="Save Reflection"
+                            />
 
                             {/* Mentorship CTA */}
                             <View style={styles.mentorshipCard}>
@@ -197,23 +338,24 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
                                 <Text style={styles.mentorshipDescription}>
                                     Our mentorship program provides personalized guidance from experienced former professional dancers who understand your unique journey.
                                 </Text>
-                                <TouchableOpacity style={styles.mentorshipButton} onPress={handleOpenMentorship}>
-                                    <View style={[styles.mentorshipButtonContent, { backgroundColor: '#647C90' }]}>
-                                        <Text style={styles.mentorshipButtonText}>Learn More</Text>
-                                        <ChevronRight size={16} color="#E2DED0" />
-                                    </View>
-                                </TouchableOpacity>
+                                <PrimaryButton
+                                    title="Learn More"
+                                    onPress={handleOpenMentorship}
+                                    variant="secondary"
+                                />
                             </View>
 
-                            <View style={styles.finalButtonContainer}>
-                                <TouchableOpacity style={styles.continueButton} onPress={handleComplete}>
-                                    <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                        <Text style={styles.continueButtonText}>Mark As Complete</Text>
-                                        <ChevronRight size={16} color="#E2DED0" />
-                                    </View>
-                                </TouchableOpacity>
+                            <Text style={styles.alternativeClosing}>
+                                Great work on completing your first experiment!
+                            </Text>
+
+                            <View style={commonStyles.finalButtonContainer}>
+                                <PrimaryButton
+                                    title="Mark As Complete"
+                                    onPress={handleComplete}
+                                />
                             </View>
-                        </View>
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -222,44 +364,44 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
 
     // Step Screens
     const currentStep = experimentSteps[currentStepIndex];
-    const stepProgress = ((currentStepIndex + 1) / experimentSteps.length) * 100;
 
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>
-                            Step {currentStepIndex + 1} of {experimentSteps.length}
-                        </Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${stepProgress}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`Step ${currentStepIndex + 1} of ${experimentSteps.length}`}
+                progress={(currentStepIndex + 1) / experimentSteps.length}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.centeredContent}>
-                    <View style={styles.choiceCard}>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Animated.View
+                        style={[
+                            styles.stepCard,
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ scale: cardScale }]
+                            }
+                        ]}
+                    >
                         <Text style={styles.scriptLabel}>{currentStep.title}</Text>
 
-                        <View style={styles.stepCard}>
+                        <View style={styles.stepContentCard}>
                             <Text style={styles.stepText}>{currentStep.description}</Text>
                         </View>
 
-                        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                            <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                <Text style={styles.continueButtonText}>{currentStep.buttonText}</Text>
-                                <ChevronRight size={16} color="#E2DED0" />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
+                        <PrimaryButton
+                            title={currentStep.buttonText}
+                            onPress={handleContinue}
+                        />
+                    </Animated.View>
                 </View>
             </ScrollView>
         </View>
@@ -267,123 +409,7 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-        zIndex: 1,
-    },
-    centeredContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: height - 200,
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-    },
-    boldText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontWeight: '600',
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choiceCard: {
+    stepCard: {
         width: width * 0.85,
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
@@ -396,6 +422,22 @@ const styles = StyleSheet.create({
         elevation: 5,
         marginVertical: 20,
     },
+    stepsIntroTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 20,
+        lineHeight: 34,
+    },
+    stepsIntroDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#746C70',
+        textAlign: 'center',
+        lineHeight: 24,
+        marginBottom: 30,
+    },
     scriptLabel: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 20,
@@ -403,7 +445,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 30,
     },
-    stepCard: {
+    stepContentCard: {
         backgroundColor: 'rgba(146,132,144,0.15)',
         borderRadius: 16,
         padding: 24,
@@ -418,91 +460,15 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         lineHeight: 24,
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-        minWidth: width * 0.5,
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    finalCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    finalIconContainer: {
-        marginBottom: 30,
-    },
-    finalHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 30,
-        gap: 12,
-    },
-    finalHeading: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        fontWeight: '700',
-    },
-    finalTextContainer: {
-        width: '100%',
-        marginBottom: 32,
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-    },
     alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 32,
-        marginTop: 20,
+        marginBottom: 5,
+        marginTop: 0,
         fontWeight: '600',
     },
-    finalButtonContainer: {
-        width: '100%',
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#647C90',
-        borderWidth: 2,
-    },
-    // New styles for the mentorship card
     mentorshipCard: {
         backgroundColor: 'rgba(100, 124, 144, 0.1)',
         borderRadius: 16,
@@ -511,6 +477,7 @@ const styles = StyleSheet.create({
         borderLeftWidth: 4,
         borderLeftColor: '#647C90',
         width: '100%',
+        alignItems: 'center',
     },
     mentorshipTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -527,26 +494,5 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 20,
         marginBottom: 20,
-    },
-    mentorshipButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    mentorshipButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#647C90',
-    },
-    mentorshipButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 14,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
     },
 });

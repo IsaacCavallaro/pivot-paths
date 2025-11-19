@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking, Image } from 'react-native';
-import { Play, Pause, ExternalLink, ArrowLeft } from 'lucide-react-native';
+import { Play, Pause, ExternalLink, ArrowLeft, BookOpen, Target, Star } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 
 const { width, height } = Dimensions.get('window');
 
@@ -11,7 +18,9 @@ interface BreakOutOfYourBubbleProps {
 
 export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfYourBubbleProps) {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentScreen, setCurrentScreen] = useState(1); // Start at screen 1 (voice message)
+    const [currentScreen, setCurrentScreen] = useState(0);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
 
     const handlePlayPause = () => {
         setIsPlaying(!isPlaying);
@@ -19,7 +28,8 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
         if (!isPlaying) {
             setTimeout(() => {
                 setIsPlaying(false);
-                setCurrentScreen(2);
+                setCurrentScreen(2); // Now goes to journal prompt screen
+                scrollToTop();
             }, 3000);
         }
     };
@@ -29,36 +39,124 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
     };
 
     const goBack = () => {
-        if (currentScreen === 2) {
-            // Go back from ebook to voice message
+        if (currentScreen === 3) {
+            setCurrentScreen(2);
+        } else if (currentScreen === 2) {
             setCurrentScreen(1);
         } else if (currentScreen === 1) {
+            setCurrentScreen(0);
+        } else if (currentScreen === 0) {
             if (onBack) {
                 onBack();
             }
         }
+        scrollToTop();
     };
 
-    // Voice Message Screen
+    const handleContinueToVoiceMessage = () => {
+        setCurrentScreen(1);
+        scrollToTop();
+    };
+
+    const handleContinueToFinal = () => {
+        setCurrentScreen(3); // Go to final CTA screen
+        scrollToTop();
+    };
+
+    // NEW: Intro Screen
+    if (currentScreen === 0) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.introTitle}>Break Out of Your Bubble</Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                You've been building incredible momentum in discovering your path beyond dance. Now it's time to take that crucial step outside your comfort zone and into the world of possibilities waiting for you.
+                            </Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                This exercise will help you visualize what it feels like to step beyond the familiar and embrace the growth that comes from trying something new.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="pre-bubble-breakout"
+                                journalInstruction="How are you feeling about stepping outside your comfort zone?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <View style={styles.preparationSection}>
+                                <Text style={styles.preparationTitle}>Before We Begin:</Text>
+                                <View style={styles.preparationList}>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Find a comfortable space where you can focus
+                                        </Text>
+                                    </View>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Headphones will enhance the experience
+                                        </Text>
+                                    </View>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Allow 5 minutes for the visualization
+                                        </Text>
+                                    </View>
+                                    <View style={styles.preparationItem}>
+                                        <View style={styles.bulletPoint} />
+                                        <Text style={styles.preparationText}>
+                                            Get ready to imagine new possibilities
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <PrimaryButton title="I'm Ready to Begin" onPress={handleContinueToVoiceMessage} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Voice Message Screen (now screen 1)
     if (currentScreen === 1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <View style={styles.scrollContainer}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.card}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.voiceIcon}>
                                 <TouchableOpacity
                                     style={styles.playButton}
@@ -93,121 +191,170 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
                                     <Text style={styles.playingText}>Playing...</Text>
                                 </View>
                             )}
-                        </View>
-                    </ScrollView>
-                </View>
+                        </Card>
+                    </View>
+                </ScrollView>
             </View>
         );
     }
 
-    // Ebook Promotion Screen
-    return (
-        <View style={styles.container}>
-            {/* Sticky Header */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.backButton} />
-                </View>
-            </View>
+    // NEW: Journal Prompt Screen (now screen 2)
+    if (currentScreen === 2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-            <View style={styles.scrollContainer}>
                 <ScrollView
-                    contentContainerStyle={styles.scrollContent}
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
                     showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
                 >
-                    <View style={styles.card}>
-                        <View style={styles.finalIconContainer}>
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={styles.journalTitle}>Reflect on Breaking Out</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Take a moment to capture your thoughts and feelings after the visualization. What did it feel like to imagine stepping outside your bubble? What possibilities felt most exciting or challenging?
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="post-bubble-reflection"
+                                journalInstruction="Reflect on your bubble-breaking experience"
+                                moodLabel=""
+                                saveButtonText="Save Reflection"
+                            />
+                            <PrimaryButton title="Continue" onPress={handleContinueToFinal} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Ebook Promotion Screen (now screen 3)
+    return (
+        <View style={commonStyles.container}>
+            <StickyHeader onBack={goBack} />
+
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={commonStyles.baseCard}>
+                        <View style={commonStyles.introIconContainer}>
                             <Image
                                 source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                style={styles.heroImage}
+                                style={commonStyles.heroImage}
                             />
                         </View>
 
                         <Text style={styles.ebookTitle}>How did that feel?</Text>
 
-                        <Text style={styles.ebookText}>
+                        <Text style={commonStyles.reflectionDescription}>
                             Stepping out of your comfort zone and into the world outside of dance isn't going to feel good. In fact, it might actually feel pretty bad for a while. But deep down, you know that on the other side of that discomfort is the life you've been craving. So go ahead, break out of that bubble! See what happens next.
                         </Text>
 
-                        <Text style={styles.reflectionClosing}>
+                        <Text style={styles.ebookCallout}>
                             Join us again tomorrow!
                         </Text>
 
-                        <TouchableOpacity style={styles.completeButton} onPress={onComplete}>
-                            <View
-                                style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}
-                            >
-                                <Text style={styles.completeButtonText}>Mark As Complete</Text>
+                        {/* NEW: Ebook CTA Card */}
+                        <TouchableOpacity style={styles.ebookCard} onPress={handleEbookLink}>
+                            <View style={styles.ebookCardContent}>
+                                <View style={styles.ebookCardHeader}>
+                                    <View style={styles.ebookIconContainer}>
+                                        <BookOpen size={24} color="#647C90" />
+                                    </View>
+                                    <Text style={styles.ebookCardTitle}>How to Pivot Guide</Text>
+                                </View>
+
+                                <View style={styles.ebookFeatures}>
+                                    <View style={styles.featureItem}>
+                                        <Star size={16} color="#928490" />
+                                        <Text style={styles.featureText}>Step-by-step framework</Text>
+                                    </View>
+                                    <View style={styles.featureItem}>
+                                        <Target size={16} color="#928490" />
+                                        <Text style={styles.featureText}>Practical exercises</Text>
+                                    </View>
+                                    <View style={styles.featureItem}>
+                                        <BookOpen size={16} color="#928490" />
+                                        <Text style={styles.featureText}>Real dancer stories</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.ebookCardFooter}>
+                                    <Text style={styles.ebookCardButtonText}>Get the Guide</Text>
+                                    <ExternalLink size={16} color="#647C90" />
+                                </View>
                             </View>
                         </TouchableOpacity>
-                    </View>
-                </ScrollView>
-            </View>
+
+                        <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+                    </Card>
+                </View>
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
+    // Preparation Section Styles
+    preparationSection: {
+        width: '100%',
+        marginBottom: 32,
+        padding: 20,
+        backgroundColor: 'rgba(146, 132, 144, 0.08)',
+        borderRadius: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: '#928490',
     },
-    scrollContainer: {
-        marginTop: 70,
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 40,
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
+    preparationTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
+        fontSize: 18,
+        color: '#647C90',
         textAlign: 'center',
+        marginBottom: 16,
+        fontWeight: '700',
     },
-    card: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
+    preparationList: {
+        gap: 12,
     },
+    preparationItem: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+    },
+    bulletPoint: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#928490',
+        marginTop: 8,
+        marginRight: 12,
+    },
+    preparationText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        lineHeight: 20,
+        flex: 1,
+    },
+    // Voice Message Styles
     voiceIcon: {
         marginBottom: 30,
     },
@@ -257,29 +404,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#647C90',
     },
-    ebookIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    ebookTitle: {
+    // NEW: Journal Prompt Styles
+    journalTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 25,
     },
-    ebookText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
+    // Ebook Styles
+    ebookTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
+        marginBottom: 25,
     },
     ebookCallout: {
         fontFamily: 'Montserrat-SemiBold',
@@ -289,58 +428,70 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         fontStyle: 'italic',
     },
-    ebookButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        marginBottom: 20,
-    },
-    ebookButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    ebookButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-    completeButton: {
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 12,
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-    },
-    finalIconContainer: {
+    // Ebook Card Styles
+    ebookCard: {
+        width: '100%',
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 24,
         marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: 'rgba(146, 132, 144, 0.2)',
     },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#647C90',
-        borderWidth: 2,
+    ebookCardContent: {
+        gap: 16,
     },
-    reflectionClosing: {
-        fontFamily: 'Montserrat-SemiBold',
+    ebookCardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    ebookIconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    ebookCardTitle: {
+        fontFamily: 'Merriweather-Bold',
         fontSize: 18,
         color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 40,
+        fontWeight: '700',
+    },
+    ebookFeatures: {
+        gap: 12,
+    },
+    featureItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    featureText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        lineHeight: 20,
+    },
+    ebookCardFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(146, 132, 144, 0.1)',
+    },
+    ebookCardButtonText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 16,
+        color: '#647C90',
         fontWeight: '600',
     },
 });

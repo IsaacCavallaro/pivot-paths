@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking } from 'react-native';
-import { ChevronRight, Palette, Briefcase, Heart, ArrowLeft } from 'lucide-react-native';
+import { ChevronRight, Palette, Briefcase, Heart, ArrowLeft, Check } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useStorage } from '@/hooks/useStorage';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 
 interface TryItOnProps {
     onComplete: () => void;
@@ -12,11 +20,11 @@ const hanndleMockInterviewOpen = () => {
 };
 
 export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
-    const [currentScreen, setCurrentScreen] = useState(0);
-    const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
-    const [currentScenario, setCurrentScenario] = useState(0); // 0 = Creative, 1 = Corporate, 2 = People-focused
-    const [scenarioResponses, setScenarioResponses] = useState<{ [key: string]: number[] }>({});
-    const [navigationHistory, setNavigationHistory] = useState<Array<{ screen: number; scenario: number; choice: number | null }>>([]);
+    const [currentScreen, setCurrentScreen] = useState(-1);
+    const [currentScenario, setCurrentScenario] = useStorage<number>('TRY_IT_ON_CURRENT_SCENARIO', 0);
+    const [scenarioResponses, setScenarioResponses] = useStorage<{ [key: string]: number[] }>('TRY_IT_ON_RESPONSES', {});
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
 
     const scenarios = [
         {
@@ -85,8 +93,8 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     ];
 
     const handleStartTryItOn = () => {
-        saveToHistory();
-        setCurrentScreen(1);
+        setCurrentScreen(0);
+        scrollToTop();
     };
 
     const handleBack = () => {
@@ -95,151 +103,115 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
         }
     };
 
-    const saveToHistory = () => {
-        setNavigationHistory([...navigationHistory, {
-            screen: currentScreen,
-            scenario: currentScenario,
-            choice: selectedChoice
-        }]);
-    };
-
     const goBack = () => {
-        if (navigationHistory.length === 0) {
-            // If no history, go back to intro or call parent onBack
-            if (currentScreen === 0 && onBack) {
-                onBack();
-            } else {
-                setCurrentScreen(0);
-                setCurrentScenario(0);
-                setSelectedChoice(null);
-            }
-            return;
+        if (currentScreen === -1) {
+            if (onBack) onBack();
+        } else if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen === 1) {
+            setCurrentScreen(0);
+        } else if (currentScreen > 1 && currentScreen <= 6) {
+            setCurrentScreen(currentScreen - 1);
         }
-
-        // Get the last state from history
-        const previousState = navigationHistory[navigationHistory.length - 1];
-
-        // Remove the last item from history
-        setNavigationHistory(navigationHistory.slice(0, -1));
-
-        // Restore previous state
-        setCurrentScreen(previousState.screen);
-        setCurrentScenario(previousState.scenario);
-        setSelectedChoice(previousState.choice);
-
-        // Also need to remove the last choice from scenarioResponses if going back from a choice screen
-        if (currentScreen === 3 || currentScreen === 6) {
-            const scenarioKey = `scenario_${currentScenario}`;
-            const responses = scenarioResponses[scenarioKey] || [];
-            if (responses.length > 0) {
-                const updatedResponses = responses.slice(0, -1);
-                setScenarioResponses({
-                    ...scenarioResponses,
-                    [scenarioKey]: updatedResponses
-                });
-            }
-        }
+        scrollToTop();
     };
 
-    const handleChoiceSelect = (choiceNumber: number) => {
-        saveToHistory();
-        setSelectedChoice(choiceNumber);
-
-        // Store the response
+    const handleChoiceSelect = async (choiceNumber: number) => {
         const scenarioKey = `scenario_${currentScenario}`;
         const responses = scenarioResponses[scenarioKey] || [];
         responses.push(choiceNumber);
-        setScenarioResponses({
+        await setScenarioResponses({
             ...scenarioResponses,
             [scenarioKey]: responses
         });
-
         setCurrentScreen(currentScreen + 1);
+        scrollToTop();
     };
 
     const handleContinue = () => {
-        saveToHistory();
         setCurrentScreen(currentScreen + 1);
+        scrollToTop();
     };
 
     const handleNextScenario = () => {
-        saveToHistory();
-        if (currentScenario < 2) {
+        if (currentScenario < scenarios.length - 1) {
             setCurrentScenario(currentScenario + 1);
-            setSelectedChoice(null);
             setCurrentScreen(1);
         } else {
-            setCurrentScreen(22);
+            setCurrentScreen(6); // Changed from 7 to 6 to match the final screen
         }
+        scrollToTop();
     };
 
     const getCurrentScenarioData = () => {
-        return scenarios[currentScenario];
+        // Add bounds checking to prevent undefined errors
+        if (currentScenario >= 0 && currentScenario < scenarios.length) {
+            return scenarios[currentScenario];
+        }
+        // Return first scenario as fallback
+        return scenarios[0];
     };
 
-    // Screen 0: Intro
-    if (currentScreen === 0) {
-        return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+    const getCurrentResponse = (questionNumber: number) => {
+        const scenarioKey = `scenario_${currentScenario}`;
+        const responses = scenarioResponses[scenarioKey] || [];
+        return responses[questionNumber - 1];
+    };
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={styles.finalIconContainer}>
-                                    <Image
-                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                        style={styles.heroImage}
-                                    />
-                                </View>
+    // Screen -1: Welcome Screen
+    if (currentScreen === -1) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.introTitle}>Try It On</Text>
+                            <Text style={commonStyles.introTitle}>Try It On</Text>
 
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introDescription}>
                                 Let's try on some new careers to see how they might feel in the real world. We'll show you a few scenarios and you'll choose what you'd do in each situation.
                             </Text>
 
-                            <TouchableOpacity style={styles.startButton} onPress={handleStartTryItOn} activeOpacity={0.8}>
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Begin</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Begin" onPress={handleStartTryItOn} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Screen 1: Scenario Intro
-    if (currentScreen === 1) {
+    // Screen 0: Scenario Intro
+    if (currentScreen === 0) {
         const scenario = getCurrentScenarioData();
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: scenario.color }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.scenarioCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.scenarioTitle}>{scenario.scenarioTitle}</Text>
                             <Text style={styles.scenarioSubtitle}>({scenario.title})</Text>
 
@@ -247,256 +219,310 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                                 {scenario.question1.text}
                             </Text>
 
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
-                                <View style={[styles.continueButtonContent, { backgroundColor: scenario.color }]}>
-                                    <Text style={styles.continueButtonText}>
-                                        {currentScenario === 1 ? "What will you say?" : currentScenario === 2 ? "How do you respond?" : "What will you do?"}
-                                    </Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton
+                                title={currentScenario === 1 ? "What will you say?" : currentScenario === 2 ? "How do you respond?" : "What will you do?"}
+                                onPress={handleContinue}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Screen 2: First Choice
-    if (currentScreen === 2) {
+    // Screen 1: First Choice
+    if (currentScreen === 1) {
         const scenario = getCurrentScenarioData();
-        return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: scenario.color }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+        const selectedChoice = getCurrentResponse(1);
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.choicesCard}>
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.choicesTitle}>Here are your options</Text>
 
                             <View style={styles.choicesContainer}>
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 1 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(1)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        {scenario.question1.choice1}
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 1 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 1 && styles.choiceTextSelected
+                                        ]}>
+                                            {scenario.question1.choice1}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 2 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(2)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        {scenario.question1.choice2}
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 2 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 2 && styles.choiceTextSelected
+                                        ]}>
+                                            {scenario.question1.choice2}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={selectedChoice === undefined}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Screen 3: Response to first choice
-    if (currentScreen === 3) {
+    // Screen 2: Response to first choice
+    if (currentScreen === 2) {
         const scenario = getCurrentScenarioData();
+        const selectedChoice = getCurrentResponse(1);
         const responseText = selectedChoice === 1 ? scenario.question1.response1 : scenario.question1.response2;
 
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.responseCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.responseTitle}>Here's where you're at</Text>
 
                             <Text style={styles.responseText}>{responseText}</Text>
 
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
-                                <View style={[styles.continueButtonContent, { backgroundColor: scenario.color }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Continue" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Screen 4: Second scenario question
-    if (currentScreen === 4) {
+    // Screen 3: Second scenario question
+    if (currentScreen === 3) {
         const scenario = getCurrentScenarioData();
 
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: scenario.color }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.scenarioCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.scenarioText}>{scenario.question2.text}</Text>
 
-                            <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.8}>
-                                <View style={[styles.continueButtonContent, { backgroundColor: scenario.color }]}>
-                                    <Text style={styles.continueButtonText}>What will you do?</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="What will you do?" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Screen 5: Second set of choices
-    if (currentScreen === 5) {
+    // Screen 4: Second set of choices
+    if (currentScreen === 4) {
         const scenario = getCurrentScenarioData();
+        const selectedChoice = getCurrentResponse(2);
 
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: scenario.color }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.choicesCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.choicesTitle}>Here are your options</Text>
 
                             <View style={styles.choicesContainer}>
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 1 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(1)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>{scenario.question2.choice1}</Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 1 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 1 && styles.choiceTextSelected
+                                        ]}>
+                                            {scenario.question2.choice1}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 2 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(2)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>{scenario.question2.choice2}</Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 2 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 2 && styles.choiceTextSelected
+                                        ]}>
+                                            {scenario.question2.choice2}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={selectedChoice === undefined}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Screen 6: Response to second choice + Reflection
-    if (currentScreen === 6) {
+    // Screen 5: Response to second choice + Reflection
+    if (currentScreen === 5) {
         const scenario = getCurrentScenarioData();
+        const selectedChoice = getCurrentResponse(2);
         const responseText = selectedChoice === 1 ? scenario.question2.response1 : scenario.question2.response2;
 
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.responseCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.responseTitle}>Here's where you're at</Text>
 
                             <Text style={styles.responseText}>{responseText}</Text>
                             <Text style={styles.responseText}>{scenario.reflection}</Text>
 
-                            <TouchableOpacity style={styles.continueButton} onPress={handleNextScenario} activeOpacity={0.8}>
-                                <View style={[styles.continueButtonContent, { backgroundColor: scenario.color }]}>
-                                    <Text style={styles.continueButtonText}>
-                                        {currentScenario < 2 ? "Next Scenario" : "Continue"}
-                                    </Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton
+                                title={currentScenario < scenarios.length - 1 ? "Next Scenario" : "Continue"}
+                                onPress={handleNextScenario}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Screen 22: Final reflection
-    if (currentScreen === 22) {
+    // Screen 6: Final reflection with journal prompts
+    if (currentScreen === 6) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.alternativeCard}>
-                            <View style={styles.alternativeIconContainer}>
-                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Image
-                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                        style={styles.heroImage}
-                                    />
-                                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.alternativeTitle}>How did that feel?</Text>
+                            <Text style={commonStyles.reflectionTitle}>How did that feel?</Text>
 
-                            <Text style={styles.alternativeText}>
+                            <Text style={commonStyles.reflectionDescription}>
                                 You just "tried on" your first week in a new role. When you put yourself in those shoes, which one felt most aligned? Perhaps that's a good place to start as you dive deeper into your exploration.
                             </Text>
+
+                            <JournalEntrySection
+                                pathTag="try-it-on-reflection"
+                                journalInstruction="Which career scenario felt most natural to you? What surprised you about your choices in these roleplay situations?"
+                                moodLabel=""
+                                saveButtonText="Save Reflection"
+                            />
 
                             <View style={styles.mockInterviewCard}>
                                 <Text style={styles.mockInterviewTitle}>Ready to practice together?</Text>
@@ -515,13 +541,8 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                                 Meet you here again tomorrow.
                             </Text>
 
-                            <TouchableOpacity style={styles.completeButton} onPress={onComplete} activeOpacity={0.8}>
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark as Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -532,124 +553,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    introCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    scenarioCard: {
-        marginHorizontal: 24,
-        marginTop: 100,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+    // Scenario Styles
     scenarioTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -673,39 +577,7 @@ const styles = StyleSheet.create({
         lineHeight: 26,
         marginBottom: 32,
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choicesCard: {
-        marginHorizontal: 24,
-        marginTop: 100,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+    // Choices Styles
     choicesTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -716,13 +588,23 @@ const styles = StyleSheet.create({
     },
     choicesContainer: {
         gap: 16,
+        marginBottom: 24,
     },
     choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 16,
-        padding: 20,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderWidth: 2,
         borderColor: 'transparent',
+    },
+    choiceButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
+    },
+    choiceContent: {
+        padding: 20,
+        paddingRight: 50,
     },
     choiceText: {
         fontFamily: 'Montserrat-Regular',
@@ -731,19 +613,22 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         textAlign: 'center',
     },
-    responseCard: {
-        marginHorizontal: 24,
-        marginTop: 100,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    choiceTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
     },
+    selectedIndicator: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    // Response Styles
     responseTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -758,99 +643,16 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 32,
-    },
-    alternativeCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    alternativeIconContainer: {
-        marginBottom: 24,
-    },
-    alternativeIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    alternativeTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 25,
-        marginTop: 25,
-        fontWeight: '700',
-    },
-    alternativeText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
         marginBottom: 20,
     },
-    alternativeClosing: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 32,
-        fontWeight: '600',
-    },
-    completeButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    finalIconContainer: {
-        marginBottom: 30,
-    },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#647C90',
-        borderWidth: 2,
-    },
+    // Mock Interview Styles
     mockInterviewCard: {
         backgroundColor: 'rgba(100, 124, 144, 0.1)',
         borderRadius: 16,
         padding: 24,
-        marginBottom: 32,
-        borderLeftWidth: 4,
-        borderLeftColor: '#647C90',
-        width: '100%',
+        marginBottom: 25,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 124, 144, 0.2)',
     },
     mockInterviewTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -887,6 +689,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#E2DED0',
         marginRight: 8,
+        fontWeight: '600',
+    },
+    alternativeClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
         fontWeight: '600',
     },
 });

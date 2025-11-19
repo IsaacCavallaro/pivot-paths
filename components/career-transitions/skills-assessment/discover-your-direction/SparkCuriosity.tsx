@@ -1,6 +1,13 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
-import { ChevronRight, Lightbulb, ArrowLeft } from 'lucide-react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, Dimensions, Image, Animated, ScrollView } from 'react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
 
 const { width, height } = Dimensions.get('window');
 
@@ -67,6 +74,14 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
     const [screenHistory, setScreenHistory] = useState<Array<{ cardIndex: number }>>([]);
 
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry } = useJournaling('spark-curiosity');
+
+    // Animation values
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const cardScale = useRef(new Animated.Value(1)).current;
+    const progressAnim = useRef(new Animated.Value(0)).current;
+
     const handleBack = useCallback(() => {
         if (onBack) {
             onBack();
@@ -75,26 +90,89 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
 
     const handleStartGame = () => {
         setScreenHistory([{ cardIndex: 0 }]);
+        scrollToTop();
     };
 
-    const handleContinue = () => {
-        if (currentCardIndex < curiosityCards.length - 1) {
-            const newCardIndex = currentCardIndex + 1;
-            setCurrentCardIndex(newCardIndex);
-            setScreenHistory([...screenHistory, { cardIndex: newCardIndex }]);
-        } else {
-            setScreenHistory([...screenHistory, { cardIndex: -1 }]);
-        }
+    const handleContinueToCuriosity = () => {
+        setScreenHistory([{ cardIndex: -3, showNew: false }]);
+        scrollToTop();
     };
+
+    const handleContinue = useCallback(() => {
+        if (currentCardIndex < curiosityCards.length - 1) {
+            // Fade out current card
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => {
+                const newCardIndex = currentCardIndex + 1;
+
+                // Reset animations BEFORE updating state
+                fadeAnim.setValue(0);
+
+                // Update state
+                setCurrentCardIndex(newCardIndex);
+
+                // Animate in the next card with a slight delay
+                setTimeout(() => {
+                    Animated.parallel([
+                        Animated.timing(fadeAnim, {
+                            toValue: 1,
+                            duration: 300,
+                            useNativeDriver: true,
+                        }),
+                        Animated.spring(progressAnim, {
+                            toValue: (newCardIndex + 1) / curiosityCards.length,
+                            tension: 50,
+                            friction: 7,
+                            useNativeDriver: false,
+                        })
+                    ]).start();
+                }, 50);
+
+                setScreenHistory(prev => [...prev, { cardIndex: newCardIndex }]);
+                scrollToTop();
+            });
+        } else {
+            // Smooth transition to reflection screen
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+            }).start(() => {
+                setScreenHistory(prev => [...prev, { cardIndex: -2 }]);
+                fadeAnim.setValue(1);
+                scrollToTop();
+            });
+        }
+    }, [currentCardIndex, fadeAnim, progressAnim, scrollToTop]);
 
     const handleComplete = () => {
-        onComplete();
+        // Add a subtle scale animation on complete
+        Animated.sequence([
+            Animated.timing(cardScale, {
+                toValue: 1.02,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(cardScale, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            })
+        ]).start(() => {
+            onComplete();
+        });
     };
 
     const goBack = () => {
         if (screenHistory.length <= 1) {
             setScreenHistory([]);
             setCurrentCardIndex(0);
+            fadeAnim.setValue(1);
+            cardScale.setValue(1);
+            scrollToTop();
             return;
         }
 
@@ -103,34 +181,106 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
         setScreenHistory(newHistory);
 
         const prevScreen = newHistory[newHistory.length - 1];
-        if (prevScreen.cardIndex === -1) {
+        if (prevScreen.cardIndex === -1 || prevScreen.cardIndex === -2 || prevScreen.cardIndex === -3) {
             return;
         }
 
-        setCurrentCardIndex(prevScreen.cardIndex);
+        // Animate the transition back
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setCurrentCardIndex(prevScreen.cardIndex);
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+            scrollToTop();
+        });
     };
 
-    // Intro Screen
+    // Progress animation interpolation
+    const progressWidth = progressAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0%', '100%'],
+    });
+
+    // Update progress when currentCardIndex changes
+    React.useEffect(() => {
+        Animated.spring(progressAnim, {
+            toValue: (currentCardIndex + 1) / curiosityCards.length,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: false,
+        }).start();
+    }, [currentCardIndex]);
+
+    // Intro Screen with Journal
     if (screenHistory.length === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Image
                                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.introTitle}>Welcome to Your Curiosity Journey</Text>
+                            <Text style={commonStyles.introDescription}>
+                                Before we begin exploring new possibilities, let's check in with where you are right now. This will help us track your progress and reflections.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="spark-curiosity"
+                                journalInstruction="How are you feeling about exploring new career possibilities right now? What hopes or concerns come to mind?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Continue to Curiosity" onPress={handleContinueToCuriosity} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Curiosity Intro Screen
+    const currentScreen = screenHistory[screenHistory.length - 1];
+    if (currentScreen.cardIndex === -3) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
                                 />
                             </View>
 
@@ -142,13 +292,55 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
                                 Swipe through each card, reflect, and take note of what excites you.
                             </Text>
 
-                            <TouchableOpacity style={styles.startButton} onPress={handleStartGame}>
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Let's go</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Let's go" onPress={handleStartGame} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Reflection Screen
+    if (currentScreen.cardIndex === -2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.reflectionHeader}>
+                                <Text style={styles.reflectionTitle}>Cultivating Your Curiosity</Text>
+                            </View>
+
+                            <View style={commonStyles.reflectionIntro}>
+                                <Text style={commonStyles.reflectionDescription}>
+                                    You've taken an important step by exploring these curiosity prompts. The questions that resonated with you today are clues to what might truly excite you in your next chapter.
+                                </Text>
+                            </View>
+
+                            <JournalEntrySection
+                                pathTag="spark-curiosity"
+                                journalInstruction="Which curiosity prompts stood out to you the most? What new possibilities or ideas did they spark?"
+                                moodLabel=""
+                                saveButtonText="Save Reflection"
+                            />
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={() => {
+                                    setScreenHistory(prev => [...prev, { cardIndex: -1 }]);
+                                    scrollToTop();
+                                }}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -156,60 +348,59 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
     }
 
     // Final Screen
-    const currentScreen = screenHistory[screenHistory.length - 1];
     if (currentScreen.cardIndex === -1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.finalCard}>
-                            <View style={styles.finalIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Image
                                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                                    style={commonStyles.heroImage}
                                 />
                             </View>
 
-                            <View style={styles.finalHeader}>
-                                <Text style={styles.finalHeading}>It's Time to Reflect</Text>
+                            <View style={commonStyles.finalHeader}>
+                                <Text style={commonStyles.finalHeading}>It's Time to Reflect</Text>
                             </View>
 
-                            <View style={styles.finalTextContainer}>
-                                <Text style={styles.finalText}>
+                            <View style={commonStyles.finalTextContainer}>
+                                <Text style={commonStyles.finalText}>
                                     Exploring your curiosity doesn't mean you have to have all the answers right now. Each question is a doorway to possibilities, and the more you engage with them, the clearer your path becomes.
                                 </Text>
-                                <Text style={styles.finalText}>
+                                <Text style={commonStyles.finalText}>
                                     Take note of anything that excites you. You'll come back to it as you explore career options in the coming days.
                                 </Text>
                             </View>
+
+                            <JournalEntrySection
+                                pathTag="spark-curiosity"
+                                journalInstruction="Based on today's exploration, what's one small step you could take to follow your curiosity this week?"
+                                moodLabel=""
+                                saveButtonText="Save Action Step"
+                            />
 
                             <Text style={styles.alternativeClosing}>
                                 See you tomorrow.
                             </Text>
 
-                            <View style={styles.finalButtonContainer}>
-                                <TouchableOpacity
-                                    style={styles.continueButton}
+                            <View style={commonStyles.finalButtonContainer}>
+                                <PrimaryButton
+                                    title="Mark As Complete"
                                     onPress={handleComplete}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                        <Text style={styles.continueButtonText}>Mark As Complete</Text>
-                                        <ChevronRight size={16} color="#E2DED0" />
-                                    </View>
-                                </TouchableOpacity>
+                                />
                             </View>
-                        </View>
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -218,48 +409,44 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
 
     // Card Screens
     const currentCard = curiosityCards[currentCardIndex];
-    const progress = ((currentCardIndex + 1) / curiosityCards.length) * 100;
 
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>{currentCardIndex + 1} of {curiosityCards.length}</Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${progress}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${currentCardIndex + 1} of ${curiosityCards.length}`}
+                progress={(currentCardIndex + 1) / curiosityCards.length}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.centeredContent}>
-                    <View style={styles.choiceCard}>
-                        <View style={styles.newScriptCard}>
-                            <Text style={styles.newScriptText}>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Animated.View
+                        style={[
+                            styles.choiceCard,
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ scale: cardScale }]
+                            }
+                        ]}
+                    >
+                        <View style={styles.curiosityCard}>
+                            <Text style={styles.curiosityText}>
                                 "{currentCard.prompt}"
                             </Text>
                         </View>
 
-                        <TouchableOpacity
-                            style={styles.continueButton}
+                        <PrimaryButton
+                            title={currentCard.buttonText}
                             onPress={handleContinue}
-                            activeOpacity={0.8}
-                        >
-                            <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                <Text style={styles.continueButtonText}>
-                                    {currentCard.buttonText}
-                                </Text>
-                                <ChevronRight size={16} color="#E2DED0" />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
+                        />
+                    </Animated.View>
                 </View>
             </ScrollView>
         </View>
@@ -267,117 +454,21 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-        zIndex: 1,
-    },
-    centeredContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: height - 200,
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
+        fontSize: 28,
+        color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 20,
-        fontWeight: '700',
+        lineHeight: 34,
     },
     introDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
-        color: '#928490',
+        color: '#746C70',
         textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 20,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
+        marginBottom: 16,
     },
     choiceCard: {
         width: width * 0.85,
@@ -390,16 +481,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 12,
         elevation: 5,
-        marginVertical: 20,
     },
-    scriptLabel: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 30,
-    },
-    newScriptCard: {
+    curiosityCard: {
         backgroundColor: 'rgba(146,132,144,0.15)',
         borderRadius: 16,
         padding: 24,
@@ -407,77 +490,15 @@ const styles = StyleSheet.create({
         borderLeftWidth: 4,
         borderLeftColor: '#928490',
         width: '100%',
+        minHeight: 200,
+        justifyContent: 'center',
     },
-    newScriptText: {
+    curiosityText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 26,
-    },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-        minWidth: width * 0.5,
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    finalCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    finalIconContainer: {
-        marginBottom: 30,
-    },
-    finalHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 30,
-        gap: 12,
-    },
-    finalHeading: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#928490',
-        textAlign: 'center',
-        fontWeight: '700',
-    },
-    finalTextContainer: {
-        width: '100%',
-        marginBottom: 32,
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 0,
     },
     alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
@@ -488,16 +509,11 @@ const styles = StyleSheet.create({
         marginTop: 0,
         fontWeight: '600',
     },
-    finalButtonContainer: {
-        width: '100%',
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#928490',
-        borderWidth: 2,
+    reflectionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
+        textAlign: 'center',
+        fontWeight: '700',
     },
 });
