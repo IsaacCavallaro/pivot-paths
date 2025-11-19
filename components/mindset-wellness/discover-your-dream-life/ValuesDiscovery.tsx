@@ -786,7 +786,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
         onContentSizeChange={() => scrollToTop()}
         onLayout={() => scrollToTop()}
       >
-        <View style={commonStyles.centeredContent}>
+        <View style={styles.centeredContent}>
           <Card style={commonStyles.baseCard}>
             <Text style={styles.questionText}>{question.question}</Text>
 
@@ -1023,5 +1023,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
     fontWeight: '600',
+  },
+  centeredContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: height - 200, // Ensure content takes most of the screen height
+    paddingBottom: 30,
+    marginTop: 40,
   },
 });
