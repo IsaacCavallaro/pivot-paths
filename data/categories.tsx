@@ -151,7 +151,7 @@ export const categories: Category[] = [
           },
           {
             day: 7,
-            title: 'Your Expansive Vision',
+            title: 'Visualize Your Dream Life',
             content: 'You\'re ready to dream bigger and step into a full and rich life beyond dance. Take it one step further with actionable next steps.',
             hasVoiceMessage: true,
           },

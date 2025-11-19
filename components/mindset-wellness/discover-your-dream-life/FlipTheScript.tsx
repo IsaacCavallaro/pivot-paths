@@ -439,7 +439,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
               </View>
 
               <View style={commonStyles.finalHeader}>
-                <Text style={commonStyles.finalHeading}>Now it's your turn</Text>
+                <Text style={commonStyles.finalHeading}>Now It's Your Turn</Text>
               </View>
 
               <View style={commonStyles.finalTextContainer}>
@@ -450,7 +450,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
-                journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?"
+                journalInstruction="It’s not easy to own your story, especially when dance has given you a story since age 3. But as scary as it is, now it’s time to write your own story and unveil the next chapter."
                 moodLabel="How are you feeling now?"
                 saveButtonText="Save End of Day Entry"
               />
