@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Dimensions } from 'react-native';
 import { PlusCircle } from 'lucide-react-native';
 import { MOOD_OPTIONS } from '../constants';
 import { useJournaling } from '../hooks/useJournaling';
@@ -29,6 +29,10 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
         addJournalEntry(journalEntry, selectedMood);
     };
 
+    // Calculate button width based on screen size and number of buttons
+    const screenWidth = Dimensions.get('window').width;
+    const buttonSize = (screenWidth - 80) / 4; // 80 = total horizontal padding (40*2) + gaps
+
     return (
         <View style={styles.journalSection}>
             <View style={styles.sectionHeader}>
@@ -50,6 +54,7 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
                                 key={mood.id}
                                 style={[
                                     styles.moodButton,
+                                    { width: buttonSize, height: buttonSize },
                                     selectedMood === mood.id && {
                                         backgroundColor: mood.color,
                                     }
@@ -145,9 +150,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 12,
-        minWidth: 70,
         borderWidth: 2,
         borderColor: 'transparent',
+        // Fixed dimensions will be applied via inline style
+        minWidth: 0, // Override previous minWidth
     },
     moodLabelText: {
         fontFamily: 'Montserrat-Medium',
@@ -155,6 +161,7 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         marginTop: 4,
         fontWeight: '500',
+        textAlign: 'center',
     },
     journalInputContainer: {
         marginBottom: 12,
