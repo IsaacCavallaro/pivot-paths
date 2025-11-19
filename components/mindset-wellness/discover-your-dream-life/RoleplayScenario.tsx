@@ -501,8 +501,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
               <View style={styles.journalCallout}>
                 <Text style={styles.journalCalloutTitle}>Your Personal Space</Text>
                 <Text style={styles.journalCalloutText}>
-                  There's no journal prompt today but feel free to use the journal tab at any time to jot down your thoughts.{"\n\n"}
-                  This app is for you! Use it how you'd like to!
+                  Remember, feel free to use the journal tab at any time to jot down your thoughts. This app is for you! Use it how you’d like to!
                 </Text>
               </View>
 

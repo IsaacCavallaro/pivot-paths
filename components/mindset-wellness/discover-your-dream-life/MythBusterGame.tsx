@@ -429,12 +429,18 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
 
               <Text style={commonStyles.reflectionDescription}>
                 Which myth are you not convinced is actually a myth?{"\n"}
-                <Text style={styles.reflectionEmphasis}>(No judgement - this is why we do this)</Text>
+                {/* <Text style={styles.reflectionEmphasis}>(No judgement - this is why we do this)</Text> */}
               </Text>
 
               <Text style={commonStyles.reflectionDescription}>
                 Take a moment to reflect on the myths you encountered.
               </Text>
+
+
+              <Text style={commonStyles.reflectionDescription}>
+                <Text style={styles.reflectionEmphasis}>(If you're having trouble recalling, feel free to go back and play the match game again)</Text>
+              </Text>
+
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
@@ -504,13 +510,6 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                   </View>
                 </View>
               </TouchableOpacity>
-
-              <JournalEntrySection
-                pathTag="discover-dream-life"
-                journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?"
-                moodLabel="How are you feeling now?"
-                saveButtonText="Save End of Day Entry"
-              />
 
               <Text style={styles.reflectionClosing}>
                 See you tomorrow.
