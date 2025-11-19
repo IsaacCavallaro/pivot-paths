@@ -7,6 +7,7 @@ import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 
 const { width, height } = Dimensions.get('window');
 
@@ -87,6 +88,13 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
               <Text style={commonStyles.introDescription}>
                 Now, we're going to bring it all together with a guided visualization exercise. This will help you connect with your future self and solidify the vision you've been creating.
               </Text>
+
+              <JournalEntrySection
+                pathTag="discover-dream-life"
+                journalInstruction="A quick check in before we start this session"
+                moodLabel="How are you feeling?"
+                saveButtonText="Save Entry"
+              />
 
               <View style={styles.preparationSection}>
                 <Text style={styles.preparationTitle}>Before We Begin:</Text>

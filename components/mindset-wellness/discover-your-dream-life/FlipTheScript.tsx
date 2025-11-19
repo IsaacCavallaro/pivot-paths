@@ -113,6 +113,11 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     scrollToTop();
   };
 
+  const handleContinueToFlipScript = () => {
+    setScreenHistory([{ pairIndex: -3, showNew: false }]);
+    scrollToTop();
+  };
+
   const flipCard = useCallback(() => {
     // Reset animations first
     flipAnim.setValue(0);
@@ -249,7 +254,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
     setScreenHistory(newHistory);
 
     const prevScreen = newHistory[newHistory.length - 1];
-    if (prevScreen.pairIndex === -1 || prevScreen.pairIndex === -2) {
+    if (prevScreen.pairIndex === -1 || prevScreen.pairIndex === -2 || prevScreen.pairIndex === -3) {
       return;
     }
 
@@ -353,7 +358,44 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
                 saveButtonText="Save Morning Entry"
               />
 
-              <PrimaryButton title="Let's go" onPress={handleStartGame} />
+              <PrimaryButton title="Let's go" onPress={handleContinueToFlipScript} />
+            </Card>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // NEW: Flip the Script Intro Screen
+  const currentScreen = screenHistory[screenHistory.length - 1];
+  if (currentScreen.pairIndex === -3) {
+    return (
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={commonStyles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
+        >
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <View style={commonStyles.introIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={commonStyles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.introTitle}>Flip the Script</Text>
+              <Text style={styles.introDescription}>
+                One of the scariest parts of leaving your dance career is answering the dreaded small-talk question, "So, what have you been up to?" … But what if we flipped the script and talked about our pivot with confidence?
+              </Text>
+
+              <PrimaryButton title="Start Flipping" onPress={handleStartGame} />
             </Card>
           </View>
         </ScrollView>
@@ -362,7 +404,6 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
   }
 
   // NEW: Reflection Screen
-  const currentScreen = screenHistory[screenHistory.length - 1];
   if (currentScreen.pairIndex === -2) {
     return (
       <View style={commonStyles.container}>
@@ -444,16 +485,20 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 
               <View style={commonStyles.finalTextContainer}>
                 <Text style={commonStyles.finalText}>
-                  Write your own script for how you'll talk about your transition. What feels authentic and empowering to you?
+                  It's not easy to own your story, especially when dance has given you a story since age 3. But as scary as it is, now it's time to write your own story and unveil the next chapter.
                 </Text>
               </View>
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
-                journalInstruction="It’s not easy to own your story, especially when dance has given you a story since age 3. But as scary as it is, now it’s time to write your own story and unveil the next chapter."
-                moodLabel="How are you feeling now?"
+                journalInstruction="    Write your own script for how you'll talk about your transition. What feels authentic and empowering to you?"
+                moodLabel=""
                 saveButtonText="Save End of Day Entry"
               />
+
+              <Text style={styles.alternativeClosing}>
+                The last day of this path is coming up next!
+              </Text>
 
               <View style={commonStyles.finalButtonContainer}>
                 <PrimaryButton
@@ -549,6 +594,23 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 }
 
 const styles = StyleSheet.create({
+  // NEW: Styles for the intro screen
+  introTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 28,
+    color: '#4E4F50',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 34,
+  },
+  introDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#746C70',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 30,
+  },
   // UPDATED: Flip container and card styles for entire card flip
   flipContainer: {
     width: width * 0.85,
@@ -630,5 +692,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 26,
     fontStyle: 'italic',
+  },
+  alternativeClosing: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 5,
+    marginTop: 0,
+    fontWeight: '600',
   },
 });
