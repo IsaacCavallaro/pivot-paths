@@ -478,6 +478,10 @@ export default function WhatEnergizesYou({ onComplete, onBack }: WhatEnergizesYo
 
                             <JournalEntrySection
                                 pathTag="what-energizes-you"
+                                day="2"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="What Energizes You?"
                                 journalInstruction="Before we begin, let's take a moment to check in with yourself. What activities have felt most energizing to you recently?"
                                 moodLabel=""
                                 saveButtonText="Add to Journal"

@@ -266,6 +266,10 @@ export default function ExpandYourHorizons({ onComplete, onBack }: ExpandYourHor
 
                             <JournalEntrySection
                                 pathTag="expand-your-horizons"
+                                day="1"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Break Out Of Your Bubble"
                                 journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling about exploring new career possibilities?"
                                 moodLabel=""
                                 saveButtonText="Save Entry"
