@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { ChevronRight, Users, ArrowLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, Dimensions, Image, Linking, ScrollView, TouchableOpacity } from 'react-native';
+import { ChevronRight, Users, ArrowLeft, Check } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { useStorage } from '@/hooks/useStorage';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+
+const { width, height } = Dimensions.get('window');
 
 interface NetworkQuestion {
     id: number;
     optionA: string;
     optionB: string;
+    storyKey: string;
 }
 
 interface YourHiddenNetworkProps {
@@ -13,53 +25,60 @@ interface YourHiddenNetworkProps {
     onBack?: () => void;
 }
 
-const { width, height } = Dimensions.get('window');
-
 const networkQuestions: NetworkQuestion[] = [
     {
         id: 1,
         optionA: "Friend in a corporate job",
-        optionB: "Friend who freelances"
+        optionB: "Friend who freelances",
+        storyKey: 'choice1'
     },
     {
         id: 2,
         optionA: "Former school teacher",
-        optionB: "Dance friend who already pivoted"
+        optionB: "Dance friend who already pivoted",
+        storyKey: 'choice2'
     },
     {
         id: 3,
         optionA: "Family member who owns a business",
-        optionB: "Online community forums"
+        optionB: "Online community forums",
+        storyKey: 'choice3'
     },
     {
         id: 4,
         optionA: "LinkedIn networking",
-        optionB: "Informal coffee chats"
+        optionB: "Informal coffee chats",
+        storyKey: 'choice4'
     },
     {
         id: 5,
         optionA: "Colleague from your survival job",
-        optionB: "Artist running their own business"
+        optionB: "Artist running their own business",
+        storyKey: 'choice5'
     },
     {
         id: 6,
         optionA: "Former mentor",
-        optionB: "Friend of a friend with experience"
+        optionB: "Friend of a friend with experience",
+        storyKey: 'choice6'
     },
     {
         id: 7,
         optionA: "Asking for a skills swap",
-        optionB: "Asking to volunteer on a project"
+        optionB: "Asking to volunteer on a project",
+        storyKey: 'choice7'
     },
     {
         id: 8,
         optionA: "Dance friend who's also changing careers",
-        optionB: "Career coach"
+        optionB: "Career coach",
+        storyKey: 'choice8'
     },
     {
         id: 9,
         optionA: "Professional networking groups",
-        optionB: "University alumni network"
+        optionB: "University alumni network",
+        storyKey: 'choice9'
     }
 ];
 
@@ -103,200 +122,291 @@ const storyScreens = [
 ];
 
 export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetworkProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-9 = questions, 10 = transition, 11-19 = story, 20 = final
-    const [choices, setChoices] = useState<Record<number, string>>({});
+    const [currentScreen, setCurrentScreen] = useState(-1);
     const [randomizedQuestions, setRandomizedQuestions] = useState<NetworkQuestion[]>([]);
+    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
 
-    const handleBack = () => {
-        onBack?.();
-    };
-
-    const handleComplete = () => {
-        onComplete();
-    };
-
-    const goBack = () => {
-        if (currentScreen === 1) {
-            setCurrentScreen(0);
-        } else if (currentScreen > 1) {
-            setCurrentScreen(currentScreen - 1);
-        }
-    };
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry: addMorningJournalEntry } = useJournaling('upskilling-pathfinder');
+    const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('upskilling-pathfinder');
+    const [networkChoices, setNetworkChoices] = useStorage<{ [key: string]: string }>('HIDDEN_NETWORK_CHOICES', {});
 
     useEffect(() => {
-        // Randomize questions when component mounts
         const shuffled = [...networkQuestions].sort(() => Math.random() - 0.5);
         setRandomizedQuestions(shuffled);
     }, []);
 
-    const handleChoiceSelect = (questionId: number, choice: string) => {
-        setChoices(prev => ({ ...prev, [questionId]: choice }));
+    const handleStartGame = () => {
+        setCurrentScreen(0);
+        scrollToTop();
+    };
 
-        if (currentScreen < 9) {
-            // Move to next question
-            setTimeout(() => {
-                setCurrentScreen(currentScreen + 1);
-            }, 300);
-        } else {
-            // Move to transition screen
-            setTimeout(() => {
-                setCurrentScreen(10);
-            }, 300);
+    const handleBack = () => {
+        if (onBack) {
+            onBack();
         }
     };
 
-    const getStoryText = (storyIndex: number) => {
+    const goBack = () => {
+        if (currentScreen === -1) {
+            if (onBack) onBack();
+        } else if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen === 1) {
+            setCurrentScreen(0);
+        } else if (currentScreen > 1 && currentScreen <= 19) {
+            setCurrentScreen(currentScreen - 1);
+        }
+        scrollToTop();
+    };
+
+    const handleContinue = async () => {
+        if (selectedOption === null || isTransitioning) return;
+
+        setIsTransitioning(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        const questionIndex = currentScreen - 1;
+        const currentQuestion = randomizedQuestions[questionIndex];
+
+        if (currentQuestion) {
+            const newChoices = { ...networkChoices, [currentQuestion.storyKey]: selectedOption };
+            await setNetworkChoices(newChoices);
+        }
+
+        if (currentScreen < 9) {
+            setCurrentScreen(currentScreen + 1);
+            setSelectedOption(null);
+        } else {
+            setCurrentScreen(11);
+        }
+        scrollToTop();
+        setIsTransitioning(false);
+    };
+
+    const handleContinueStory = () => {
+        if (currentScreen < 19) {
+            setCurrentScreen(currentScreen + 1);
+        } else {
+            onComplete();
+        }
+        scrollToTop();
+    };
+
+    const handleOpenEbook = () => {
+        Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
+    };
+
+    const getStoryText = (screenNumber: number) => {
+        const storyIndex = screenNumber - 11;
         const story = storyScreens[storyIndex];
+        if (!story) return "";
+
         const questionId = randomizedQuestions[storyIndex]?.id;
-        const choice = choices[questionId] || "";
+        const choice = networkChoices[`choice${storyIndex + 1}`] || "";
         return story.text.replace(`{CHOICE_${storyIndex + 1}}`, choice.toLowerCase());
     };
 
-    // Intro Screen
-    if (currentScreen === 0) {
+    // NEW: Intro Screen with Morning Journal
+    if (currentScreen === -1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Hidden Network</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Users size={32} color="#E2DED0" />
-                                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.introTitle}>Your Hidden Network</Text>
+                            <Text style={commonStyles.introTitle}>Your Hidden Network</Text>
 
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introDescription}>
+                                Today we're exploring the incredible network that's already around you, waiting to be discovered and activated for your career transition.
+                            </Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                You'll be surprised at how many connections and resources you already have access to when you know where to look.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="upskilling-pathfinder"
+                                day="4"
+                                category="Career Transitions"
+                                pathTitle="Upskilling Pathfinder"
+                                dayTitle="Your Hidden Network"
+                                journalInstruction="Before we begin exploring your network, let's check in. How are you feeling about your current support system and connections?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Continue" onPress={handleStartGame} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Original Intro Screen (now screen 0)
+    if (currentScreen === 0) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Users size={48} color="#928490" />
+                            </View>
+
+                            <Text style={commonStyles.introTitle}>Your Hidden Network</Text>
+
+                            <Text style={commonStyles.introDescription}>
                                 This is a game of instincts to uncover your hidden network. Choose the answer that makes the most sense for you. There's no right or wrong!
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={() => setCurrentScreen(1)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Start the Game</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Start the Game" onPress={() => setCurrentScreen(1)} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Question Screens (1-9)
+    // Choice Screens (1-9) - UPDATED WITH HIGHLIGHT AND CONTINUE BUTTON
     if (currentScreen >= 1 && currentScreen <= 9) {
         const questionIndex = currentScreen - 1;
-        const question = randomizedQuestions[questionIndex];
+        const currentQuestion = randomizedQuestions[questionIndex];
 
-        if (!question) {
-            return (
-                <View style={styles.container}>
-                    <Text>Loading...</Text>
-                </View>
-            );
-        }
+        if (!currentQuestion) return null;
 
         return (
-            <View style={styles.container}>
-                {/* Sticky Header with Progress */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.progressText}>{currentScreen} of 9</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                    <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${(currentScreen / 9) * 100}%` }]} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader
+                    onBack={goBack}
+                    title={`${currentScreen} of 9`}
+                    progress={currentScreen / 9}
+                />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.choiceCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.choiceButtons}>
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
-                                    onPress={() => handleChoiceSelect(question.id, question.optionA)}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedOption === currentQuestion.optionA && styles.choiceButtonSelected
+                                    ]}
+                                    onPress={() => setSelectedOption(currentQuestion.optionA)}
                                     activeOpacity={0.8}
+                                    disabled={isTransitioning}
                                 >
-                                    <Text style={styles.choiceButtonText}>{question.optionA}</Text>
+                                    <View style={styles.optionContent}>
+                                        {selectedOption === currentQuestion.optionA && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceButtonText,
+                                            selectedOption === currentQuestion.optionA && styles.choiceButtonTextSelected
+                                        ]}>
+                                            {currentQuestion.optionA}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
-                                    onPress={() => handleChoiceSelect(question.id, question.optionB)}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedOption === currentQuestion.optionB && styles.choiceButtonSelected
+                                    ]}
+                                    onPress={() => setSelectedOption(currentQuestion.optionB)}
                                     activeOpacity={0.8}
+                                    disabled={isTransitioning}
                                 >
-                                    <Text style={styles.choiceButtonText}>{question.optionB}</Text>
+                                    <View style={styles.optionContent}>
+                                        {selectedOption === currentQuestion.optionB && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceButtonText,
+                                            selectedOption === currentQuestion.optionB && styles.choiceButtonTextSelected
+                                        ]}>
+                                            {currentQuestion.optionB}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={selectedOption === null || isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Transition Screen
+    // Transition Screen (now screen 10)
     if (currentScreen === 10) {
         return (
-            <View style={styles.container}>
-                <View style={styles.storyBackground}>
-                    <View style={styles.storyBackgroundPattern} />
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Hidden Network</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
-
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.storyCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.storyTitleContainer}>
                                 <Text style={styles.storyTitle}>Explore Your Hidden Network</Text>
                                 <View style={styles.titleUnderline} />
                             </View>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
+                            <PrimaryButton
+                                title="Continue"
                                 onPress={() => setCurrentScreen(11)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -305,72 +415,58 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
 
     // Story Screens (11-19)
     if (currentScreen >= 11 && currentScreen <= 19) {
-        const storyIndex = currentScreen - 11;
-        const storyText = getStoryText(storyIndex);
+        const storyText = getStoryText(currentScreen);
+        const isFinal = currentScreen === 19;
 
         return (
-            <View style={styles.container}>
-                <View style={styles.storyBackground}>
-                    <View style={styles.storyBackgroundPattern} />
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Hidden Network</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
-
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.storyCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <View style={styles.storyTextContainer}>
                                 <Text style={styles.storyText}>{storyText}</Text>
                             </View>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={() => setCurrentScreen(currentScreen + 1)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton
+                                title={isFinal ? 'Complete Journey' : 'Continue'}
+                                onPress={handleContinueStory}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Final Screen
+    // Final Screen (now screen 20) with End of Day Journal
     if (currentScreen === 20) {
         return (
-            <View style={styles.container}>
-                <View style={styles.storyBackground}>
-                    <View style={styles.storyBackgroundPattern} />
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Hidden Network</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Users size={48} color="#928490" />
+                            </View>
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.storyCard}>
                             <View style={styles.finalHeader}>
                                 <Users size={24} color="#928490" />
                                 <Text style={styles.finalHeading}>Your Hidden Network</Text>
@@ -383,21 +479,35 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
                                 </Text>
                             </View>
 
+                            {/* Ebook Callout */}
+                            <View style={styles.ebookCard}>
+                                <Text style={styles.ebookTitle}>Expand Your Network Further</Text>
+                                <Text style={styles.ebookDescription}>
+                                    If you'd like to learn more about building meaningful professional connections, our book "How to Pivot" offers networking strategies tailored for dancers.
+                                </Text>
+                                <PrimaryButton
+                                    title="Learn More"
+                                    onPress={handleOpenEbook}
+                                    style={styles.ebookButton}
+                                />
+                            </View>
+
+                            <JournalEntrySection
+                                pathTag="upskilling-pathfinder"
+                                journalInstruction="Before we complete today's session, let's reflect on your network discoveries. How has your perspective on your support system changed?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
                             <Text style={styles.alternativeClosing}>
                                 See you tomorrow!
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
+                            <PrimaryButton
+                                title="Mark As Complete"
                                 onPress={onComplete}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -408,162 +518,6 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    storyBackground: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 0,
-    },
-    storyBackgroundPattern: {
-        flex: 1,
-        opacity: 0.03,
-        backgroundColor: '#928490',
-        transform: [{ rotate: '45deg' }, { scale: 1.5 }],
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-        zIndex: 1,
-    },
-    centeredContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: height - 200,
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-        fontStyle: 'italic',
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choiceCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
     choiceButtons: {
         gap: 20,
     },
@@ -576,24 +530,35 @@ const styles = StyleSheet.create({
         minHeight: 80,
         justifyContent: 'center',
     },
+    choiceButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
+    },
     choiceButtonText: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#4E4F50',
         textAlign: 'center',
     },
-    storyCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
+    choiceButtonTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
+    },
+    optionContent: {
+        paddingRight: 40,
+    },
+    selectedIndicator: {
+        position: 'absolute',
+        top: '50%',
+        right: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
+        transform: [{ translateY: -12 }],
     },
     storyTitleContainer: {
         alignItems: 'center',
@@ -626,37 +591,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 28,
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-        minWidth: width * 0.5,
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    alternativeClosing: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 32,
-        marginTop: 20,
-        fontWeight: '600',
-    },
     finalHeader: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -670,5 +604,42 @@ const styles = StyleSheet.create({
         color: '#647C90',
         textAlign: 'center',
         fontWeight: '700',
+    },
+    ebookCard: {
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 32,
+        borderLeftWidth: 4,
+        borderLeftColor: '#928490',
+        width: '100%',
+    },
+    ebookTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
+    },
+    ebookDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: 20,
+    },
+    ebookButton: {
+        alignSelf: 'center',
+    },
+    alternativeClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
+        marginTop: 0,
+        fontWeight: '600',
     },
 });

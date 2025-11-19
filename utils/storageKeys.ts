@@ -7,5 +7,7 @@ export const STORAGE_KEYS = {
     ROLEPLAY_SCENARIO_CHOICE: 'roleplayScenarioChoice',
     VALUES_DISCOVERY_RESULT: 'valuesDiscoveryResult',
     STARVING_ARTIST_MATCHED_PAIRS: 'starvingArtistrMatchedPairs',
-    BEYOND_IDENTITY_MATCHED_PAIRS: 'beyongIdentityrMatchedPairs'
+    BEYOND_IDENTITY_MATCHED_PAIRS: 'beyongIdentityrMatchedPairs',
+    STRENGTH_MATCHED_PAIRS: 'strengthMatchedPairs',
+    DEAL_BREAKER_MATCHED_PAIRS: 'dealBreakerMatchedPairs'
 };
