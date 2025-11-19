@@ -4,6 +4,7 @@ import { ChevronRight, Sparkles, ArrowLeft } from 'lucide-react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { useJournaling } from '@/utils/hooks/useJournaling';
+import { useStorage } from '@/hooks/useStorage';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
@@ -101,12 +102,12 @@ const getStoryMapping = (choice: string): string => {
 
 export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameProps) {
   const [currentScreen, setCurrentScreen] = useState(-1);
-  const [choices, setChoices] = useState<{ [key: string]: string }>({});
   const [randomizedChoices, setRandomizedChoices] = useState<DreamChoice[]>([]);
 
   const { scrollViewRef, scrollToTop } = useScrollToTop();
   const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
   const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
+  const [dreamBiggerChoices, setDreamBiggerChoices] = useStorage<{ [key: string]: string }>('DREAM_BIGGER_CHOICES', {});
 
   useEffect(() => {
     const shuffled = [...dreamChoices].sort(() => Math.random() - 0.5);
@@ -137,9 +138,9 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
     scrollToTop();
   };
 
-  const handleChoice = (choiceKey: string, selectedOption: string) => {
-    const newChoices = { ...choices, [choiceKey]: selectedOption };
-    setChoices(newChoices);
+  const handleChoice = async (choiceKey: string, selectedOption: string) => {
+    const newChoices = { ...dreamBiggerChoices, [choiceKey]: selectedOption };
+    await setDreamBiggerChoices(newChoices);
 
     if (currentScreen < 10) {
       setCurrentScreen(currentScreen + 1);
@@ -169,15 +170,15 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
       case 12:
         return "Explore Your Dream Life";
       case 13:
-        return `You wake up in your ${choices.home?.toLowerCase()} to the ${choices.purpose === 'Start a family' ? 'sound of happy kids running around' : 'notification that more sales from your business came through overnight'}.`;
+        return `You wake up in your ${dreamBiggerChoices.home?.toLowerCase()} to the ${dreamBiggerChoices.purpose === 'Start a family' ? 'sound of happy kids running around' : 'notification that more sales from your business came through overnight'}.`;
       case 14:
-        return `${choices.schedule === 'Work part time' ? 'You work part-time' : 'You\'re on track to retire early'} and you relax at the thought of your ${choices.work?.toLowerCase()} knowing that your ${getStoryMapping(choices.hobby || '').toLowerCase()} are going to be the most challenging part of your day.`;
+        return `${dreamBiggerChoices.schedule === 'Work part time' ? 'You work part-time' : 'You\'re on track to retire early'} and you relax at the thought of your ${dreamBiggerChoices.work?.toLowerCase()} knowing that your ${getStoryMapping(dreamBiggerChoices.hobby || '').toLowerCase()} are going to be the most challenging part of your day.`;
       case 15:
-        return `You head ${choices.luxury === 'Personal chef' ? 'downstairs to eat your chef-prepared breakfast' : 'to your closet and pick out another custom piece from your wardrobe'} and start the day on your terms.`;
+        return `You head ${dreamBiggerChoices.luxury === 'Personal chef' ? 'downstairs to eat your chef-prepared breakfast' : 'to your closet and pick out another custom piece from your wardrobe'} and start the day on your terms.`;
       case 16:
-        return `Your to-do list involves organizing ${choices.lifestyle === 'Travel the world' ? 'next week\'s travel plans' : 'renovations for your forever home'}, training for that upcoming ${getStoryMapping(choices.wellness || '').toLowerCase()}, and deciding ${choices.giving === 'Donate to charity' ? 'which charity to donate to this month' : 'when you\'re meeting up with your parents now that you helped them retire too'}.`;
+        return `Your to-do list involves organizing ${dreamBiggerChoices.lifestyle === 'Travel the world' ? 'next week\'s travel plans' : 'renovations for your forever home'}, training for that upcoming ${getStoryMapping(dreamBiggerChoices.wellness || '').toLowerCase()}, and deciding ${dreamBiggerChoices.giving === 'Donate to charity' ? 'which charity to donate to this month' : 'when you\'re meeting up with your parents now that you helped them retire too'}.`;
       case 17:
-        return `And tonight, you're off ${choices.entertainment === 'Season tickets to the theatre' ? 'to the theater with season tickets' : 'to workshop a new show you\'re creating which opens next month'}. Life's good.`;
+        return `And tonight, you're off ${dreamBiggerChoices.entertainment === 'Season tickets to the theatre' ? 'to the theater with season tickets' : 'to workshop a new show you\'re creating which opens next month'}. Life's good.`;
       default:
         return "";
     }

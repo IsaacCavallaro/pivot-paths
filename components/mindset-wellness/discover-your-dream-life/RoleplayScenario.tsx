@@ -4,6 +4,8 @@ import { X, Check } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useStorage } from '@/hooks/useStorage';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { Card } from '@/utils/ui-components/Card';
@@ -19,11 +21,11 @@ interface RoleplayScenarioProps {
 
 export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenarioProps) {
   const [currentScreen, setCurrentScreen] = useState(-1);
-  const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
 
   const { scrollViewRef, scrollToTop } = useScrollToTop();
+  const [selectedChoice, setSelectedChoice] = useStorage<number | null>('ROLEPLAY_SCENARIO_CHOICE', null);
 
   const handleStartRoleplay = () => {
     setCurrentScreen(0);
@@ -49,8 +51,8 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     scrollToTop();
   };
 
-  const handleChoiceSelect = (choiceNumber: number) => {
-    setSelectedChoice(choiceNumber);
+  const handleChoiceSelect = async (choiceNumber: number) => {
+    await setSelectedChoice(choiceNumber);
     scrollToTop();
   };
 

@@ -6,7 +6,6 @@ import {
     TextInput,
     TouchableOpacity,
     Alert,
-    FlatList,
     Modal,
     ScrollView,
     KeyboardAvoidingView,
@@ -20,16 +19,11 @@ import {
     Trash2,
     Search,
     X,
-    Smile,
-    Frown,
-    Meh,
-    Laugh,
-    Angry,
-    Heart,
-    ChevronDown,
     Filter,
-    Calendar
+    Meh,
 } from 'lucide-react-native';
+import { JournalEntrySection } from '../../utils/ui-components/JournalEntrySection';
+import { MOOD_OPTIONS } from '../../utils/constants';
 
 interface JournalEntry {
     id: string;
@@ -40,55 +34,14 @@ interface JournalEntry {
     timestamp: number;
 }
 
-const MOOD_OPTIONS = [
-    { id: 'angry', label: 'Angry', icon: Angry, color: '#DC2626' },
-    { id: 'sad', label: 'Sad', icon: Frown, color: '#2563EB' },
-    { id: 'neutral', label: 'Neutral', icon: Meh, color: '#CA8A04' },
-    { id: 'happy', label: 'Happy', icon: Smile, color: '#16A34A' },
-    { id: 'excited', label: 'Excited', icon: Laugh, color: '#7C3AED' },
-    { id: 'loved', label: 'Loved', icon: Heart, color: '#DB2777' },
-];
-
-const GUIDED_PROMPTS = {
-    'personal': [
-        "What are you grateful for today?",
-        "What challenged you today and how did you overcome it?",
-        "What did you learn about yourself today?",
-        "What would make tomorrow even better?",
-    ],
-    'career': [
-        "What professional accomplishment are you proud of today?",
-        "What skill did you develop or practice today?",
-        "How did you contribute to your team or goals today?",
-        "What career insight did you gain today?",
-    ],
-    'wellness': [
-        "How did you nurture your physical health today?",
-        "What did you do for your mental wellbeing today?",
-        "How did you practice self-care today?",
-        "What healthy habit did you reinforce today?",
-    ],
-    'relationships': [
-        "How did you connect with someone important today?",
-        "What act of kindness did you give or receive today?",
-        "How did you strengthen a relationship today?",
-        "What communication skill did you practice today?",
-    ]
-};
-
 export default function EnhancedJournalScreen() {
     const [entries, setEntries] = useState<JournalEntry[]>([]);
-    const [newEntryContent, setNewEntryContent] = useState('');
-    const [selectedMood, setSelectedMood] = useState<string | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearch, setShowSearch] = useState(false);
     const [filteredEntries, setFilteredEntries] = useState<JournalEntry[]>([]);
-    const [currentPrompts, setCurrentPrompts] = useState<string[]>([]);
-    const [selectedPath, setSelectedPath] = useState('personal');
     const [showWriteMode, setShowWriteMode] = useState(false);
-    const [showPrompts, setShowPrompts] = useState(false);
     const [filterMood, setFilterMood] = useState<string | null>(null);
     const [showFilters, setShowFilters] = useState(false);
     const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
@@ -126,10 +79,6 @@ export default function EnhancedJournalScreen() {
         applyFilters();
     }, [searchQuery, entries, filterMood]);
 
-    useEffect(() => {
-        updatePrompts(selectedPath);
-    }, [selectedPath]);
-
     const applyFilters = () => {
         let filtered = [...entries];
 
@@ -147,52 +96,6 @@ export default function EnhancedJournalScreen() {
         }
 
         setFilteredEntries(filtered);
-    };
-
-    const updatePrompts = (path: string) => {
-        const prompts = GUIDED_PROMPTS[path as keyof typeof GUIDED_PROMPTS] || GUIDED_PROMPTS.personal;
-        setCurrentPrompts(prompts);
-    };
-
-    const addEntry = async () => {
-        const trimmed = newEntryContent.trim();
-        if (!trimmed) {
-            Alert.alert('Empty Entry', 'Please write something before adding.');
-            return;
-        }
-
-        const newEntry: JournalEntry = {
-            id: Date.now().toString(),
-            pathTag: selectedPath,
-            day: 0, // For manual entries, day is 0
-            content: trimmed,
-            mood: selectedMood,
-            timestamp: Date.now(),
-        };
-
-        try {
-            // Update local state
-            const updatedEntries = [newEntry, ...entries];
-            setEntries(updatedEntries);
-
-            // Save to AsyncStorage
-            await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
-
-            // Reset form
-            setNewEntryContent('');
-            setSelectedMood(null);
-            setShowWriteMode(false);
-            setShowPrompts(false);
-
-            Alert.alert('Success', 'Journal entry added!');
-        } catch (error) {
-            console.error('Error saving journal entry:', error);
-            Alert.alert('Error', 'Failed to save journal entry.');
-        }
-    };
-
-    const usePrompt = (prompt: string) => {
-        setNewEntryContent(prev => prev ? `${prev}\n\n${prompt}` : prompt);
     };
 
     const deleteEntry = (id: string) => {
@@ -288,120 +191,22 @@ export default function EnhancedJournalScreen() {
             >
                 {/* Write Mode Header */}
                 <View style={[styles.header, { backgroundColor: '#647C90' }]}>
-                    <TouchableOpacity onPress={() => setShowWriteMode(false)}>
+                    <TouchableOpacity onPress={() => {
+                        setShowWriteMode(false);
+                        loadEntries(); // This will reload entries when closing
+                    }}>
                         <X size={24} color="#E2DED0" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>New Entry</Text>
-                    <TouchableOpacity onPress={addEntry}>
-                        <Text style={styles.saveText}>Save</Text>
-                    </TouchableOpacity>
                 </View>
 
                 <ScrollView style={styles.writeContent} showsVerticalScrollIndicator={false}>
-                    {/* Path Selection */}
-                    <View style={styles.writeSection}>
-                        <Text style={styles.writeSectionLabel}>Path</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            {Object.keys(GUIDED_PROMPTS).map((path) => (
-                                <TouchableOpacity
-                                    key={path}
-                                    style={[
-                                        styles.writePathButton,
-                                        selectedPath === path && styles.writePathButtonActive
-                                    ]}
-                                    onPress={() => {
-                                        setSelectedPath(path);
-                                        updatePrompts(path);
-                                    }}
-                                >
-                                    <Text style={[
-                                        styles.writePathText,
-                                        selectedPath === path && styles.writePathTextActive
-                                    ]}>
-                                        {formatPathTag(path)}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
-
-                    {/* Mood Selection */}
-                    <View style={styles.writeSection}>
-                        <Text style={styles.writeSectionLabel}>How are you feeling?</Text>
-                        <View style={styles.writeMoodContainer}>
-                            {MOOD_OPTIONS.map((mood) => {
-                                const IconComponent = mood.icon;
-                                return (
-                                    <TouchableOpacity
-                                        key={mood.id}
-                                        style={[
-                                            styles.writeMoodButton,
-                                            selectedMood === mood.id && {
-                                                backgroundColor: mood.color,
-                                            }
-                                        ]}
-                                        onPress={() => setSelectedMood(
-                                            selectedMood === mood.id ? null : mood.id
-                                        )}
-                                    >
-                                        <IconComponent
-                                            size={24}
-                                            color={selectedMood === mood.id ? '#E2DED0' : mood.color}
-                                        />
-                                        <Text style={[
-                                            styles.writeMoodLabel,
-                                            selectedMood === mood.id && { color: '#E2DED0' }
-                                        ]}>
-                                            {mood.label}
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </View>
-                    </View>
-
-                    {/* Prompts Toggle */}
-                    <TouchableOpacity
-                        style={styles.promptsToggle}
-                        onPress={() => setShowPrompts(!showPrompts)}
-                    >
-                        <Text style={styles.promptsToggleText}>
-                            {showPrompts ? 'Hide' : 'Show'} Writing Prompts
-                        </Text>
-                        <ChevronDown
-                            size={20}
-                            color="#647C90"
-                            style={{ transform: [{ rotate: showPrompts ? '180deg' : '0deg' }] }}
-                        />
-                    </TouchableOpacity>
-
-                    {/* Prompts List */}
-                    {showPrompts && (
-                        <View style={styles.promptsList}>
-                            {currentPrompts.map((prompt, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    style={styles.writePromptButton}
-                                    onPress={() => usePrompt(prompt)}
-                                >
-                                    <Text style={styles.writePromptText}>{prompt}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
-
-                    {/* Text Input */}
-                    <View style={styles.writeInputContainer}>
-                        <TextInput
-                            style={styles.writeTextInput}
-                            placeholder="Start writing your thoughts..."
-                            placeholderTextColor="#928490"
-                            multiline
-                            value={newEntryContent}
-                            onChangeText={setNewEntryContent}
-                            autoFocus
-                        />
-                    </View>
+                    <JournalEntrySection
+                        pathTag="general" // Default pathTag for manual entries
+                        journalInstruction="Reflect on your day, thoughts, or experiences."
+                        moodLabel="How are you feeling?"
+                        saveButtonText="Add Entry"
+                    />
                 </ScrollView>
             </KeyboardAvoidingView>
         );
@@ -807,105 +612,12 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 8,
     },
-    // Write Mode Styles
+    // Modal Styles
     writeContent: {
         flex: 1,
         paddingHorizontal: 20,
         paddingTop: 20,
     },
-    writeSection: {
-        marginBottom: 24,
-    },
-    writeSectionLabel: {
-        fontSize: 16,
-        color: '#647C90',
-        fontWeight: '600',
-        marginBottom: 12,
-    },
-    writePathButton: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 20,
-        backgroundColor: '#F5F5F5',
-        marginRight: 12,
-    },
-    writePathButtonActive: {
-        backgroundColor: '#647C90',
-    },
-    writePathText: {
-        fontSize: 14,
-        color: '#647C90',
-        fontWeight: '600',
-    },
-    writePathTextActive: {
-        color: '#E2DED0',
-    },
-    writeMoodContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-    },
-    writeMoodButton: {
-        flex: 1,
-        minWidth: '30%',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#F5F5F5',
-        paddingVertical: 16,
-        borderRadius: 12,
-        gap: 8,
-    },
-    writeMoodLabel: {
-        fontSize: 12,
-        color: '#4E4F50',
-        fontWeight: '500',
-    },
-    promptsToggle: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: '#F5F5F5',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-    },
-    promptsToggleText: {
-        fontSize: 15,
-        color: '#647C90',
-        fontWeight: '600',
-    },
-    promptsList: {
-        gap: 12,
-        marginBottom: 24,
-    },
-    writePromptButton: {
-        backgroundColor: '#F5F5F5',
-        padding: 16,
-        borderRadius: 12,
-        borderLeftWidth: 3,
-        borderLeftColor: '#647C90',
-    },
-    writePromptText: {
-        fontSize: 14,
-        color: '#4E4F50',
-        lineHeight: 20,
-    },
-    writeInputContainer: {
-        backgroundColor: '#F5F5F5',
-        borderRadius: 16,
-        padding: 16,
-        minHeight: 200,
-        marginBottom: 30,
-    },
-    writeTextInput: {
-        fontSize: 16,
-        color: '#4E4F50',
-        lineHeight: 24,
-        minHeight: 150,
-        textAlignVertical: 'top',
-    },
-    // Modal Styles
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',

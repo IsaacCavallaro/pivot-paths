@@ -11,7 +11,6 @@ import {
     Alert
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     ArrowLeft,
     TrendingUp,
@@ -25,6 +24,11 @@ import {
     ChevronRight
 } from 'lucide-react-native';
 import { PieChart } from 'react-native-svg-charts';
+
+import { useStorage } from '@/hooks/useStorage';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
+import { storageService } from '@/utils/storageService';
+import { MOOD_OPTIONS } from '@/utils/constants';
 
 interface JournalEntry {
     id: string;
@@ -48,6 +52,22 @@ interface CompletedPath {
     completionDate: number;
 }
 
+// Add interfaces for the quiz results
+interface DreamerResult {
+    type: string;
+    title: string;
+    description: string;
+    subtitle: string;
+    color: string;
+}
+
+interface ValuesResult {
+    primaryValue: string;
+    title: string;
+    description: string;
+    color: string;
+}
+
 const screenWidth = Dimensions.get('window').width;
 
 // Helper functions moved outside to avoid initialization issues
@@ -59,28 +79,19 @@ const formatPathTag = (pathTag: string): string => {
         .join(' ');
 };
 
-const getMoodEmoji = (mood: string): string => {
-    const emojiMap: { [key: string]: string } = {
-        angry: '😠',
-        sad: '😢',
-        neutral: '😐',
-        happy: '😊',
-        excited: '😄',
-        loved: '❤️'
-    };
-    return emojiMap[mood] || '😐';
+const getMoodIcon = (mood: string) => {
+    const moodOption = MOOD_OPTIONS.find(m => m.id === mood);
+    return moodOption ? moodOption.icon : null;
 };
 
 const getMoodColor = (mood: string): string => {
-    const colorMap: { [key: string]: string } = {
-        angry: '#DC2626',
-        sad: '#2563EB',
-        neutral: '#CA8A04',
-        happy: '#16A34A',
-        excited: '#7C3AED',
-        loved: '#DB2777'
-    };
-    return colorMap[mood] || '#928490';
+    const moodOption = MOOD_OPTIONS.find(m => m.id === mood);
+    return moodOption ? moodOption.color : '#928490';
+};
+
+const getMoodLabel = (mood: string): string => {
+    const moodOption = MOOD_OPTIONS.find(m => m.id === mood);
+    return moodOption ? moodOption.label : 'Neutral';
 };
 
 export default function ReportsScreen() {
@@ -92,6 +103,13 @@ export default function ReportsScreen() {
     const [completedDays, setCompletedDays] = useState(0);
     const [completedPaths, setCompletedPaths] = useState<CompletedPath[]>([]);
     const [selectedPath, setSelectedPath] = useState<CompletedPath | null>(null);
+
+    // State variables for quiz results - with proper typing
+    const [dreamBiggerChoices, setDreamBiggerChoices] = useState<{ [key: string]: string }>({});
+    const [mythBusterMatchedPairs, setMythBusterMatchedPairs] = useState<number[]>([]);
+    const [skillsQuizResult, setSkillsQuizResult] = useState<DreamerResult | null>(null);
+    const [roleplayScenarioChoice, setRoleplayScenarioChoice] = useState<string | null>(null);
+    const [valuesDiscoveryResult, setValuesDiscoveryResult] = useState<ValuesResult | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -114,8 +132,8 @@ export default function ReportsScreen() {
             const pathId = 'discover-dream-life';
             const progressKey = `${categoryId}_${pathId}`;
 
-            const savedProgress = await AsyncStorage.getItem('pathProgress');
-            const progressData = savedProgress ? JSON.parse(savedProgress) : {};
+            const savedProgress = await storageService.load<Record<string, number>>(STORAGE_KEYS.PATH_PROGRESS);
+            const progressData = savedProgress || {};
             const currentCompletedDays = progressData[progressKey] || 0;
             setCompletedDays(currentCompletedDays);
 
@@ -124,9 +142,10 @@ export default function ReportsScreen() {
 
             // Load all completed paths
             const completedPathsList: CompletedPath[] = [];
-            Object.entries(progressData).forEach(([key, days]) => {
+            Object.entries(progressData).forEach(([key, daysValue]) => {
                 const [catId, pathId] = key.split('_');
                 const totalDays = 7; // Assuming all paths have 7 days for now
+                const days = daysValue as number; // Explicitly cast to number
                 if (days >= totalDays) {
                     completedPathsList.push({
                         categoryId: catId,
@@ -141,10 +160,35 @@ export default function ReportsScreen() {
             setCompletedPaths(completedPathsList);
 
             // Load journal entries
-            const raw = await AsyncStorage.getItem('journalEntries');
-            if (raw) {
-                const parsedEntries = JSON.parse(raw);
-                setJournalEntries(parsedEntries);
+            const rawEntries = await storageService.load<JournalEntry[]>(STORAGE_KEYS.JOURNAL_ENTRIES);
+            if (rawEntries) {
+                setJournalEntries(rawEntries);
+            }
+
+            // Load additional data from STORAGE_KEYS
+            const loadedDreamBiggerChoices = await storageService.load<{ [key: string]: string }>(STORAGE_KEYS.DREAM_BIGGER_CHOICES);
+            if (loadedDreamBiggerChoices) {
+                setDreamBiggerChoices(loadedDreamBiggerChoices);
+            }
+
+            const loadedMythBusterMatchedPairs = await storageService.load<number[]>(STORAGE_KEYS.MYTH_BUSTER_MATCHED_PAIRS);
+            if (loadedMythBusterMatchedPairs) {
+                setMythBusterMatchedPairs(loadedMythBusterMatchedPairs);
+            }
+
+            const loadedSkillsQuizResult = await storageService.load<DreamerResult>(STORAGE_KEYS.DAY1_SKILLS_QUIZ_RESULT);
+            if (loadedSkillsQuizResult) {
+                setSkillsQuizResult(loadedSkillsQuizResult);
+            }
+
+            const loadedRoleplayScenarioChoice = await storageService.load<string>(STORAGE_KEYS.ROLEPLAY_SCENARIO_CHOICE);
+            if (loadedRoleplayScenarioChoice) {
+                setRoleplayScenarioChoice(loadedRoleplayScenarioChoice);
+            }
+
+            const loadedValuesDiscoveryResult = await storageService.load<ValuesResult>(STORAGE_KEYS.VALUES_DISCOVERY_RESULT);
+            if (loadedValuesDiscoveryResult) {
+                setValuesDiscoveryResult(loadedValuesDiscoveryResult);
             }
 
             setLoading(false);
@@ -276,35 +320,75 @@ export default function ReportsScreen() {
 
     const exportReport = async () => {
         try {
+            // Build mood distribution section
+            const moodDistributionText = Object.entries(insights.moodStats).length > 0
+                ? `Mood Distribution:\n${Object.entries(insights.moodStats)
+                    .map(([mood, count]) => `${getMoodLabel(mood)}: ${count} entries (${((count / insights.totalEntries) * 100).toFixed(0)}%)`)
+                    .join('\n')}`
+                : 'Mood Distribution: No data available';
+
+            // Build dreamer profile section
+            const dreamerProfileText = skillsQuizResult || valuesDiscoveryResult
+                ? `\n${skillsQuizResult ? `Dreamer Type: ${skillsQuizResult.title}\n${skillsQuizResult.description}` : ''}${valuesDiscoveryResult ? `\nCore Values: ${valuesDiscoveryResult.title}\n${valuesDiscoveryResult.description}` : ''}`
+                : ' No data available';
+
             const reportText = `
 Your Journal Insights Report - ${selectedPath?.pathName || 'All Journeys'}
 ============================
 
-Total Entries: ${insights.totalEntries}
-Categories: ${insights.pathCount}
-Most Common Mood: ${insights.mostCommonMood}
-Average Entry Length: ${insights.avgLength} characters
+${moodDistributionText}
 
-Mood Distribution:
-${Object.entries(insights.moodStats)
-                    .map(([mood, count]) => `${getMoodEmoji(mood)} ${mood}: ${count} entries (${((count / insights.totalEntries) * 100).toFixed(0)}%)`)
-                    .join('\n')}
+${dreamerProfileText}
 
-Entries by Category:
-${Object.entries(insights.entriesByPath)
-                    .map(([path, entries]) => `${formatPathTag(path)}: ${entries.length} entries`)
-                    .join('\n')}
-
-Keep up the great work on your journaling journey! 📝✨
-            `.trim();
+Keep up the great work on your pivot journey!
+        `.trim();
 
             await Share.share({
                 message: reportText,
-                title: `My ${selectedPath?.pathName || 'Journal'} Insights Report`
+                title: `${selectedPath?.pathName || 'Journal'} Insights Report`
             });
         } catch (error) {
             Alert.alert('Error', 'Failed to export report');
         }
+    };
+
+    const renderDreamerProfile = () => {
+        if (!skillsQuizResult && !valuesDiscoveryResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    {/* Skills Quiz Result */}
+                    {skillsQuizResult && (
+                        <View style={styles.quizResultSection}>
+                            <Text style={styles.profileSectionTitle}>Dreamer Type</Text>
+                            <View style={[styles.resultCard, { borderLeftColor: skillsQuizResult.color || '#928490' }]}>
+                                <Text style={styles.resultTitle}>{skillsQuizResult.title}</Text>
+                                <Text style={styles.resultDescription}>{skillsQuizResult.description}</Text>
+                                {skillsQuizResult.subtitle && (
+                                    <View style={styles.subtitleContainer}>
+                                        <Text style={styles.resultSubtitle}>{skillsQuizResult.subtitle}</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                    )}
+
+                    {/* Values Discovery Result */}
+                    {valuesDiscoveryResult && (
+                        <View style={styles.quizResultSection}>
+                            <Text style={styles.profileSectionTitle}>Core Values</Text>
+                            <View style={[styles.resultCard, { borderLeftColor: valuesDiscoveryResult.color || '#647C90' }]}>
+                                <Text style={styles.resultTitle}>{valuesDiscoveryResult.title}</Text>
+                                <Text style={styles.resultDescription}>{valuesDiscoveryResult.description}</Text>
+                            </View>
+                        </View>
+                    )}
+                </View>
+            </View>
+        );
     };
 
     if (loading) {
@@ -348,7 +432,7 @@ Keep up the great work on your journaling journey! 📝✨
                     <Sparkles size={64} color="#928490" />
                     <Text style={styles.emptyTitle}>Complete Your Path</Text>
                     <Text style={styles.emptyText}>
-                        Finish the "Discover Your Dream Life" path to unlock your personalized journal insights report.
+                        Complete a path to unlock your personalized journal insights report.
                     </Text>
                     <View style={styles.progressContainer}>
                         <View style={styles.progressBar}>
@@ -398,7 +482,6 @@ Keep up the great work on your journaling journey! 📝✨
                     }
                 >
                     <View style={styles.content}>
-
                         {/* Mood Analysis */}
                         {Object.keys(insights.moodStats).length > 0 && (
                             <View style={styles.card}>
@@ -435,7 +518,7 @@ Keep up the great work on your journaling journey! 📝✨
                                                         ]}
                                                     />
                                                     <Text style={styles.legendText}>
-                                                        {mood.charAt(0).toUpperCase() + mood.slice(1)} ({count})
+                                                        {getMoodLabel(mood)} ({count})
                                                     </Text>
                                                 </View>
                                             ))}
@@ -446,54 +529,44 @@ Keep up the great work on your journaling journey! 📝✨
                                 {/* Detailed Mood Stats */}
                                 <View style={styles.moodContainer}>
                                     <Text style={styles.dominantMood}>
-                                        Most Common Mood: {getMoodEmoji(insights.mostCommonMood)} {insights.mostCommonMood.charAt(0).toUpperCase() + insights.mostCommonMood.slice(1)}
+                                        Most Common Mood: {getMoodLabel(insights.mostCommonMood)}
                                     </Text>
                                     <View style={styles.moodList}>
                                         {Object.entries(insights.moodStats)
                                             .sort((a, b) => b[1] - a[1])
-                                            .map(([mood, count]) => (
-                                                <View key={mood} style={styles.moodItem}>
-                                                    <Text style={styles.moodEmoji}>{getMoodEmoji(mood)}</Text>
-                                                    <Text style={styles.moodName}>
-                                                        {mood.charAt(0).toUpperCase() + mood.slice(1)}
-                                                    </Text>
-                                                    <View style={styles.moodBar}>
-                                                        <View
-                                                            style={[
-                                                                styles.moodBarFill,
-                                                                {
-                                                                    width: `${(count / insights.totalEntries) * 100}%`,
-                                                                    backgroundColor: getMoodColor(mood)
-                                                                }
-                                                            ]}
-                                                        />
+                                            .map(([mood, count]) => {
+                                                const MoodIcon = getMoodIcon(mood);
+                                                return (
+                                                    <View key={mood} style={styles.moodItem}>
+                                                        {MoodIcon && <MoodIcon size={20} color={getMoodColor(mood)} />}
+                                                        <Text style={styles.moodName}>
+                                                            {getMoodLabel(mood)}
+                                                        </Text>
+                                                        <View style={styles.moodBar}>
+                                                            <View
+                                                                style={[
+                                                                    styles.moodBarFill,
+                                                                    {
+                                                                        width: `${(count / insights.totalEntries) * 100}%`,
+                                                                        backgroundColor: getMoodColor(mood)
+                                                                    }
+                                                                ]}
+                                                            />
+                                                        </View>
+                                                        <Text style={styles.moodCount}>{count}</Text>
+                                                        <Text style={styles.moodPercentage}>
+                                                            {((count / insights.totalEntries) * 100).toFixed(0)}%
+                                                        </Text>
                                                     </View>
-                                                    <Text style={styles.moodCount}>{count}</Text>
-                                                    <Text style={styles.moodPercentage}>
-                                                        {((count / insights.totalEntries) * 100).toFixed(0)}%
-                                                    </Text>
-                                                </View>
-                                            ))}
+                                                );
+                                            })}
                                     </View>
                                 </View>
                             </View>
                         )}
 
-                        {/* Writing Patterns */}
-                        <View style={styles.card}>
-                            <View style={styles.cardHeader}>
-                                <BarChart3 size={24} color="#647C90" />
-                                <Text style={styles.cardTitle}>Writing Patterns</Text>
-                            </View>
-                            <View style={styles.patternsGrid}>
-                                <View style={styles.patternItem}>
-                                    <Text style={styles.patternValue}>
-                                        {insights.avgLength}
-                                    </Text>
-                                    <Text style={styles.patternLabel}>Average Entry Length</Text>
-                                </View>
-                            </View>
-                        </View>
+                        {/* Dreamer Profile Section */}
+                        {renderDreamerProfile()}
 
                         <View style={styles.exportCard}>
                             <Download size={32} color="#647C90" />
@@ -582,7 +655,6 @@ Keep up the great work on your journaling journey! 📝✨
     );
 }
 
-// ... (styles remain exactly the same)
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -875,15 +947,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
-    moodEmoji: {
-        fontSize: 20,
-        width: 24,
-    },
     moodName: {
         fontSize: 12,
         color: '#4E4F50',
         fontWeight: '500',
-        width: 60,
+        width: 80,
         marginLeft: 8,
     },
     moodBar: {
@@ -1059,5 +1127,125 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         textAlign: 'center',
         lineHeight: 20,
+    },
+    rawDataContainer: {
+        marginTop: 10,
+        backgroundColor: '#E2DED0',
+        borderRadius: 12,
+        padding: 15,
+    },
+    rawDataLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#4E4F50',
+        marginTop: 10,
+        marginBottom: 5,
+    },
+    rawDataContent: {
+        fontSize: 14,
+        color: '#746C70',
+        fontFamily: 'monospace',
+        backgroundColor: '#F5F5F5',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 10,
+    },
+    profileContainer: {
+        marginTop: 10,
+    },
+    profileItem: {
+        marginBottom: 15,
+    },
+    profileLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#4E4F50',
+        marginBottom: 5,
+    },
+    profileValue: {
+        fontSize: 14,
+        color: '#746C70',
+        backgroundColor: '#E2DED0',
+        padding: 10,
+        borderRadius: 8,
+    },
+    valuesList: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: 5,
+    },
+    valueTag: {
+        backgroundColor: '#647C90',
+        color: '#E2DED0',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 16,
+        marginRight: 8,
+        marginBottom: 8,
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    // NEW STYLES FOR QUIZ RESULTS
+    quizResultSection: {
+        marginBottom: 20,
+    },
+    profileSectionTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#647C90',
+        marginBottom: 12,
+    },
+    resultCard: {
+        backgroundColor: '#F8F9FA',
+        borderRadius: 12,
+        padding: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: '#928490',
+        marginBottom: 12,
+    },
+    resultTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#4E4F50',
+        marginBottom: 8,
+    },
+    resultDescription: {
+        fontSize: 14,
+        color: '#746C70',
+        lineHeight: 20,
+        marginBottom: 8,
+    },
+    resultSubtitle: {
+        fontSize: 14,
+        fontStyle: 'italic',
+        color: '#928490',
+        lineHeight: 20,
+    },
+    subtitleContainer: {
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 8,
+        padding: 12,
+        marginTop: 8,
+    },
+    valueTagContainer: {
+        marginTop: 8,
+    },
+    insightSection: {
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 12,
+        padding: 16,
+        marginTop: 16,
+    },
+    insightTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#647C90',
+        marginBottom: 8,
+    },
+    insightText: {
+        fontSize: 14,
+        color: '#4E4F50',
+        lineHeight: 20,
+        fontStyle: 'italic',
     },
 });
