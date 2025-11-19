@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Heart, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { ChevronRight, ArrowLeft, Heart } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { useStorage } from '@/hooks/useStorage';
 
 interface IdentityPair {
     id: number;
@@ -68,13 +75,22 @@ const identityPairs: IdentityPair[] = [
 ];
 
 export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIdentityProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1 = game, 2 = reflection
+    const [currentScreen, setCurrentScreen] = useState(-1);
     const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; pairId: number; type: 'identity' | 'reframe' }>>([]);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
     const [currentPairIndex, setCurrentPairIndex] = useState(0);
     const [showMismatch, setShowMismatch] = useState(false);
-    const [animatedValues] = useState(() => new Map());
+
+    const [identityMatchedPairs, setIdentityMatchedPairs] = useStorage<number[]>('BEYOND_IDENTITY_MATCHED_PAIRS', []);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+
+    // Ensure identityMatchedPairs is always an array
+    const matchedPairs = Array.isArray(identityMatchedPairs) ? identityMatchedPairs : [];
+
+    useEffect(() => {
+        scrollToTop();
+    }, [currentScreen]);
 
     const handleBack = () => {
         onBack?.();
@@ -84,12 +100,23 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
         onComplete();
     };
 
-    const goBack = () => {
-        if (currentScreen === 1) {
+    const goBack = async () => {
+        if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen === 1) {
             setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        } else if (currentScreen === 2) {
+            await setIdentityMatchedPairs([]);
+            setSelectedItems([]);
+            setCurrentPairIndex(0);
+            setShowMismatch(false);
+            setCurrentScreen(1);
+        } else if (currentScreen === 3) {
+            setCurrentScreen(2);
+        } else if (currentScreen > 3) {
             setCurrentScreen(currentScreen - 1);
         }
+        scrollToTop();
     };
 
     useEffect(() => {
@@ -129,25 +156,25 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
         setCurrentPairIndex(3); // Next pair to add
     };
 
-    const handleItemPress = (itemId: string) => {
+    const handleItemPress = async (itemId: string) => {
         if (selectedItems.includes(itemId) || showMismatch) return;
 
         const newSelected = [...selectedItems, itemId];
         setSelectedItems(newSelected);
 
         if (newSelected.length === 2) {
-            checkMatch(newSelected);
+            await checkMatch(newSelected);
         }
     };
 
-    const checkMatch = (selected: string[]) => {
+    const checkMatch = async (selected: string[]) => {
         const item1 = gameItems.find(item => item.id === selected[0]);
         const item2 = gameItems.find(item => item.id === selected[1]);
 
         if (item1 && item2 && item1.pairId === item2.pairId) {
             // Match found!
             const newMatchedPairs = [...matchedPairs, item1.pairId];
-            setMatchedPairs(newMatchedPairs);
+            await setIdentityMatchedPairs(newMatchedPairs);
 
             // Remove matched items and add new pair if available
             setTimeout(() => {
@@ -229,86 +256,184 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
         }
     };
 
-    // Intro Screen
-    if (currentScreen === 0) {
+    // Welcome Screen with Journal Section
+    if (currentScreen === -1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Beyond Your Identity</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
                                     <Heart size={32} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <Text style={styles.introTitle}>Beyond Your Identity</Text>
+                            <Text style={commonStyles.introTitle}>Welcome to Beyond Your Identity!</Text>
 
-                            <Text style={styles.introDescription}>
-                                You are more than what you do and more than what you've done. Match each identity-rooted phrase with a reminder that you can just be you… no identity needed.
+                            <Text style={commonStyles.introDescription}>
+                                You are more than what you do and more than what you've done. Our identities can sometimes limit how we see ourselves and our potential.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={() => setCurrentScreen(1)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Start the Game</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={commonStyles.introDescription}>
+                                Today, we're exploring how to separate who you are from what you do, creating space for more authentic self-expression.
+                            </Text>
+
+                            <View style={styles.learningBox}>
+                                <Text style={styles.learningBoxTitle}>What You'll Explore:</Text>
+                                <Text style={styles.learningBoxItem}>• Common identity-based phrases we tell ourselves</Text>
+                                <Text style={styles.learningBoxItem}>• Reframes that expand your sense of self</Text>
+                                <Text style={styles.learningBoxItem}>• How to release limiting identity attachments</Text>
+                            </View>
+
+                            <Text style={styles.welcomeFooter}>
+                                You'll be playing a match game to help you recognize and reframe identity-limiting beliefs.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="mindset-shifts"
+                                day="1"
+                                category="Mindset and Wellness"
+                                pathTitle="Mindset Shifts"
+                                dayTitle="Beyond Your Identity"
+                                journalInstruction="Before we begin, let's take a moment to check in with your current relationship with identity. What roles or labels do you strongly identify with? How do they make you feel?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Continue" onPress={() => setCurrentScreen(0)} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Reflection Screen
-    if (currentScreen === 2) {
+    // Intro Screen
+    if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Reflection</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.reflectionCard}>
-                            <View style={styles.reflectionIconContainer}>
-                                <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Heart size={40} color="#E2DED0" />
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Heart size={32} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <Text style={styles.reflectionTitle}>Let Go of the Identity</Text>
+                            <Text style={commonStyles.introTitle}>Beyond Your Identity</Text>
 
-                            <Text style={styles.reflectionText}>
-                                How did this make you feel? Was it uncomfortable to peel back your identity? Are there some unnecessary layers that you've been holding on to?
+                            <Text style={commonStyles.introDescription}>
+                                Match each identity-rooted phrase with a reminder that you can just be you… no identity needed.
                             </Text>
 
-                            <Text style={styles.reflectionText}>
+                            <PrimaryButton title="Start the Game" onPress={() => setCurrentScreen(1)} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Reflection Screen after Game Completion
+    if (currentScreen === 2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Heart size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={commonStyles.reflectionTitle}>Time for Reflection</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                How did this make you feel? Was it uncomfortable to peel back your identity?
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Are there some unnecessary layers that you've been holding on to?
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                <Text style={styles.reflectionEmphasis}>(If you're having trouble recalling, feel free to go back and play the match game again)</Text>
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="mindset-shifts"
+                                journalInstruction="Consider what life could look like when you free yourself from an identity and just start to be you. Which identity reframes resonated most with you?"
+                                moodLabel=""
+                                saveButtonText="Add to Journal"
+                            />
+
+                            <PrimaryButton title="Continue" onPress={() => setCurrentScreen(3)} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Congratulations Screen with Completion
+    if (currentScreen === 3) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                    <Heart size={32} color="#E2DED0" />
+                                </View>
+                            </View>
+
+                            <Text style={commonStyles.reflectionTitle}>You're Expanding Beyond Identity!</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Remember that you are more than any single role, achievement, or label. Your worth is inherent and doesn't depend on what you do or what others think of you.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
                                 Consider what life could look like when you free yourself from an identity and just start to be you.
                             </Text>
 
@@ -316,17 +441,8 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                                 We'll see you here tomorrow for more.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={handleComplete}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Mark As Complete" onPress={handleComplete} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -335,28 +451,23 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
 
     // Game Screen
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>
-                            {matchedPairs.length}/{identityPairs.length} pairs matched
-                        </Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${(matchedPairs.length / identityPairs.length) * 100}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${matchedPairs.length}/${identityPairs.length} pairs matched`}
+                progress={matchedPairs.length / identityPairs.length}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.content}>
-                    <View style={styles.gameCard}>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={commonStyles.baseCard}>
                         <Text style={styles.gameTitle}>Beyond Your Identity</Text>
                         <Text style={styles.gameInstructions}>
                             Tap to match identity phrases with their reframes
@@ -407,7 +518,7 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                                 ))}
                             </View>
                         </View>
-                    </View>
+                    </Card>
                 </View>
             </ScrollView>
         </View>
@@ -415,82 +526,39 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
+    // Welcome Screen Styles
+    learningBox: {
         width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(146, 132, 144, 0.2)',
     },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
+    learningBoxTitle: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        marginBottom: 12,
+        fontWeight: '600',
     },
-    introCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    learningBoxItem: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 24,
+        marginBottom: 8,
     },
-    introIconContainer: {
-        marginBottom: 24,
+    welcomeFooter: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 30,
+        lineHeight: 22,
     },
+    // Icon Styles
     introIconGradient: {
         width: 80,
         height: 80,
@@ -502,54 +570,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 8,
     },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 15,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#928490',
-        textAlign: 'center',
-        marginBottom: 40,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    gameCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+    // Game Styles
     gameTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -623,76 +644,16 @@ const styles = StyleSheet.create({
     mismatchButtonText: {
         color: '#dc3545',
     },
-    reflectionCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    reflectionIconContainer: {
-        marginBottom: 30,
-    },
-    reflectionIconGradient: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    reflectionTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 30,
-        fontWeight: '700',
-    },
-    reflectionText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
+    reflectionEmphasis: {
+        fontStyle: 'italic',
+        color: '#928490',
     },
     reflectionClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
-        fontWeight: '600',
-    },
-    completeButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        marginBottom: 10,
         fontWeight: '600',
     },
 });
