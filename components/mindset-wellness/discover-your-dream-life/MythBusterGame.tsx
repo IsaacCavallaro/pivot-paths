@@ -319,12 +319,6 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                     <Text style={[styles.learningBoxTitle, { color: day1SkillsQuizResult.color }]}>
                       {day1SkillsQuizResult.title}
                     </Text>
-                    <Text style={styles.learningBoxItem}>
-                      {day1SkillsQuizResult.description}
-                    </Text>
-                    <Text style={[styles.welcomeFooter, { color: day1SkillsQuizResult.color }]}>
-                      {day1SkillsQuizResult.subtitle}
-                    </Text>
                   </View>
                   <Text style={commonStyles.introDescription}>
                     Today, we're diving into the myths that shape our thinking in the dance industry.
@@ -349,17 +343,17 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                 <Text style={styles.learningBoxTitle}>What You'll Learn:</Text>
                 <Text style={styles.learningBoxItem}>• Common myths that dancers believe</Text>
                 <Text style={styles.learningBoxItem}>• The reality behind these industry narratives</Text>
-                <Text style={styles.learningBoxItem}>• How these beliefs impact your career decisions</Text>
+                <Text style={styles.learningBoxItem}>• Whether you still believe in these common myths</Text>
               </View>
 
               <Text style={styles.welcomeFooter}>
-                This interactive quiz will help you identify and challenge the myths you might be holding onto.
+                You’ll be playing a match game to help you identify and challenge the myths you might be holding onto.
               </Text>
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
-                journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling as you begin this journey?"
-                moodLabel="How are you feeling right now?"
+                journalInstruction="Before we begin, let’s take a moment to check in with yourself. How are you feeling after yesterday’s quiz? Is there anything you’re hoping to gain today?"
+                moodLabel=""
                 saveButtonText="Save Morning Entry"
               />
 
@@ -439,13 +433,13 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               </Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                Take a moment to reflect on the myths you encountered. Which one still feels true to you, even after seeing the reality?
+                Take a moment to reflect on the myths you encountered.
               </Text>
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
                 journalInstruction="Which myth are you still holding onto? Why does it feel true to you?"
-                moodLabel="How are you feeling about this?"
+                moodLabel=""
                 saveButtonText="Add to Journal"
               />
 
@@ -483,7 +477,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               <Text style={commonStyles.reflectionTitle}>Great Work!</Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                Reflect on the myths you currently believe and whether or not they're serving you.
+                When pivoting away from dance, it’s so important to really think about the myths you currently believe and whether or not they’re serving you.
               </Text>
 
               <Text style={commonStyles.reflectionDescription}>
@@ -491,7 +485,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               </Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                Take a detour and check out the myths our founder had to unlearn. But don't forget to come back to add your journal entry and mark this day as complete!
+                Take a detour and check out the myths our founder had to unlearn. But don’t forget to come back and mark this day as complete!
               </Text>
 
               <TouchableOpacity
