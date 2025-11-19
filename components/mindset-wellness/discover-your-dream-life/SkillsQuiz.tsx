@@ -419,19 +419,19 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               </Text>
 
               <Text style={commonStyles.introDescription}>
-                Taking this first step is something to be truly proud of. It takes courage to look inward and explore what might be holding you back from the future you deserve.
+                Taking this first step is something to be truly proud of. It takes courage to look inward and explore what might be holding you back from the future you deserve post-dance.
               </Text>
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
-                journalInstruction="Before we being, let's take a moment to check in with yourself. How are you feeling as you begin this journey?"
-                moodLabel="How are you feeling right now?"
-                saveButtonText="Save Morning Entry"
+                journalInstruction="Before we begin, let’s take a moment to check in with yourself. How are you feeling as you begin this journey?"
+                moodLabel=""
+                saveButtonText="Add to Journal"
               />
 
               <View style={styles.welcomeHighlight}>
                 <Text style={styles.welcomeHighlightText}>
-                  Congratulations on giving yourself permission to identify as something more than a dancer.
+                  We’ll come back to how you’re feeling a bit later. But now, are you ready to find out what kind of dreamer you are?
                 </Text>
               </View>
 
