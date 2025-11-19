@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Users, Award, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { ChevronRight, Users, Award, ArrowLeft, ChevronLeft, Check } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useStorage } from '@/hooks/useStorage';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 
 interface WhoWouldYouHireProps {
     onComplete: () => void;
@@ -9,9 +16,10 @@ interface WhoWouldYouHireProps {
 }
 
 export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireProps) {
-    const [currentScreen, setCurrentScreen] = useState(0);
-    const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
-    const [currentScenario, setCurrentScenario] = useState(0);
+    const [currentScreen, setCurrentScreen] = useState(-1);
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const [selectedChoice, setSelectedChoice] = useStorage<number | null>('WHOWOULDYOUHIRE_CHOICE', null);
+    const [currentScenario, setCurrentScenario] = useStorage<number>('WHOWOULDYOUHIRE_SCENARIO', 0);
 
     const scenarios = [
         {
@@ -40,6 +48,11 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
         }
     ];
 
+    // Safe access to current scenario
+    const getCurrentScenario = () => {
+        return scenarios[currentScenario] || scenarios[0];
+    };
+
     const handleBack = () => {
         if (onBack) {
             onBack();
@@ -47,139 +60,98 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
     };
 
     const goBack = () => {
-        if (currentScreen === 0) {
-            // Can't go back from intro screen
-            return;
+        if (currentScreen === -1) {
+            if (onBack) onBack();
+        } else if (currentScreen === 0) {
+            setCurrentScreen(-1);
         } else if (currentScreen === 1) {
-            // From scenario intro, go back to main intro
             setCurrentScreen(0);
         } else if (currentScreen === 2) {
-            // From choices, go back to scenario intro
             setCurrentScreen(1);
         } else if (currentScreen === 3) {
-            // From response, go back to choices
             setCurrentScreen(2);
-            setSelectedChoice(null); // Reset choice
+            setSelectedChoice(null);
         } else if (currentScreen === 4) {
-            // From final screen, go back to last response
-            setCurrentScenario(scenarios.length - 1);
             setCurrentScreen(3);
         }
+        scrollToTop();
     };
 
-    const handleChoiceSelect = (choiceNumber: number) => {
-        setSelectedChoice(choiceNumber);
-        setCurrentScreen(3); // Go to response screen
+    const handleStartActivity = () => {
+        setCurrentScreen(0);
+        scrollToTop();
+    };
+
+    const handleChoiceSelect = async (choiceNumber: number) => {
+        await setSelectedChoice(choiceNumber);
+        scrollToTop();
     };
 
     const handleContinue = () => {
         if (currentScreen === 0) {
-            // From intro to first scenario
-            setCurrentScenario(0);
             setCurrentScreen(1);
         } else if (currentScreen === 1) {
-            // From scenario intro to choices
             setCurrentScreen(2);
+        } else if (currentScreen === 2 && selectedChoice !== null) {
+            setCurrentScreen(3);
         } else if (currentScreen === 3) {
-            // From response screen
             if (currentScenario < scenarios.length - 1) {
-                // More scenarios to go
                 setCurrentScenario(currentScenario + 1);
-                setCurrentScreen(1); // Go to next scenario intro
-                setSelectedChoice(null); // Reset choice for next scenario
+                setSelectedChoice(null);
+                setCurrentScreen(1);
             } else {
-                // All scenarios completed, go to final screen
                 setCurrentScreen(4);
             }
         } else if (currentScreen === 4) {
-            // From final screen, complete the module
             onComplete();
         }
+        scrollToTop();
     };
 
     const getResponseText = () => {
+        const scenario = getCurrentScenario();
         if (selectedChoice === 1) {
-            return scenarios[currentScenario].response1;
+            return scenario.response1;
         } else if (selectedChoice === 2) {
-            return scenarios[currentScenario].response2;
+            return scenario.response2;
         }
         return "";
     };
 
-    const getHeaderTitle = () => {
-        switch (currentScreen) {
-            case 0:
-                return "Who would you hire?";
-            case 1:
-                return "Scenario";
-            case 2:
-                return "Your Choice";
-            case 3:
-                return "Feedback";
-            case 4:
-                return "Complete";
-            default:
-                return "Who would you hire?";
-        }
-    };
-
-    const getHeaderColor = () => {
-        switch (currentScreen) {
-            case 0:
-            case 1:
-            case 2:
-            case 4:
-                return '#928490';
-            case 3:
-                return '#647C90';
-            default:
-                return '#928490';
-        }
-    };
-
-    // Intro Screen
-    if (currentScreen === 0) {
+    // Welcome Screen
+    if (currentScreen === -1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
                                     <Users size={32} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <Text style={styles.introTitle}>Who would you hire?</Text>
+                            <Text style={commonStyles.introTitle}>Who would you hire?</Text>
 
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introDescription}>
                                 Take yourself out of the equation and pretend YOU are the hiring manager putting another dancer in the hot seat for an interview. Put yourself in their shoes and decide who you would hire.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Begin</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={commonStyles.introDescription}>
+                                You'll see how the same dance experience can be framed in different ways, and learn what employers are really looking for when they hear your story.
+                            </Text>
+
+                            <PrimaryButton title="Let's Begin" onPress={handleStartActivity} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -187,42 +159,34 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
     }
 
     // Scenario Intro Screen
-    if (currentScreen === 1) {
+    if (currentScreen === 0) {
+        const scenario = getCurrentScenario();
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.scenarioCard}>
-                            <Text style={styles.scenarioTitle}>You're hiring a {scenarios[currentScenario].role}.</Text>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={styles.scenarioTitle}>Scenario {currentScenario + 1} of {scenarios.length}</Text>
 
                             <Text style={styles.scenarioText}>
-                                The role involves {scenarios[currentScenario].challenge}. Two dancers explain their experience. Who would you hire?
+                                You're hiring a <Text style={{ fontWeight: '600' }}>{scenario.role}</Text>.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>See their answers</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={styles.scenarioText}>
+                                The role involves <Text style={{ fontWeight: '600' }}>{scenario.challenge}</Text>. Two dancers explain their experience. Who would you hire?
+                            </Text>
+
+                            <PrimaryButton title="See Their Answers" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -230,49 +194,78 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
     }
 
     // Choices Screen
-    if (currentScreen === 2) {
+    if (currentScreen === 1) {
+        const scenario = getCurrentScenario();
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.choicesCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.choicesTitle}>Who would you hire?</Text>
 
                             <View style={styles.choicesContainer}>
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 1 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(1)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        {scenarios[currentScenario].choice1}
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 1 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 1 && styles.choiceTextSelected
+                                        ]}>
+                                            {scenario.choice1}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.choiceButton}
+                                    style={[
+                                        styles.choiceButton,
+                                        selectedChoice === 2 && styles.choiceButtonSelected
+                                    ]}
                                     onPress={() => handleChoiceSelect(2)}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.choiceText}>
-                                        {scenarios[currentScenario].choice2}
-                                    </Text>
+                                    <View style={styles.choiceContent}>
+                                        {selectedChoice === 2 && (
+                                            <View style={styles.selectedIndicator}>
+                                                <Check size={16} color="#E2DED0" />
+                                            </View>
+                                        )}
+                                        <Text style={[
+                                            styles.choiceText,
+                                            selectedChoice === 2 && styles.choiceTextSelected
+                                        ]}>
+                                            {scenario.choice2}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={selectedChoice === null}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -280,25 +273,21 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
     }
 
     // Response Screen
-    if (currentScreen === 3) {
+    if (currentScreen === 2) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.responseCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.responseTitle}>Here's our take</Text>
 
                             <Text style={styles.responseText}>{getResponseText()}</Text>
@@ -307,17 +296,8 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
                                 {currentScenario < scenarios.length - 1 ? "Let's try another one." : "Ready for the final thoughts?"}
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Continue" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -325,38 +305,34 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
     }
 
     // Final Screen
-    if (currentScreen === 4) {
+    if (currentScreen === 3) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: getHeaderColor() }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{getHeaderTitle()}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.alternativeCard}>
-                            <View style={styles.alternativeIconContainer}>
-                                <View style={[styles.alternativeIconGradient, { backgroundColor: '#5A7D7B' }]}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <View style={[styles.introIconGradient, { backgroundColor: '#5A7D7B' }]}>
                                     <Award size={32} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <Text style={styles.alternativeTitle}>Both candidates did well.</Text>
+                            <Text style={commonStyles.reflectionTitle}>Both candidates did well.</Text>
 
-                            <Text style={styles.alternativeText}>
+                            <Text style={commonStyles.reflectionDescription}>
                                 The difference is in how they translated their skills, focused on their strengths, and highlighted how they could add value to the particular role they applied for.
                             </Text>
 
-                            <Text style={styles.alternativeText}>
+                            <Text style={commonStyles.reflectionDescription}>
                                 When preparing for your interviews, keep putting yourself in the employer's shoes and choose your answers based on what will resonate for them.
                             </Text>
 
@@ -364,89 +340,37 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
                                 See you for your final step tomorrow.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <JournalEntrySection
+                                pathTag="prep-your-pivot"
+                                day="6"
+                                category="Career Transitions"
+                                pathTitle="Prep Your Pivot"
+                                dayTitle="Who Would You Hire?"
+                                journalInstruction="What did you learn about how to frame your dance experience for interviews?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <View style={styles.journalCallout}>
+                                <Text style={styles.journalCalloutTitle}>Your Interview Prep Space</Text>
+                                <Text style={styles.journalCalloutText}>
+                                    Use the journal tab anytime to practice framing your dance experience for different roles. The more you practice, the more natural it will feel!
+                                </Text>
+                            </View>
+
+                            <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Fallback - should never reach here
-    return (
-        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-            <Text>Error: Invalid screen state</Text>
-        </View>
-    );
+    return null;
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    introCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
+    // Intro Icon Styles
     introIconGradient: {
         width: 80,
         height: 80,
@@ -457,63 +381,15 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
+        elevation: 5,
     },
-    introTitle: {
+    // Scenario Styles
+    scenarioTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
+        fontSize: 24,
         color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    scenarioCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    scenarioTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 24,
         fontWeight: '700',
     },
     scenarioText: {
@@ -522,41 +398,9 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 26,
-        marginBottom: 32,
+        marginBottom: 20,
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choicesCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+    // Choices Styles
     choicesTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -567,13 +411,23 @@ const styles = StyleSheet.create({
     },
     choicesContainer: {
         gap: 16,
+        marginBottom: 24,
     },
     choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 16,
-        padding: 20,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderWidth: 2,
         borderColor: 'transparent',
+    },
+    choiceButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
+    },
+    choiceContent: {
+        padding: 20,
+        paddingRight: 50,
     },
     choiceText: {
         fontFamily: 'Montserrat-Regular',
@@ -582,19 +436,22 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         textAlign: 'center',
     },
-    responseCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    choiceTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
     },
+    selectedIndicator: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    // Response Styles
     responseTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -618,49 +475,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 32,
     },
-    alternativeCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    alternativeIconContainer: {
-        marginBottom: 24,
-    },
-    alternativeIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    alternativeTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 25,
-        fontWeight: '700',
-    },
-    alternativeText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
-    },
+    // Final Screen Styles
     alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
@@ -669,25 +484,29 @@ const styles = StyleSheet.create({
         marginBottom: 32,
         fontWeight: '600',
     },
-    completeButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
+    // Journal Callout
+    journalCallout: {
+        width: '100%',
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 25,
         borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderColor: 'rgba(100, 124, 144, 0.2)',
     },
-    completeButtonText: {
+    journalCalloutTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
         fontWeight: '600',
+    },
+    journalCalloutText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 22,
     },
 });

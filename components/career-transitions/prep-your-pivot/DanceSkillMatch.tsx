@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { ChevronRight, Star, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking } from 'react-native';
+import { ChevronRight, ArrowLeft, Star } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { useStorage } from '@/hooks/useStorage';
 
 interface SkillPair {
     id: number;
@@ -67,12 +75,22 @@ const skillPairs: SkillPair[] = [
 ];
 
 export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1 = game, 2 = reflection
+    const [currentScreen, setCurrentScreen] = useState(-1);
     const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; pairId: number; type: 'dance' | 'career' }>>([]);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
     const [currentPairIndex, setCurrentPairIndex] = useState(0);
     const [showMismatch, setShowMismatch] = useState(false);
+
+    const [danceMatchedPairs, setDanceMatchedPairs] = useStorage<number[]>('DANCE_MATCHED_PAIRS', []);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+
+    // Ensure danceMatchedPairs is always an array
+    const matchedPairs = Array.isArray(danceMatchedPairs) ? danceMatchedPairs : [];
+
+    useEffect(() => {
+        scrollToTop();
+    }, [currentScreen]);
 
     const handleBack = () => {
         onBack?.();
@@ -82,12 +100,23 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
         onComplete();
     };
 
-    const goBack = () => {
-        if (currentScreen === 1) {
+    const goBack = async () => {
+        if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen === 1) {
             setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        } else if (currentScreen === 2) {
+            await setDanceMatchedPairs([]);
+            setSelectedItems([]);
+            setCurrentPairIndex(0);
+            setShowMismatch(false);
+            setCurrentScreen(1);
+        } else if (currentScreen === 3) {
+            setCurrentScreen(2);
+        } else if (currentScreen > 3) {
             setCurrentScreen(currentScreen - 1);
         }
+        scrollToTop();
     };
 
     useEffect(() => {
@@ -97,7 +126,6 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
     }, [currentScreen]);
 
     const setupGame = () => {
-        // Start with first 3 pairs, scrambled
         const firstThreePairs = skillPairs.slice(0, 3);
         const danceExperiences: Array<{ id: string; text: string; pairId: number; type: 'dance' | 'career' }> = [];
         const careerSkills: Array<{ id: string; text: string; pairId: number; type: 'dance' | 'career' }> = [];
@@ -117,49 +145,42 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
             });
         });
 
-        // Scramble dance experiences and career skills separately
         const scrambledDance = [...danceExperiences].sort(() => Math.random() - 0.5);
         const scrambledCareer = [...careerSkills].sort(() => Math.random() - 0.5);
 
-        // Combine into single array for game logic
         const allItems = [...scrambledDance, ...scrambledCareer];
         setGameItems(allItems);
-        setCurrentPairIndex(3); // Next pair to add
+        setCurrentPairIndex(3);
     };
 
-    const handleItemPress = (itemId: string) => {
+    const handleItemPress = async (itemId: string) => {
         if (selectedItems.includes(itemId) || showMismatch) return;
 
         const newSelected = [...selectedItems, itemId];
         setSelectedItems(newSelected);
 
         if (newSelected.length === 2) {
-            checkMatch(newSelected);
+            await checkMatch(newSelected);
         }
     };
 
-    const checkMatch = (selected: string[]) => {
+    const checkMatch = async (selected: string[]) => {
         const item1 = gameItems.find(item => item.id === selected[0]);
         const item2 = gameItems.find(item => item.id === selected[1]);
 
         if (item1 && item2 && item1.pairId === item2.pairId) {
-            // Match found!
             const newMatchedPairs = [...matchedPairs, item1.pairId];
-            setMatchedPairs(newMatchedPairs);
+            await setDanceMatchedPairs(newMatchedPairs);
 
-            // Remove matched items and add new pair if available
             setTimeout(() => {
                 const remainingItems = gameItems.filter(item => !selected.includes(item.id));
 
-                // Add next pair if available
                 if (currentPairIndex < skillPairs.length) {
                     const nextPair = skillPairs[currentPairIndex];
 
-                    // Separate existing items by type
                     const existingDance = remainingItems.filter(item => item.type === 'dance');
                     const existingCareer = remainingItems.filter(item => item.type === 'career');
 
-                    // Add new dance experience and career skill
                     const newDance = {
                         id: `dance_${nextPair.id}`,
                         text: nextPair.danceExperience,
@@ -173,15 +194,12 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
                         type: 'career' as const
                     };
 
-                    // Randomly insert new items to avoid predictable positioning
                     const allDance = [...existingDance];
                     const allCareer = [...existingCareer];
 
-                    // Insert new dance at random position
                     const danceInsertIndex = Math.floor(Math.random() * (allDance.length + 1));
                     allDance.splice(danceInsertIndex, 0, newDance);
 
-                    // Insert new career at random position
                     const careerInsertIndex = Math.floor(Math.random() * (allCareer.length + 1));
                     allCareer.splice(careerInsertIndex, 0, newCareer);
 
@@ -195,7 +213,6 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
 
                 setSelectedItems([]);
 
-                // Check if game is complete
                 if (newMatchedPairs.length === skillPairs.length) {
                     setTimeout(() => {
                         setCurrentScreen(2);
@@ -203,7 +220,6 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
                 }
             }, 600);
         } else {
-            // No match - show red briefly
             setShowMismatch(true);
             setTimeout(() => {
                 setShowMismatch(false);
@@ -227,108 +243,234 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
         }
     };
 
-    // Intro Screen
-    if (currentScreen === 0) {
-        return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Dance Skill Match</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+    const openYouTubeShort = async () => {
+        const youtubeUrl = `https://www.youtube.com/shorts/YOUR_VIDEO_ID`;
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Star size={32} color="#E2DED0" />
-                                </View>
+        try {
+            const supported = await Linking.canOpenURL(youtubeUrl);
+
+            if (supported) {
+                await Linking.openURL(youtubeUrl);
+            } else {
+                console.log("YouTube app not available");
+            }
+        } catch (error) {
+            console.log("Error opening YouTube:", error);
+        }
+    };
+
+    // Welcome Screen with Journal Section
+    if (currentScreen === -1) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.introTitle}>Dance Skill Value Match</Text>
+                            <Text style={commonStyles.introTitle}>Welcome to Dance Skill Match!</Text>
 
-                            <Text style={styles.introDescription}>
-                                Match the dance skill with the career skill
+                            <Text style={commonStyles.introDescription}>
+                                Your dance background has equipped you with incredible transferable skills that are highly valuable in any career.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={() => setCurrentScreen(1)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Start the Game</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={commonStyles.introDescription}>
+                                Today, we'll explore how your dance experiences translate directly to workplace competencies that employers are looking for.
+                            </Text>
+
+                            <View style={styles.learningBox}>
+                                <Text style={styles.learningBoxTitle}>What You'll Discover:</Text>
+                                <Text style={styles.learningBoxItem}>• How dance skills translate to career competencies</Text>
+                                <Text style={styles.learningBoxItem}>• The hidden value in your dance experiences</Text>
+                                <Text style={styles.learningBoxItem}>• How to articulate your dance background in job interviews</Text>
+                            </View>
+
+                            <Text style={styles.welcomeFooter}>
+                                You'll be playing a match game to help you recognize and value the incredible skills you've developed through dance.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="prep-your-pivot"
+                                day="4"
+                                category="Career Transitions"
+                                pathTitle="Prep Your Pivot"
+                                dayTitle="Dance Skill Match"
+                                journalInstruction="Before we begin, let's take a moment to reflect on your dance journey. What skills do you think you've developed through dance that might be valuable in other careers?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Continue" onPress={() => setCurrentScreen(0)} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Reflection Screen
-    if (currentScreen === 2) {
+    // Intro Screen
+    if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Reflection</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.reflectionCard}>
-                            <View style={styles.reflectionIconContainer}>
-                                <View style={[styles.reflectionIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Star size={40} color="#E2DED0" />
-                                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.reflectionTitle}>Great Work!</Text>
+                            <Text style={commonStyles.introTitle}>Dance Skill Match</Text>
 
-                            <Text style={styles.reflectionText}>
-                                Reflect on the dance skills you've matched with career skills.
+                            <Text style={commonStyles.introDescription}>
+                                Let's match dance experiences with their career value to recognize the incredible skills you've developed.
                             </Text>
 
-                            <Text style={styles.reflectionText}>
+                            <PrimaryButton title="Start the Game" onPress={() => setCurrentScreen(1)} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Reflection Screen after Game Completion
+    if (currentScreen === 2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.reflectionTitle}>Time for Reflection</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Which skill translation was most surprising or meaningful to you?
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Take a moment to reflect on how your dance background has prepared you for success in any career path.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                <Text style={styles.reflectionEmphasis}>(If you're having trouble recalling, feel free to go back and play the match game again)</Text>
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="prep-your-pivot"
+                                journalInstruction="Looking at the skills you've matched, which ones feel most authentic to your experience? How might you describe these skills in a job interview or on your resume?"
+                                moodLabel=""
+                                saveButtonText="Add to Journal"
+                            />
+
+                            <PrimaryButton title="Continue" onPress={() => setCurrentScreen(3)} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Congratulations Screen with Completion
+    if (currentScreen === 3) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.reflectionTitle}>You're Recognizing Your Value!</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
                                 Your dance experience has given you valuable transferable skills that are highly sought after in many careers.
                             </Text>
 
-                            <Text style={styles.reflectionText}>
-                                Recognizing these connections can help you see the true value of your dance background beyond the studio or stage.
+                            <Text style={commonStyles.reflectionDescription}>
+                                Recognizing these connections can help you see the true value of your dance background beyond the studio or stage and articulate your unique strengths to potential employers.
                             </Text>
 
-                            <Text style={styles.reflectionClosing}>
-                                We'll check back in tomorrow.
+                            <Text style={commonStyles.reflectionDescription}>
+                                Check out this additional resource to learn more about translating dance skills:
                             </Text>
 
                             <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={handleComplete}
+                                style={styles.videoThumbnailContainer}
+                                onPress={openYouTubeShort}
                                 activeOpacity={0.8}
                             >
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
+                                <Image
+                                    source={{ uri: 'https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg' }}
+                                    style={styles.videoThumbnail}
+                                    resizeMode="cover"
+                                />
+                                <View style={styles.playButtonOverlay}>
+                                    <View style={styles.playButton}>
+                                        <Text style={styles.playIcon}>▶</Text>
+                                    </View>
                                 </View>
                             </TouchableOpacity>
-                        </View>
+
+                            <Text style={styles.reflectionClosing}>
+                                See you tomorrow for more.
+                            </Text>
+
+                            <PrimaryButton title="Mark As Complete" onPress={handleComplete} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -337,28 +479,23 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
 
     // Game Screen
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>
-                            {matchedPairs.length}/{skillPairs.length} pairs matched
-                        </Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${(matchedPairs.length / skillPairs.length) * 100}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${matchedPairs.length}/${skillPairs.length} pairs matched`}
+                progress={matchedPairs.length / skillPairs.length}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.content}>
-                    <View style={styles.gameCard}>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={commonStyles.baseCard}>
                         <Text style={styles.gameTitle}>Dance Skill Match</Text>
                         <Text style={styles.gameInstructions}>
                             Tap to match dance experiences with their career value
@@ -366,7 +503,7 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
 
                         <View style={styles.columnsContainer}>
                             <View style={styles.column}>
-                                <Text style={styles.columnTitle}>Experience</Text>
+                                <Text style={styles.columnTitle}>Dance Experience</Text>
                                 {gameItems.filter(item => item.type === 'dance').map((item) => (
                                     <TouchableOpacity
                                         key={item.id}
@@ -409,7 +546,7 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
                                 ))}
                             </View>
                         </View>
-                    </View>
+                    </Card>
                 </View>
             </ScrollView>
         </View>
@@ -417,141 +554,39 @@ export default function DanceSkillMatch({ onComplete, onBack }: DanceSkillMatchP
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
+    // Welcome Screen Styles
+    learningBox: {
         width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 15,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#928490',
-        textAlign: 'center',
-        marginBottom: 40,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 20,
         borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderColor: 'rgba(146, 132, 144, 0.2)',
     },
-    startButtonText: {
+    learningBoxTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        color: '#647C90',
+        marginBottom: 12,
         fontWeight: '600',
     },
-    gameCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    learningBoxItem: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 24,
+        marginBottom: 8,
     },
+    welcomeFooter: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 30,
+        lineHeight: 22,
+    },
+    // Game Styles
     gameTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -587,11 +622,11 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 12,
-        padding: 16,
+        padding: 12,
         marginBottom: 10,
         borderWidth: 2,
         borderColor: 'transparent',
-        height: 100,
+        height: 200,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -610,7 +645,7 @@ const styles = StyleSheet.create({
     },
     gameButtonText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 12,
+        fontSize: 14,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 18,
@@ -625,76 +660,63 @@ const styles = StyleSheet.create({
     mismatchButtonText: {
         color: '#dc3545',
     },
-    reflectionCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    reflectionIconContainer: {
-        marginBottom: 30,
-    },
-    reflectionIconGradient: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    reflectionTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 30,
-        fontWeight: '700',
-    },
-    reflectionText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
+    reflectionEmphasis: {
+        fontStyle: 'italic',
+        color: '#928490',
     },
     reflectionClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: 10,
         fontWeight: '600',
     },
-    completeButton: {
-        borderRadius: 30,
+    // YouTube Thumbnail Styles
+    videoThumbnailContainer: {
+        width: '100%',
+        marginBottom: 25,
+        borderRadius: 16,
         overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 5,
+        position: 'relative',
     },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    videoThumbnail: {
+        width: '100%',
+        height: 200,
+        borderRadius: 16,
+    },
+    playButtonOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
     },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
+    playButton: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#FF0000',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    playIcon: {
+        color: '#FFFFFF',
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginLeft: 4,
     },
 });

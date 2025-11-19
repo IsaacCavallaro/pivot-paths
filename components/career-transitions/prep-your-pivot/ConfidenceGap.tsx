@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, ChevronLeft, Target, ArrowLeft } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
+import { ChevronRight, ArrowLeft, Target, Check } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const { width, height } = Dimensions.get('window');
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
 
 interface QuizQuestion {
     id: number;
@@ -245,12 +252,30 @@ interface ConfidenceGapProps {
 }
 
 export default function ConfidenceGap({ onComplete, onBack }: ConfidenceGapProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-9 = questions, 10 = result, 11 = final
+    const [currentScreen, setCurrentScreen] = useState(0);
     const [answers, setAnswers] = useState<{ [key: number]: string }>({});
     const [result, setResult] = useState<ConfidenceGapResult | null>(null);
+    const [journalEntry, setJournalEntry] = useState('');
+    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry } = useJournaling('prep-your-pivot');
+
+    const handleScreenChange = async (newScreen: number) => {
+        setIsTransitioning(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+        setCurrentScreen(newScreen);
+        scrollToTop();
+        setIsTransitioning(false);
+    };
+
+    const handleWelcomeContinue = () => {
+        handleScreenChange(1);
+    };
 
     const handleStartQuiz = () => {
-        setCurrentScreen(1);
+        handleScreenChange(2);
     };
 
     const handleBack = () => {
@@ -259,16 +284,30 @@ export default function ConfidenceGap({ onComplete, onBack }: ConfidenceGapProps
         }
     };
 
-    const handleAnswer = (optionType: string) => {
-        const questionIndex = currentScreen - 1;
+    const handleAnswer = (optionId: string, optionType: string) => {
+        setSelectedOption(optionId);
+
+        const questionIndex = currentScreen - 2;
         const newAnswers = { ...answers, [questionIndex]: optionType };
         setAnswers(newAnswers);
+    };
 
-        if (currentScreen < 9) {
+    const handleContinue = async () => {
+        if (selectedOption === null || isTransitioning) return;
+
+        setIsTransitioning(true);
+
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        if (currentScreen < 10) {
             setCurrentScreen(currentScreen + 1);
+            setSelectedOption(null);
+            scrollToTop();
         } else {
-            calculateResult(newAnswers);
+            calculateResult(answers);
         }
+
+        setIsTransitioning(false);
     };
 
     const calculateResult = (finalAnswers: { [key: number]: string }) => {
@@ -284,133 +323,355 @@ export default function ConfidenceGap({ onComplete, onBack }: ConfidenceGapProps
 
         const finalResult = confidenceGapResults[dominantType];
         setResult(finalResult);
-        setCurrentScreen(10);
-    };
-
-    const handleContinueToFinal = () => {
         setCurrentScreen(11);
+        scrollToTop();
     };
 
-    const handleComplete = () => {
-        if (result) {
-            onComplete(result);
-        }
+    const handleContinueToConfidentSelf = () => {
+        handleScreenChange(12);
+    };
+
+    const handleContinueToTakeAction = () => {
+        handleScreenChange(13);
     };
 
     const goBack = () => {
-        if (currentScreen === 1) {
-            setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        if (currentScreen === 0) {
+            if (onBack) onBack();
+        } else if (currentScreen === 1) {
+            handleScreenChange(0);
+        } else if (currentScreen > 1 && currentScreen <= 10) {
             setCurrentScreen(currentScreen - 1);
+            setSelectedOption(null);
+            scrollToTop();
+        } else if (currentScreen === 11) {
+            handleScreenChange(10);
+        } else if (currentScreen === 12) {
+            handleScreenChange(11);
+        } else if (currentScreen === 13) {
+            handleScreenChange(12);
+        } else if (currentScreen === 14) {
+            handleScreenChange(13);
         }
     };
 
-    // Intro Screen
+    const handleComplete = async () => {
+        if (result) {
+            try {
+                await AsyncStorage.setItem('day1ConfidenceGapResult', JSON.stringify(result));
+                onComplete(result);
+            } catch (error) {
+                console.error('Error saving quiz result to AsyncStorage:', error);
+                onComplete(result);
+            }
+        }
+    };
+
+    // Welcome Screen with Journal Prompt
     if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Confidence Gap</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Target size={32} color="#E2DED0" />
-                                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.introTitle}>Where's your confidence gap?</Text>
-
-                            <Text style={styles.introDescription}>
-                                Making a big career change is as much about mindset as it is about skills. This quick check will help you see where your confidence tends to dip, so you know what to focus on as you prep your pivot.
+                            <Text style={commonStyles.introTitle}>
+                                Welcome to Your Confidence Journey
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={handleStartQuiz}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Get started</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={commonStyles.introDescription}>
+                                Making a big career change is as much about mindset as it is about skills. Taking this first step to understand your confidence patterns shows incredible self-awareness and courage.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="prep-your-pivot"
+                                day="1"
+                                category="Career Transitions"
+                                pathTitle="Prep Your Pivot"
+                                dayTitle="Confidence Gap"
+                                journalInstruction="Before we begin, let's check in with how you're feeling about your career transition journey right now."
+                                moodLabel=""
+                                saveButtonText="Add to Journal"
+                            />
+
+                            <View style={styles.welcomeHighlight}>
+                                <Text style={styles.welcomeHighlightText}>
+                                    Understanding where your confidence dips will help you build it back up, stronger than ever. Ready to discover your confidence gap?
+                                </Text>
+                            </View>
+
+                            <PrimaryButton
+                                title="I'm Ready to Begin"
+                                onPress={handleWelcomeContinue}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Final Screen
-    if (currentScreen === 11) {
+    // Intro Screen
+    if (currentScreen === 1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Confidence Gap</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.finalCard}>
-                            <View style={styles.finalIconContainer}>
-                                <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Target size={40} color="#E2DED0" />
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.introTitle}>
+                                Where's your confidence gap?
+                            </Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                This quick check will help you see where your confidence tends to dip—whether it's in your mindset, your skills, or taking action—so you know exactly what to focus on as you prep your pivot.
+                            </Text>
+
+                            <PrimaryButton
+                                title="Let's find out"
+                                onPress={handleStartQuiz}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // The Confident Self Screen
+    if (currentScreen === 12 && result) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={styles.confidentTitle}>
+                                Here's Who You Can Become:
+                            </Text>
+
+                            <Text style={styles.confidentTitleBold}>
+                                The Confident Self
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                The Confident Self is someone who trusts their abilities <Text style={{ fontStyle: 'italic' }}>without hesitation</Text>.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                This version of you understands that your dance background has equipped you with incredible transferable skills: discipline, resilience, creativity, and the ability to learn quickly. You use these strengths to navigate new career paths with assurance.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                The Confident Self doesn't wait for permission to try new things. Instead, they see challenges as opportunities and trust that each step forward builds more evidence of their capability.
+                            </Text>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinueToTakeAction}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Take Action Screen
+    if (currentScreen === 13 && result) {
+        const getReflectionQuestions = () => {
+            switch (result.type) {
+                case 'Mindset':
+                    return [
+                        'Is it serving me to have a mindset confidence gap?',
+                        'How can I reframe my dance experience as an asset?',
+                        'What evidence do I have that I can succeed in new areas?'
+                    ];
+                case 'Skills':
+                    return [
+                        'Is it serving me to focus only on skill gaps?',
+                        'What skills do I already have that I\'m underestimating?',
+                        'How can I build confidence through small skill wins?'
+                    ];
+                case 'Action-Ready':
+                    return [
+                        'Is it serving me to hesitate before taking action?',
+                        'What small action can I take today to build momentum?',
+                        'How have past actions proven my capability?'
+                    ];
+                default:
+                    return [];
+            }
+        };
+
+        const getJournalPlaceholder = () => {
+            switch (result.type) {
+                case 'Mindset':
+                    return 'I can build my confidence mindset by...';
+                case 'Skills':
+                    return 'I can build confidence in my skills by...';
+                case 'Action-Ready':
+                    return 'I can build confidence through action by...';
+                default:
+                    return 'Write your reflections here...';
+            }
+        };
+
+        const reflectionQuestions = getReflectionQuestions();
+        const journalPlaceholder = getJournalPlaceholder();
+
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={styles.takeactionTitle}>Build Your Confidence</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Recognizing your <Text style={styles.highlightText}>{result.title.toLowerCase()}</Text> is the first step toward building unshakeable confidence in your career transition.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Now, let's explore how you can develop into <Text style={styles.highlightText}>the confident self</Text> and close that gap for good.
+                            </Text>
+
+                            {/* Reflection Section */}
+                            <View style={styles.reflectionSection}>
+                                <View style={styles.sectionHeader}>
+                                    <Text style={styles.sectionTitle}>Time for Reflection</Text>
+                                    <View style={styles.sectionDivider} />
+                                </View>
+
+                                <Text style={styles.reflectionInstruction}>
+                                    Reflect on these questions to start building your confidence:
+                                </Text>
+
+                                {/* Dynamic Reflection Questions */}
+                                <View style={styles.reflectionQuestionsContainer}>
+                                    {reflectionQuestions.map((question, index) => (
+                                        <View key={index} style={styles.reflectionQuestionCard}>
+                                            <View style={styles.questionNumber}>
+                                                <Text style={styles.questionNumberText}>{index + 1}</Text>
+                                            </View>
+                                            <Text style={styles.reflectionQuestion}>{question}</Text>
+                                        </View>
+                                    ))}
                                 </View>
                             </View>
 
-                            <View style={styles.finalHeader}>
-                                <Target size={24} color="#928490" />
-                                <Text style={styles.finalHeading}>Nobody's Perfect</Text>
-                                <Target size={24} color="#928490" />
-                            </View>
+                            <JournalEntrySection
+                                pathTag="prep-your-pivot"
+                                day="1"
+                                category="Career Transitions"
+                                pathTitle="Prep Your Pivot"
+                                dayTitle="Confidence Gap"
+                                journalInstruction="Write your reflections as a journal entry below to solidify your confidence-building plan."
+                                moodLabel="How are you feeling about your confidence now?"
+                                saveButtonText="Add to Journal"
+                                placeholder={journalPlaceholder}
+                            />
 
-                            <View style={styles.finalTextContainer}>
-                                <Text style={styles.finalText}>
-                                    Everyone's confidence looks different, and it grows with practice. Whether your gap is mindset, skills, or action, you're already one step closer just by naming it.
-                                </Text>
-                            </View>
+                            <PrimaryButton
+                                title="Continue Your Journey"
+                                onPress={() => handleScreenChange(14)}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
 
-                            <Text style={styles.alternativeClosing}>
-                                Keep this in mind as you prep for your pivot, and remember: confidence builds through small wins, not perfection.
+    // Congratulations and Mark as Complete Screen
+    if (currentScreen === 14 && result) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={styles.congratulationsTitle}>Congratulations!</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                You've taken a powerful first step toward becoming your most confident self. By understanding where your confidence dips, you're already building the self-awareness needed to close that gap.
                             </Text>
 
-                            <Text style={styles.alternativeClosing}>
-                                See you tomorrow for your next step!
+                            <Text style={styles.congratulationsClosing}>
+                                Your confident future awaits!
                             </Text>
 
-                            <View style={styles.finalButtonContainer}>
-                                <TouchableOpacity
-                                    style={styles.continueButton}
-                                    onPress={handleComplete}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                        <Text style={styles.continueButtonText}>Mark As Complete</Text>
-                                        <ChevronRight size={16} color="#E2DED0" />
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
+                            <PrimaryButton
+                                title="Mark as Complete"
+                                onPress={handleComplete}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -418,96 +679,104 @@ export default function ConfidenceGap({ onComplete, onBack }: ConfidenceGapProps
     }
 
     // Result Screen
-    if (currentScreen === 10 && result) {
+    if (currentScreen === 11 && result) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Confidence Gap</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.resultCard}>
-                            <View style={styles.resultIconContainer}>
-                                <View style={[styles.resultIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Target size={40} color="#E2DED0" />
-                                </View>
-                            </View>
-
-                            <Text style={styles.resultTitle}>{result.title}</Text>
-
-                            <View style={styles.resultTextContainer}>
-                                <Text style={styles.resultText}>{result.description}</Text>
-                            </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={commonStyles.introTitle}>{result.title}</Text>
+                            <Text style={styles.resultDescription}>{result.description}</Text>
 
                             <View style={styles.resultSubtitleContainer}>
                                 <Text style={styles.resultSubtitle}>{result.subtitle}</Text>
                             </View>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinueToFinal}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinueToConfidentSelf}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Question Screens
-    const question = quizQuestions[currentScreen - 1];
-    const progress = (currentScreen / 9) * 100;
+    // Question Screens with smooth transitions
+    const question = quizQuestions[currentScreen - 2];
+    const progress = ((currentScreen - 1) / 9) * 100;
 
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>Question {currentScreen} of 9</Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${progress}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${currentScreen - 1} of 9`}
+                progress={progress / 100}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.centeredContent}>
-                    <View style={styles.choiceCard}>
-                        <Text style={styles.questionText}>{question.question}</Text>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={styles.baseCardConfidence}>
+                        <Text style={styles.questionText}>
+                            {question.question}
+                        </Text>
 
-                        <View style={styles.choiceButtons}>
-                            {question.options.map((option) => (
-                                <TouchableOpacity
-                                    key={option.id}
-                                    style={styles.choiceButton}
-                                    onPress={() => handleAnswer(option.type)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.choiceButtonText}>{option.text}</Text>
-                                </TouchableOpacity>
+                        <View style={styles.optionsContainer}>
+                            {question.options.map((option, index) => (
+                                <View key={option.id}>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.optionButton,
+                                            selectedOption === option.id && styles.optionButtonSelected
+                                        ]}
+                                        onPress={() => handleAnswer(option.id, option.type)}
+                                        activeOpacity={0.8}
+                                        disabled={isTransitioning}
+                                    >
+                                        <View style={styles.optionContent}>
+                                            {selectedOption === option.id && (
+                                                <View style={styles.selectedIndicator}>
+                                                    <Check size={16} color="#E2DED0" />
+                                                </View>
+                                            )}
+                                            <View style={styles.optionTextContainer}>
+                                                <Text style={[
+                                                    styles.optionText,
+                                                    selectedOption === option.id && styles.optionTextSelected
+                                                ]}>
+                                                    {option.text}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
                             ))}
                         </View>
-                    </View>
+
+                        <PrimaryButton
+                            title={currentScreen < 10 ? 'Continue' : 'See Results'}
+                            onPress={handleContinue}
+                            disabled={selectedOption === null || isTransitioning}
+                        />
+                    </Card>
                 </View>
             </ScrollView>
         </View>
@@ -515,258 +784,226 @@ export default function ConfidenceGap({ onComplete, onBack }: ConfidenceGapProps
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-        zIndex: 1,
-    },
-    centeredContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: height - 200,
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-        fontStyle: 'italic',
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choiceCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    questionText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
-        lineHeight: 28,
-        marginBottom: 30,
-        textAlign: 'center',
-    },
-    choiceButtons: {
-        gap: 15,
-    },
-    choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    // Welcome Screen Styles
+    welcomeHighlight: {
+        backgroundColor: 'rgba(146, 132, 144, 0.15)',
         borderRadius: 16,
         padding: 20,
+        marginBottom: 32,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 124, 144, 0.2)',
+    },
+    welcomeHighlightText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#647C90',
+        textAlign: 'center',
+        lineHeight: 24,
+        fontStyle: 'italic',
+        fontWeight: '500',
+    },
+    // Question Styles
+    questionText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 22,
+        color: '#647C90',
+        lineHeight: 32,
+        marginBottom: 32,
+        textAlign: 'center',
+        fontWeight: '700',
+    },
+    optionsContainer: {
+        gap: 16,
+    },
+    optionButton: {
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderWidth: 2,
         borderColor: 'transparent',
     },
-    choiceButtonText: {
+    optionButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
+    },
+    optionContent: {
+        padding: 20,
+        paddingRight: 50,
+    },
+    optionTextContainer: {
+        flex: 1,
+    },
+    optionText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
-        lineHeight: 22,
+        lineHeight: 24,
         textAlign: 'center',
     },
-    resultCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
+    optionTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
     },
-    resultIconContainer: {
-        marginBottom: 24,
-    },
-    resultIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+    selectedIndicator: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#928490',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
     },
-    resultTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    resultTextContainer: {
-        width: '100%',
-        marginBottom: 24,
-    },
-    resultText: {
+    // Result Styles
+    resultDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
-        textAlign: 'center',
         lineHeight: 24,
+        marginBottom: 24,
+        textAlign: 'center',
     },
     resultSubtitleContainer: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        borderRadius: 12,
-        padding: 16,
+        backgroundColor: 'rgba(146, 132, 144, 0.15)',
+        borderRadius: 16,
+        padding: 20,
         marginBottom: 32,
-        width: '100%',
+        borderWidth: 1,
+        borderColor: 'rgba(100, 124, 144, 0.2)',
     },
     resultSubtitle: {
         fontFamily: 'Montserrat-Medium',
         fontSize: 16,
         color: '#647C90',
         textAlign: 'center',
-        lineHeight: 22,
+        lineHeight: 24,
         fontStyle: 'italic',
+        fontWeight: '500',
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
+    // The Confident Self Screen Styles
+    confidentTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
     },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-        minWidth: width * 0.5,
+    confidentTitleBold: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 24,
+        fontWeight: '700',
     },
-    continueButtonText: {
+    // Take Action Screen Styles
+    takeactionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 20,
+        fontWeight: '700',
+    },
+    highlightText: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
+        color: '#928490',
         fontWeight: '600',
     },
-    finalCard: {
-        width: width * 0.85,
+    reflectionSection: {
+        marginBottom: 32,
+    },
+    reflectionInstruction: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 24,
+        fontWeight: '500',
+        marginBottom: 15,
+    },
+    reflectionQuestionsContainer: {
+        marginBottom: 0,
+    },
+    reflectionQuestionCard: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: 'rgba(146, 132, 144, 0.1)',
+    },
+    questionNumber: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+        marginTop: 2,
+    },
+    questionNumberText: {
+        fontFamily: 'Montserrat-Bold',
+        fontSize: 16,
+        color: '#E2DED0',
+        fontWeight: '700',
+    },
+    reflectionQuestion: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 22,
+        flex: 1,
+        paddingTop: 2,
+    },
+    // Congratulations Screen Styles
+    congratulationsTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 32,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 24,
+        fontWeight: '700',
+    },
+    congratulationsClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 20,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
+        fontWeight: '600',
+    },
+    // Journal Section Styles
+    sectionHeader: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    sectionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 22,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
+    },
+    sectionDivider: {
+        width: 60,
+        height: 3,
+        backgroundColor: '#928490',
+        borderRadius: 2,
+    },
+    baseCardConfidence: {
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
@@ -777,58 +1014,6 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 5,
         marginVertical: 20,
-    },
-    finalIconContainer: {
-        marginBottom: 24,
-    },
-    finalIconGradient: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    finalHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 30,
-        gap: 12,
-    },
-    finalHeading: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        fontWeight: '700',
-    },
-    finalTextContainer: {
-        width: '100%',
-        marginBottom: 32,
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-    },
-    alternativeClosing: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 32,
-        marginTop: 20,
-        fontWeight: '600',
-    },
-    finalButtonContainer: {
-        width: '100%',
-        alignItems: 'center',
-        marginTop: 20,
+        marginTop: 50,
     },
 });
