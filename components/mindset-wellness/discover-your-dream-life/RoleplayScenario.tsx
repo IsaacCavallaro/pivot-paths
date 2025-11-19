@@ -147,14 +147,14 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 />
               </View>
 
-              <Text style={commonStyles.introTitle}>Welcome to Day 3!</Text>
+              <Text style={commonStyles.introTitle}>We’re so glad you’re back!</Text>
 
               <Text style={commonStyles.introDescription}>
-                You're doing something truly remarkable. Making time for your growth and future is one of the most powerful commitments you can make to yourself.
+                By showing up again and again, you’re proving that you’re serious about creating a meaningful life beyond dance.
               </Text>
 
               <Text style={commonStyles.introDescription}>
-                By showing up today, you're proving that you're serious about creating the life you deserve - one that honors both your passion for dance and your dreams beyond it.
+                It’s possible to honor both your passion for dance and your dreams beyond it. And we’re so glad to be here with you.
               </Text>
 
               <View style={styles.celebrationBox}>
@@ -169,7 +169,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 Today, we'll explore what life could look like if you continued down the path of professional dance versus choosing a different route. Get ready to imagine new possibilities!
               </Text>
 
-              <PrimaryButton title="Let's Begin Day 3" onPress={handleStartRoleplay} />
+              <PrimaryButton title="Let's Begin" onPress={handleStartRoleplay} />
             </Card>
           </View>
         </ScrollView>
@@ -506,7 +506,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 </Text>
               </View>
 
-              <PrimaryButton title="Mark Day 3 As Complete" onPress={onComplete} />
+              <PrimaryButton title="Mark As Complete" onPress={onComplete} />
             </Card>
           </View>
         </ScrollView>

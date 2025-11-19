@@ -551,7 +551,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
                 />
               </View>
 
-              <Text style={commonStyles.introTitle}>Welcome to Day 5</Text>
+              <Text style={commonStyles.introTitle}>Welcome back!</Text>
 
               <Text style={commonStyles.introDescription}>
                 When we considered the alternative to living a life in dance on Day 3, we did it so that we can start to actively choose options that more closely align with who we are now. But do you really know what you actually align with? That's what we're doing today… getting in touch with what you actually value.
@@ -628,20 +628,20 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
         >
           <View style={commonStyles.centeredContent}>
             <Card style={commonStyles.baseCard}>
-              <Text style={styles.reflectionTitle}>Watch & Reflect</Text>
+              <Text style={styles.reflectionTitle}>Take Action</Text>
 
               <Text style={commonStyles.reflectionDescription}>
                 Now that you know your core value is <Text style={styles.highlightText}>{result.title}</Text>, let's see how others have turned their values into incredible opportunities.
               </Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                Watch how Demi's roller skating hobby turned into 500K followers on Instagram and reflect on how you can apply similar principles to your own journey.
+                Watch how Demi followed her values and turned a new roller skating hobby into over 500K followers on Instagram. Reflect on how you can apply similar principles to your own journey.
               </Text>
 
               {/* Reflection Section */}
               <View style={styles.reflectionSection}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Your Reflection Journey</Text>
+                  <Text style={styles.sectionTitle}>Time for Reflection</Text>
                   <View style={styles.sectionDivider} />
                 </View>
 
@@ -665,7 +665,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
               {/* YouTube Video Player */}
               <View style={styles.videoSection}>
                 <View style={styles.videoHeader}>
-                  <Text style={styles.videoTitle}>How Demi's roller skating hobby turned into 500K followers</Text>
+                  <Text style={styles.videoTitle}>Watch & Learn</Text>
                 </View>
                 <View style={styles.videoContainer}>
                   <View style={styles.youtubePlayer}>

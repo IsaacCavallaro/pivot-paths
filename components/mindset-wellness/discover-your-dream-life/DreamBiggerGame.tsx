@@ -206,7 +206,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                 />
               </View>
 
-              <Text style={commonStyles.introTitle}>Welcome to Day 4</Text>
+              <Text style={commonStyles.introTitle}>You’re back for more!</Text>
 
               <Text style={commonStyles.introDescription}>
                 This is where we're diving deeper into becoming the Expansive Dreamer we talked about on Day 1.
@@ -445,7 +445,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
               <View style={styles.ebookCard}>
                 <Text style={styles.ebookTitle}>Explore Mindset Tools</Text>
                 <Text style={styles.ebookDescription}>
-                  If you'd like to dive deeper into shifting those limiting beliefs, our book "How to Pivot" offers practical strategies that might help.
+                  These mindset shifts are exactly what we explore in our dancer-specific career change resources, helping you rewrite those limiting stories.
                 </Text>
                 <PrimaryButton
                   title="Learn More"
