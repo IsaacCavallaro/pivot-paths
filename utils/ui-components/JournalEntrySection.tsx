@@ -99,7 +99,7 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
             </View>
 
             <Text style={styles.journalNote}>
-                We'll keep these entries safe in your personal journal for you to review later.
+                We'll keep these entries safe in your personal journal for you.
             </Text>
         </View>
     );
