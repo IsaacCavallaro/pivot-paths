@@ -275,7 +275,7 @@ export const categories: Category[] = [
       {
         id: 'skills-assessment',
         title: 'Map Your Direction', // previously "discover your direction"
-        subtitle: 'Coming Soon', // We only use subheadings for "Coming Soon"
+        subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Here’s a map to help discover your direction.',
         duration: '7 days',
         totalDays: 7,

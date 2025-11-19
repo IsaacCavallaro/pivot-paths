@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, Image, Linking, ScrollView, TouchableOpacity } from 'react-native';
-import { ChevronRight, Sparkles, ArrowLeft } from 'lucide-react-native';
+import { ChevronRight, Sparkles, ArrowLeft, Check } from 'lucide-react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { useJournaling } from '@/utils/hooks/useJournaling';
@@ -103,6 +103,8 @@ const getStoryMapping = (choice: string): string => {
 export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameProps) {
   const [currentScreen, setCurrentScreen] = useState(-1);
   const [randomizedChoices, setRandomizedChoices] = useState<DreamChoice[]>([]);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const { scrollViewRef, scrollToTop } = useScrollToTop();
   const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
@@ -139,15 +141,46 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
   };
 
   const handleChoice = async (choiceKey: string, selectedOption: string) => {
+    setSelectedOption(selectedOption);
+
+    setIsTransitioning(true);
+    await new Promise(resolve => setTimeout(resolve, 150));
+
     const newChoices = { ...dreamBiggerChoices, [choiceKey]: selectedOption };
     await setDreamBiggerChoices(newChoices);
 
     if (currentScreen < 10) {
       setCurrentScreen(currentScreen + 1);
+      setSelectedOption(null);
     } else {
       setCurrentScreen(12);
     }
     scrollToTop();
+    setIsTransitioning(false);
+  };
+
+  const handleContinue = async () => {
+    if (selectedOption === null || isTransitioning) return;
+
+    setIsTransitioning(true);
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    const choiceIndex = currentScreen - 1;
+    const currentChoice = randomizedChoices[choiceIndex];
+
+    if (currentChoice) {
+      const newChoices = { ...dreamBiggerChoices, [currentChoice.storyKey]: selectedOption };
+      await setDreamBiggerChoices(newChoices);
+    }
+
+    if (currentScreen < 10) {
+      setCurrentScreen(currentScreen + 1);
+      setSelectedOption(null);
+    } else {
+      setCurrentScreen(12);
+    }
+    scrollToTop();
+    setIsTransitioning(false);
   };
 
   const handleContinueStory = () => {
@@ -207,7 +240,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                 />
               </View>
 
-              <Text style={commonStyles.introTitle}>You’re back for more!</Text>
+              <Text style={commonStyles.introTitle}>You're back for more!</Text>
 
               <Text style={commonStyles.introDescription}>
                 This is where we're diving deeper into becoming the Expansive Dreamer we talked about on Day 1.
@@ -269,7 +302,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
     );
   }
 
-  // Choice Screens (1-10)
+  // Choice Screens (1-10) - UPDATED WITH HIGHLIGHT AND CONTINUE BUTTON
   if (currentScreen >= 1 && currentScreen <= 10) {
     const choiceIndex = currentScreen - 1;
     const currentChoice = randomizedChoices[choiceIndex];
@@ -296,21 +329,59 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
             <Card style={commonStyles.baseCard}>
               <View style={styles.choiceButtons}>
                 <TouchableOpacity
-                  style={styles.choiceButton}
-                  onPress={() => handleChoice(currentChoice.storyKey, currentChoice.option1)}
+                  style={[
+                    styles.choiceButton,
+                    selectedOption === currentChoice.option1 && styles.choiceButtonSelected
+                  ]}
+                  onPress={() => setSelectedOption(currentChoice.option1)}
                   activeOpacity={0.8}
+                  disabled={isTransitioning}
                 >
-                  <Text style={styles.choiceButtonText}>{currentChoice.option1}</Text>
+                  <View style={styles.optionContent}>
+                    {selectedOption === currentChoice.option1 && (
+                      <View style={styles.selectedIndicator}>
+                        <Check size={16} color="#E2DED0" />
+                      </View>
+                    )}
+                    <Text style={[
+                      styles.choiceButtonText,
+                      selectedOption === currentChoice.option1 && styles.choiceButtonTextSelected
+                    ]}>
+                      {currentChoice.option1}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.choiceButton}
-                  onPress={() => handleChoice(currentChoice.storyKey, currentChoice.option2)}
+                  style={[
+                    styles.choiceButton,
+                    selectedOption === currentChoice.option2 && styles.choiceButtonSelected
+                  ]}
+                  onPress={() => setSelectedOption(currentChoice.option2)}
                   activeOpacity={0.8}
+                  disabled={isTransitioning}
                 >
-                  <Text style={styles.choiceButtonText}>{currentChoice.option2}</Text>
+                  <View style={styles.optionContent}>
+                    {selectedOption === currentChoice.option2 && (
+                      <View style={styles.selectedIndicator}>
+                        <Check size={16} color="#E2DED0" />
+                      </View>
+                    )}
+                    <Text style={[
+                      styles.choiceButtonText,
+                      selectedOption === currentChoice.option2 && styles.choiceButtonTextSelected
+                    ]}>
+                      {currentChoice.option2}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
+
+              <PrimaryButton
+                title="Continue"
+                onPress={handleContinue}
+                disabled={selectedOption === null || isTransitioning}
+              />
             </Card>
           </View>
         </ScrollView>
@@ -493,11 +564,35 @@ const styles = StyleSheet.create({
     minHeight: 80,
     justifyContent: 'center',
   },
+  choiceButtonSelected: {
+    backgroundColor: 'rgba(146, 132, 144, 0.3)',
+    borderColor: '#928490',
+    borderWidth: 2,
+  },
   choiceButtonText: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 18,
     color: '#4E4F50',
     textAlign: 'center',
+  },
+  choiceButtonTextSelected: {
+    color: '#4E4F50',
+    fontWeight: '600',
+  },
+  optionContent: {
+    paddingRight: 40,
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: '50%',
+    right: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#928490',
+    justifyContent: 'center',
+    alignItems: 'center',
+    transform: [{ translateY: -12 }],
   },
   storyTitleContainer: {
     alignItems: 'center',
