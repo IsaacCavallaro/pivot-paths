@@ -11,7 +11,6 @@ import {
     Alert
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     ArrowLeft,
     TrendingUp,
@@ -24,7 +23,11 @@ import {
     Share2,
     ChevronRight
 } from 'lucide-react-native';
-import { PieChart } from 'react-native-svg-charts';
+// import { PieChart } from 'react-native-svg-charts';
+
+import { useStorage } from '@/hooks/useStorage';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
+import { storageService } from '@/utils/storageService';
 
 interface JournalEntry {
     id: string;
@@ -46,6 +49,22 @@ interface CompletedPath {
     completedDays: number;
     totalDays: number;
     completionDate: number;
+}
+
+// Add interfaces for the quiz results
+interface DreamerResult {
+    type: string;
+    title: string;
+    description: string;
+    subtitle: string;
+    color: string;
+}
+
+interface ValuesResult {
+    primaryValue: string;
+    title: string;
+    description: string;
+    color: string;
 }
 
 const screenWidth = Dimensions.get('window').width;
@@ -93,6 +112,13 @@ export default function ReportsScreen() {
     const [completedPaths, setCompletedPaths] = useState<CompletedPath[]>([]);
     const [selectedPath, setSelectedPath] = useState<CompletedPath | null>(null);
 
+    // State variables for quiz results - with proper typing
+    const [dreamBiggerChoices, setDreamBiggerChoices] = useState<{ [key: string]: string }>({});
+    const [mythBusterMatchedPairs, setMythBusterMatchedPairs] = useState<number[]>([]);
+    const [skillsQuizResult, setSkillsQuizResult] = useState<DreamerResult | null>(null);
+    const [roleplayScenarioChoice, setRoleplayScenarioChoice] = useState<string | null>(null);
+    const [valuesDiscoveryResult, setValuesDiscoveryResult] = useState<ValuesResult | null>(null);
+
     useFocusEffect(
         useCallback(() => {
             loadReportData();
@@ -114,8 +140,8 @@ export default function ReportsScreen() {
             const pathId = 'discover-dream-life';
             const progressKey = `${categoryId}_${pathId}`;
 
-            const savedProgress = await AsyncStorage.getItem('pathProgress');
-            const progressData = savedProgress ? JSON.parse(savedProgress) : {};
+            const savedProgress = await storageService.load<Record<string, number>>(STORAGE_KEYS.PATH_PROGRESS);
+            const progressData = savedProgress || {};
             const currentCompletedDays = progressData[progressKey] || 0;
             setCompletedDays(currentCompletedDays);
 
@@ -124,9 +150,10 @@ export default function ReportsScreen() {
 
             // Load all completed paths
             const completedPathsList: CompletedPath[] = [];
-            Object.entries(progressData).forEach(([key, days]) => {
+            Object.entries(progressData).forEach(([key, daysValue]) => {
                 const [catId, pathId] = key.split('_');
                 const totalDays = 7; // Assuming all paths have 7 days for now
+                const days = daysValue as number; // Explicitly cast to number
                 if (days >= totalDays) {
                     completedPathsList.push({
                         categoryId: catId,
@@ -141,10 +168,35 @@ export default function ReportsScreen() {
             setCompletedPaths(completedPathsList);
 
             // Load journal entries
-            const raw = await AsyncStorage.getItem('journalEntries');
-            if (raw) {
-                const parsedEntries = JSON.parse(raw);
-                setJournalEntries(parsedEntries);
+            const rawEntries = await storageService.load<JournalEntry[]>(STORAGE_KEYS.JOURNAL_ENTRIES);
+            if (rawEntries) {
+                setJournalEntries(rawEntries);
+            }
+
+            // Load additional data from STORAGE_KEYS
+            const loadedDreamBiggerChoices = await storageService.load<{ [key: string]: string }>(STORAGE_KEYS.DREAM_BIGGER_CHOICES);
+            if (loadedDreamBiggerChoices) {
+                setDreamBiggerChoices(loadedDreamBiggerChoices);
+            }
+
+            const loadedMythBusterMatchedPairs = await storageService.load<number[]>(STORAGE_KEYS.MYTH_BUSTER_MATCHED_PAIRS);
+            if (loadedMythBusterMatchedPairs) {
+                setMythBusterMatchedPairs(loadedMythBusterMatchedPairs);
+            }
+
+            const loadedSkillsQuizResult = await storageService.load<DreamerResult>(STORAGE_KEYS.DAY1_SKILLS_QUIZ_RESULT);
+            if (loadedSkillsQuizResult) {
+                setSkillsQuizResult(loadedSkillsQuizResult);
+            }
+
+            const loadedRoleplayScenarioChoice = await storageService.load<string>(STORAGE_KEYS.ROLEPLAY_SCENARIO_CHOICE);
+            if (loadedRoleplayScenarioChoice) {
+                setRoleplayScenarioChoice(loadedRoleplayScenarioChoice);
+            }
+
+            const loadedValuesDiscoveryResult = await storageService.load<ValuesResult>(STORAGE_KEYS.VALUES_DISCOVERY_RESULT);
+            if (loadedValuesDiscoveryResult) {
+                setValuesDiscoveryResult(loadedValuesDiscoveryResult);
             }
 
             setLoading(false);
@@ -295,6 +347,9 @@ ${Object.entries(insights.entriesByPath)
                     .map(([path, entries]) => `${formatPathTag(path)}: ${entries.length} entries`)
                     .join('\n')}
 
+Dreamer Type: ${skillsQuizResult?.title || 'N/A'}
+Core Values: ${valuesDiscoveryResult?.title || 'N/A'}
+
 Keep up the great work on your journaling journey! 📝✨
             `.trim();
 
@@ -305,6 +360,49 @@ Keep up the great work on your journaling journey! 📝✨
         } catch (error) {
             Alert.alert('Error', 'Failed to export report');
         }
+    };
+
+    // NEW: Render Dreamer Profile section with detailed results
+    const renderDreamerProfile = () => {
+        if (!skillsQuizResult && !valuesDiscoveryResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    {/* Skills Quiz Result */}
+                    {skillsQuizResult && (
+                        <View style={styles.quizResultSection}>
+                            <Text style={styles.profileSectionTitle}>Dreamer Type</Text>
+                            <View style={[styles.resultCard, { borderLeftColor: skillsQuizResult.color || '#928490' }]}>
+                                <Text style={styles.resultTitle}>{skillsQuizResult.title}</Text>
+                                <Text style={styles.resultDescription}>{skillsQuizResult.description}</Text>
+                                {skillsQuizResult.subtitle && (
+                                    <View style={styles.subtitleContainer}>
+                                        <Text style={styles.resultSubtitle}>{skillsQuizResult.subtitle}</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                    )}
+
+                    {/* Values Discovery Result */}
+                    {valuesDiscoveryResult && (
+                        <View style={styles.quizResultSection}>
+                            <Text style={styles.profileSectionTitle}>Core Values</Text>
+                            <View style={[styles.resultCard, { borderLeftColor: valuesDiscoveryResult.color || '#647C90' }]}>
+                                <Text style={styles.resultTitle}>{valuesDiscoveryResult.title}</Text>
+                                <Text style={styles.resultDescription}>{valuesDiscoveryResult.description}</Text>
+                                <View style={styles.valueTagContainer}>
+                                    <Text style={styles.valueTag}>{valuesDiscoveryResult.primaryValue || valuesDiscoveryResult.title}</Text>
+                                </View>
+                            </View>
+                        </View>
+                    )}
+                </View>
+            </View>
+        );
     };
 
     if (loading) {
@@ -398,7 +496,6 @@ Keep up the great work on your journaling journey! 📝✨
                     }
                 >
                     <View style={styles.content}>
-
                         {/* Mood Analysis */}
                         {Object.keys(insights.moodStats).length > 0 && (
                             <View style={styles.card}>
@@ -412,12 +509,12 @@ Keep up the great work on your journaling journey! 📝✨
                                     <View style={styles.chartContainer}>
                                         <Text style={styles.chartTitle}>Mood Distribution</Text>
                                         <View style={styles.pieChartWrapper}>
-                                            <PieChart
+                                            {/* <PieChart
                                                 style={{ height: 200, width: 200 }}
                                                 data={getMoodPieData()}
                                                 innerRadius={'40%'}
                                                 padAngle={0.02}
-                                            />
+                                            /> */}
                                             <View style={styles.pieChartCenter}>
                                                 <Text style={styles.pieChartCenterText}>
                                                     {insights.totalEntries}
@@ -479,21 +576,8 @@ Keep up the great work on your journaling journey! 📝✨
                             </View>
                         )}
 
-                        {/* Writing Patterns */}
-                        <View style={styles.card}>
-                            <View style={styles.cardHeader}>
-                                <BarChart3 size={24} color="#647C90" />
-                                <Text style={styles.cardTitle}>Writing Patterns</Text>
-                            </View>
-                            <View style={styles.patternsGrid}>
-                                <View style={styles.patternItem}>
-                                    <Text style={styles.patternValue}>
-                                        {insights.avgLength}
-                                    </Text>
-                                    <Text style={styles.patternLabel}>Average Entry Length</Text>
-                                </View>
-                            </View>
-                        </View>
+                        {/* Dreamer Profile Section */}
+                        {renderDreamerProfile()}
 
                         <View style={styles.exportCard}>
                             <Download size={32} color="#647C90" />
@@ -582,7 +666,6 @@ Keep up the great work on your journaling journey! 📝✨
     );
 }
 
-// ... (styles remain exactly the same)
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -1059,5 +1142,125 @@ const styles = StyleSheet.create({
         color: '#E2DED0',
         textAlign: 'center',
         lineHeight: 20,
+    },
+    rawDataContainer: {
+        marginTop: 10,
+        backgroundColor: '#E2DED0',
+        borderRadius: 12,
+        padding: 15,
+    },
+    rawDataLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#4E4F50',
+        marginTop: 10,
+        marginBottom: 5,
+    },
+    rawDataContent: {
+        fontSize: 14,
+        color: '#746C70',
+        fontFamily: 'monospace',
+        backgroundColor: '#F5F5F5',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 10,
+    },
+    profileContainer: {
+        marginTop: 10,
+    },
+    profileItem: {
+        marginBottom: 15,
+    },
+    profileLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#4E4F50',
+        marginBottom: 5,
+    },
+    profileValue: {
+        fontSize: 14,
+        color: '#746C70',
+        backgroundColor: '#E2DED0',
+        padding: 10,
+        borderRadius: 8,
+    },
+    valuesList: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: 5,
+    },
+    valueTag: {
+        backgroundColor: '#647C90',
+        color: '#E2DED0',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 16,
+        marginRight: 8,
+        marginBottom: 8,
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    // NEW STYLES FOR QUIZ RESULTS
+    quizResultSection: {
+        marginBottom: 20,
+    },
+    profileSectionTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#647C90',
+        marginBottom: 12,
+    },
+    resultCard: {
+        backgroundColor: '#F8F9FA',
+        borderRadius: 12,
+        padding: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: '#928490',
+        marginBottom: 12,
+    },
+    resultTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#4E4F50',
+        marginBottom: 8,
+    },
+    resultDescription: {
+        fontSize: 14,
+        color: '#746C70',
+        lineHeight: 20,
+        marginBottom: 8,
+    },
+    resultSubtitle: {
+        fontSize: 14,
+        fontStyle: 'italic',
+        color: '#928490',
+        lineHeight: 20,
+    },
+    subtitleContainer: {
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 8,
+        padding: 12,
+        marginTop: 8,
+    },
+    valueTagContainer: {
+        marginTop: 8,
+    },
+    insightSection: {
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 12,
+        padding: 16,
+        marginTop: 16,
+    },
+    insightTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#647C90',
+        marginBottom: 8,
+    },
+    insightText: {
+        fontSize: 14,
+        color: '#4E4F50',
+        lineHeight: 20,
+        fontStyle: 'italic',
     },
 });

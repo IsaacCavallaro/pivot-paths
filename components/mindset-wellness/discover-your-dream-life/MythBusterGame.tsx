@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
 import { ChevronRight, ArrowLeft, PlusCircle, Smile, Frown, Meh, Laugh, Angry, Heart } from 'lucide-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { useJournaling } from '@/utils/hooks/useJournaling';
+import { useStorage } from '@/hooks/useStorage';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
@@ -82,10 +83,8 @@ const mythPairs: MythPair[] = [
 
 export default function MythBusterGame({ onComplete, onBack }: MythBusterGameProps) {
   const [currentScreen, setCurrentScreen] = useState(-1);
-  const [day1SkillsQuizResult, setDay1SkillsQuizResult] = useState<DreamerResult | null>(null);
   const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; pairId: number; type: 'myth' | 'reality' }>>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
   const [currentPairIndex, setCurrentPairIndex] = useState(0);
   const [showMismatch, setShowMismatch] = useState(false);
   const [journalEntry, setJournalEntry] = useState('');
@@ -100,18 +99,11 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
   const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
   const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
 
+  const [day1SkillsQuizResult] = useStorage<DreamerResult | null>('DAY1_SKILLS_QUIZ_RESULT', null);
+  const [mythBusterMatchedPairs, setMythBusterMatchedPairs] = useStorage<number[]>('MYTH_BUSTER_MATCHED_PAIRS', []);
+
   useEffect(() => {
-    const loadQuizResult = async () => {
-      try {
-        const storedResult = await AsyncStorage.getItem('day1SkillsQuizResult');
-        if (storedResult) {
-          setDay1SkillsQuizResult(JSON.parse(storedResult));
-        }
-      } catch (error) {
-        console.error('Error loading quiz result from AsyncStorage:', error);
-      }
-    };
-    loadQuizResult();
+    // No need to load quiz result here, useStorage handles it
   }, []);
 
   // Scroll to top whenever screen changes
@@ -127,13 +119,13 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     onComplete();
   };
 
-  const goBack = () => {
+  const goBack = async () => {
     if (currentScreen === 0) {
       setCurrentScreen(-1);
     } else if (currentScreen === 1) {
       setCurrentScreen(0);
     } else if (currentScreen === 2) {
-      setMatchedPairs([]);
+      await setMythBusterMatchedPairs([]); // Reset matched pairs in storage
       setSelectedItems([]);
       setCurrentPairIndex(0);
       setShowMismatch(false);
@@ -180,24 +172,24 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     setCurrentPairIndex(3);
   };
 
-  const handleItemPress = (itemId: string) => {
+  const handleItemPress = async (itemId: string) => {
     if (selectedItems.includes(itemId) || showMismatch) return;
 
     const newSelected = [...selectedItems, itemId];
     setSelectedItems(newSelected);
 
     if (newSelected.length === 2) {
-      checkMatch(newSelected);
+      await checkMatch(newSelected);
     }
   };
 
-  const checkMatch = (selected: string[]) => {
+  const checkMatch = async (selected: string[]) => {
     const item1 = gameItems.find(item => item.id === selected[0]);
     const item2 = gameItems.find(item => item.id === selected[1]);
 
     if (item1 && item2 && item1.pairId === item2.pairId) {
-      const newMatchedPairs = [...matchedPairs, item1.pairId];
-      setMatchedPairs(newMatchedPairs);
+      const newMatchedPairs = [...mythBusterMatchedPairs, item1.pairId];
+      await setMythBusterMatchedPairs(newMatchedPairs);
 
       setTimeout(() => {
         const remainingItems = gameItems.filter(item => !selected.includes(item.id));
@@ -257,7 +249,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
 
   const getItemStyle = (itemId: string) => {
     const isSelected = selectedItems.includes(itemId);
-    const isMatched = gameItems.find(item => item.id === itemId && matchedPairs.includes(item.pairId));
+    const isMatched = gameItems.find(item => item.id === itemId && mythBusterMatchedPairs.includes(item.pairId));
 
     if (isMatched) {
       return [styles.gameButton, styles.matchedButton];
@@ -528,8 +520,8 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     <View style={commonStyles.container}>
       <StickyHeader
         onBack={goBack}
-        title={`${matchedPairs.length}/${mythPairs.length} pairs matched`}
-        progress={matchedPairs.length / mythPairs.length}
+        title={`${mythBusterMatchedPairs.length}/${mythPairs.length} pairs matched`}
+        progress={mythBusterMatchedPairs.length / mythPairs.length}
       />
 
       <ScrollView
@@ -556,12 +548,12 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                     style={getItemStyle(item.id)}
                     onPress={() => handleItemPress(item.id)}
                     activeOpacity={0.8}
-                    disabled={matchedPairs.includes(item.pairId)}
+                    disabled={mythBusterMatchedPairs.includes(item.pairId)}
                   >
                     <Text style={[
                       styles.gameButtonText,
                       selectedItems.includes(item.id) && styles.selectedButtonText,
-                      matchedPairs.includes(item.pairId) && styles.matchedButtonText,
+                      mythBusterMatchedPairs.includes(item.pairId) && styles.matchedButtonText,
                       selectedItems.includes(item.id) && showMismatch && styles.mismatchButtonText
                     ]}>
                       {item.text}
@@ -578,12 +570,12 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                     style={getItemStyle(item.id)}
                     onPress={() => handleItemPress(item.id)}
                     activeOpacity={0.8}
-                    disabled={matchedPairs.includes(item.pairId)}
+                    disabled={mythBusterMatchedPairs.includes(item.pairId)}
                   >
                     <Text style={[
                       styles.gameButtonText,
                       selectedItems.includes(item.id) && styles.selectedButtonText,
-                      matchedPairs.includes(item.pairId) && styles.matchedButtonText,
+                      mythBusterMatchedPairs.includes(item.pairId) && styles.matchedButtonText,
                       selectedItems.includes(item.id) && showMismatch && styles.mismatchButtonText
                     ]}>
                       {item.text}

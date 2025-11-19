@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, Linking, TextInput, Alert } from 'react-native';
 import { ChevronRight, ArrowLeft, PlusCircle, Check, Smile, Frown, Meh, Laugh, Angry, Heart } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { useJournaling } from '@/utils/hooks/useJournaling';
+import { useStorage } from '@/hooks/useStorage';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
@@ -306,6 +306,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
   const { scrollViewRef, scrollToTop } = useScrollToTop();
   const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
   const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
+  const [valuesDiscoveryResult, setValuesDiscoveryResult] = useStorage<ValuesResult | null>('VALUES_DISCOVERY_RESULT', null);
 
   useEffect(() => {
     const shuffled = [...valuesQuestions].sort(() => Math.random() - 0.5);
@@ -366,6 +367,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
 
     const finalResult = valuesResults[dominantValue];
     setResult(finalResult);
+    setValuesDiscoveryResult(finalResult); // Save the result to storage
     setCurrentScreen(11);
     scrollToTop();
   };
@@ -383,41 +385,6 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
   const handleComplete = () => {
     if (result) {
       onComplete(result);
-    }
-  };
-
-  const addJournalEntry = async () => {
-    const trimmed = journalEntry.trim();
-    if (!trimmed) {
-      Alert.alert('Empty Entry', 'Please write something before adding.');
-      return;
-    }
-
-    try {
-      const newEntry: JournalEntry = {
-        id: Date.now().toString(),
-        pathTag: 'discover-dream-life',
-        date: new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        }),
-        content: trimmed,
-      };
-
-      const raw = await AsyncStorage.getItem('journalEntries');
-      const existingEntries = raw ? JSON.parse(raw) : [];
-
-      const updatedEntries = [newEntry, ...existingEntries];
-
-      await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
-
-      setJournalEntry('');
-      Alert.alert('Success', 'Journal entry added!');
-
-    } catch (error) {
-      console.error('Error saving journal entry:', error);
-      Alert.alert('Error', 'Failed to save journal entry.');
     }
   };
 
