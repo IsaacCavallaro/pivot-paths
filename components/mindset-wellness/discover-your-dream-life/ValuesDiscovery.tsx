@@ -674,7 +674,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
               <JournalEntrySection
                 pathTag="discover-dream-life"
                 journalInstruction="As you're watching, write your reflections as a journal entry below."
-                moodLabel="How are you feeling about this?"
+                moodLabel=""
                 saveButtonText="Add to Journal"
                 placeholder={journalPlaceholder}
               />

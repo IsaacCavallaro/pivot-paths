@@ -99,7 +99,7 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
               <JournalEntrySection
                 pathTag="discover-dream-life"
                 journalInstruction="A quick check in before we start this session"
-                moodLabel="How are you feeling?"
+                moodLabel=""
                 saveButtonText="Save Entry"
               />
 
@@ -230,7 +230,7 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
               <JournalEntrySection
                 pathTag="post-visualization-reflection"
                 journalInstruction="Reflect on your visualization experience"
-                moodLabel="How are you feeling now?"
+                moodLabel=""
                 saveButtonText="Save Reflection"
               />
               <PrimaryButton title="Continue" onPress={handleContinueToFinal} />

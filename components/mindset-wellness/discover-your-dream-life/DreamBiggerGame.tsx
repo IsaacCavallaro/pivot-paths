@@ -437,7 +437,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                 </Text>
 
                 <Text style={styles.storyText}>
-                  These mindset shifts are exactly what we explore in our resources, helping you rewrite those limiting stories.
+                  These mindset shifts are exactly what we explore in our dancer-specific career change resources, helping you rewrite those limiting stories.
                 </Text>
               </View>
 
@@ -445,7 +445,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
               <View style={styles.ebookCard}>
                 <Text style={styles.ebookTitle}>Explore Mindset Tools</Text>
                 <Text style={styles.ebookDescription}>
-                  These mindset shifts are exactly what we explore in our dancer-specific career change resources, helping you rewrite those limiting stories.
+                  If you'd like to dive deeper into shifting those limiting beliefs, our book "How to Pivot" offers practical strategies that might help.
                 </Text>
                 <PrimaryButton
                   title="Learn More"
@@ -457,7 +457,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
               <JournalEntrySection
                 pathTag="discover-dream-life"
                 journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?"
-                moodLabel="How are you feeling now?"
+                moodLabel=""
                 saveButtonText="Save Entry"
               />
 
