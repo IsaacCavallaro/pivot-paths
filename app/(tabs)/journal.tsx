@@ -20,10 +20,10 @@ import {
     Search,
     X,
     Filter,
-    Meh, // Keep Meh for default mood icon in list view
+    Meh,
 } from 'lucide-react-native';
 import { JournalEntrySection } from '../../utils/ui-components/JournalEntrySection';
-import { MOOD_OPTIONS } from '../../utils/constants'; // Import MOOD_OPTIONS from constants
+import { MOOD_OPTIONS } from '../../utils/constants';
 
 interface JournalEntry {
     id: string;
