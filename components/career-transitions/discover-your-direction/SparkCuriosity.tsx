@@ -247,6 +247,10 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
 
                             <JournalEntrySection
                                 pathTag="spark-curiosity"
+                                day="3"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Spark Your Curiosity"
                                 journalInstruction="How are you feeling about exploring new career possibilities right now? What hopes or concerns come to mind?"
                                 moodLabel=""
                                 saveButtonText="Save Entry"
@@ -328,6 +332,10 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
 
                             <JournalEntrySection
                                 pathTag="spark-curiosity"
+                                day="3"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Spark Your Curiosity"
                                 journalInstruction="Which curiosity prompts stood out to you the most? What new possibilities or ideas did they spark?"
                                 moodLabel=""
                                 saveButtonText="Save Reflection"
@@ -385,6 +393,10 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
 
                             <JournalEntrySection
                                 pathTag="spark-curiosity"
+                                day="3"
+                                category="Career Transitions"
+                                pathTitle="Map Your Direction"
+                                dayTitle="Spark Your Curiosity"
                                 journalInstruction="Based on today's exploration, what's one small step you could take to follow your curiosity this week?"
                                 moodLabel=""
                                 saveButtonText="Save Action Step"
