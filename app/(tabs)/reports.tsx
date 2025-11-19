@@ -444,9 +444,6 @@ Keep up the great work on your pivot journey!
                                 ]}
                             />
                         </View>
-                        <Text style={styles.progressText}>
-                            {completedDays} of 7 days completed
-                        </Text>
                     </View>
                 </View>
             </View>

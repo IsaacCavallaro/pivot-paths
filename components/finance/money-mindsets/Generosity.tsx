@@ -1,6 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { ChevronRight, Heart, Gift, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions, Modal, Linking } from 'react-native';
+import { ChevronRight, Heart, Gift, ArrowLeft, ChevronLeft, X, Check } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useStorage } from '@/hooks/useStorage';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+
+const { width, height } = Dimensions.get('window');
 
 interface GenerosityProps {
     onComplete: () => void;
@@ -8,12 +20,17 @@ interface GenerosityProps {
 }
 
 export default function Generosity({ onComplete, onBack }: GenerosityProps) {
-    const [currentScreen, setCurrentScreen] = useState(0);
+    const [currentScreen, setCurrentScreen] = useState(-1);
     const [currentScenario, setCurrentScenario] = useState(1); // 1 = sibling, 2 = dance studio, 3 = friend
-    const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [showVideoModal, setShowVideoModal] = useState(false);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const [selectedChoice, setSelectedChoice] = useStorage<number | null>('GENEROSITY_SCENARIO_CHOICE', null);
 
     const handleStartRoleplay = () => {
-        setCurrentScreen(1);
+        setCurrentScreen(0);
+        scrollToTop();
     };
 
     const handleBack = () => {
@@ -23,34 +40,73 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
     };
 
     const goBack = () => {
-        if (currentScreen === 1) {
+        if (currentScreen === -1) {
+            if (onBack) onBack();
+        } else if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen === 1) {
             setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        } else if (currentScreen > 1 && currentScreen <= 6) {
             setCurrentScreen(currentScreen - 1);
         }
+        scrollToTop();
     };
 
-    const handleChoiceSelect = (choiceNumber: number) => {
-        setSelectedChoice(choiceNumber);
-        setCurrentScreen(3); // Go to response screen
+    const handleChoiceSelect = async (choiceNumber: number) => {
+        await setSelectedChoice(choiceNumber);
+        scrollToTop();
     };
 
     const handleContinue = () => {
-        if (currentScreen === 3) {
-            setCurrentScreen(4); // Go to alternative vision
+        if (currentScreen === 2 && selectedChoice !== null) {
+            setCurrentScreen(3);
+        } else if (currentScreen === 3) {
+            setCurrentScreen(4);
         } else if (currentScreen === 4) {
+            setCurrentScreen(5);
+        } else if (currentScreen === 5) {
             // Move to next scenario or complete
             if (currentScenario < 3) {
                 setCurrentScenario(currentScenario + 1);
                 setSelectedChoice(null);
                 setCurrentScreen(1); // Back to scenario screen
+                scrollToTop();
             } else {
-                setCurrentScreen(5); // Final screen
+                setCurrentScreen(6);
             }
-        } else if (currentScreen === 5) {
+        } else if (currentScreen === 6) {
             onComplete();
         } else {
             setCurrentScreen(currentScreen + 1);
+        }
+        scrollToTop();
+    };
+
+    const openVideoModal = () => {
+        setShowVideoModal(true);
+        setIsPlaying(true);
+    };
+
+    const closeVideoModal = () => {
+        setIsPlaying(false);
+        setShowVideoModal(false);
+    };
+
+    const openYouTubeShort = async () => {
+        const youtubeUrl = `https://www.youtube.com/shorts/s-hpQ9XBGP4`;
+
+        try {
+            const supported = await Linking.canOpenURL(youtubeUrl);
+
+            if (supported) {
+                await Linking.openURL(youtubeUrl);
+            } else {
+                console.log("YouTube app not available, opening in modal");
+                openVideoModal();
+            }
+        } catch (error) {
+            console.log("Error opening YouTube:", error);
+            openVideoModal();
         }
     };
 
@@ -111,47 +167,111 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
 
     const scenarioData = getScenarioData();
 
-    // Intro Screen
-    if (currentScreen === 0) {
-        return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+    const getResponseText = () => {
+        if (!selectedChoice) return "";
+        return scenarioData.responses[selectedChoice - 1];
+    };
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
+    const getFollowUpText = () => {
+        switch (selectedChoice) {
+            case 1:
+                return "Your heart wants to give generously, but your current financial situation creates limitations. This doesn't reflect on your character - it reflects the reality of your resources. When money is tight, generosity often becomes the first thing we sacrifice, even when it brings us so much joy.";
+            case 2:
+                return "You're finding creative ways to give within your means, which shows incredible thoughtfulness. But that lingering feeling of 'I wish I could do more' is telling you something important. True generosity should feel expansive, not restrictive.";
+            case 3:
+                return "You're making compromises between what you'd love to give and what you can practically afford. This balancing act between your generous spirit and financial reality creates internal tension that diminishes the joy of giving.";
+            default:
+                return "";
+        }
+    };
+
+    // Day 3 Welcome Screen
+    if (currentScreen === -1) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Image
                                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                                    style={commonStyles.heroImage}
                                 />
                             </View>
 
-                            <Text style={styles.introTitle}>How Money Creates Generosity</Text>
+                            <Text style={commonStyles.introTitle}>The Power of Generosity</Text>
 
-                            <Text style={styles.introDescription}>
-                                Let's explore a scenario where your financial situation influences how much you can give back. Choose what you'd do and then see what other options might open up if you had more stability and income.
+                            <Text style={commonStyles.introDescription}>
+                                Welcome to Day 3 of Money Mindsets! Today we'll explore how financial stability can transform your ability to give back to the people and causes you care about most.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={handleStartRoleplay}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Begin</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={commonStyles.introDescription}>
+                                Generosity isn't just about money - it's about having the freedom to express your love and support without financial constraints holding you back.
+                            </Text>
+
+                            <View style={styles.celebrationBox}>
+                                <Text style={styles.celebrationTitle}>What You'll Explore Today</Text>
+                                <Text style={styles.celebrationItem}>• How money amplifies your ability to give</Text>
+                                <Text style={styles.celebrationItem}>• The emotional impact of financial generosity</Text>
+                                <Text style={styles.celebrationItem}>• Creating a lifestyle of giving</Text>
+                                <Text style={styles.celebrationItem}>• Supporting your community and loved ones</Text>
+                            </View>
+
+                            <Text style={styles.welcomeFooter}>
+                                Get ready to imagine how financial freedom could transform your ability to support the people and causes that matter most to you.
+                            </Text>
+
+                            <PrimaryButton title="Begin Exploring" onPress={handleStartRoleplay} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Main Intro Screen
+    if (currentScreen === 0) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.introTitle}>How Money Creates Generosity</Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                Let's explore scenarios where your financial situation influences how much you can give back. Choose what you'd do and then see what other options might open up if you had more stability and income.
+                            </Text>
+
+                            <PrimaryButton title="Begin" onPress={() => {
+                                setCurrentScreen(1);
+                                scrollToTop();
+                            }} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -161,37 +281,27 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
     // Scenario Screen
     if (currentScreen === 1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.scenarioCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.scenarioTitle}>{scenarioData.title}</Text>
 
                             <Text style={styles.scenarioText}>
                                 {scenarioData.text}
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={() => setCurrentScreen(2)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>What will you do?</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="What will you do?" onPress={handleContinue} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -201,35 +311,55 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
     // Choices Screen
     if (currentScreen === 2) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.choicesCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.choicesTitle}>Your Options</Text>
 
                             <View style={styles.choicesContainer}>
                                 {scenarioData.choices.map((choice, index) => (
                                     <TouchableOpacity
                                         key={index}
-                                        style={styles.choiceButton}
+                                        style={[
+                                            styles.choiceButton,
+                                            selectedChoice === index + 1 && styles.choiceButtonSelected
+                                        ]}
                                         onPress={() => handleChoiceSelect(index + 1)}
                                         activeOpacity={0.8}
                                     >
-                                        <Text style={styles.choiceText}>{choice}</Text>
+                                        <View style={styles.choiceContent}>
+                                            {selectedChoice === index + 1 && (
+                                                <View style={styles.selectedIndicator}>
+                                                    <Check size={16} color="#E2DED0" />
+                                                </View>
+                                            )}
+                                            <Text style={[
+                                                styles.choiceText,
+                                                selectedChoice === index + 1 && styles.choiceTextSelected
+                                            ]}>
+                                                {choice}
+                                            </Text>
+                                        </View>
                                     </TouchableOpacity>
                                 ))}
                             </View>
-                        </View>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinue}
+                                disabled={selectedChoice === null}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -238,40 +368,57 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
 
     // Response Screen
     if (currentScreen === 3) {
-        const responseText = selectedChoice ? scenarioData.responses[selectedChoice - 1] : "";
-
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.responseCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
                             <Text style={styles.responseTitle}>Here's where you're at</Text>
 
-                            <Text style={styles.responseText}>{responseText}</Text>
+                            <Text style={styles.responseText}>{getResponseText()}</Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
+                            <PrimaryButton title="Continue" onPress={handleContinue} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Follow-up Screen
+    if (currentScreen === 4) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={styles.followUpTitle}>Here's your situation</Text>
+
+                            <Text style={styles.followUpText}>{getFollowUpText()}</Text>
+
+                            <PrimaryButton
+                                title="See the Alternative"
                                 onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>
-                                        {currentScenario < 3 ? 'See the Alternative' : 'Continue'}
-                                    </Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -279,23 +426,22 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
     }
 
     // Alternative Vision Screen
-    if (currentScreen === 4) {
+    if (currentScreen === 5) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.alternativeCard}>
-                            <View style={styles.alternativeIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
                                     <Gift size={32} color="#E2DED0" />
                                 </View>
@@ -309,76 +455,128 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                                 {scenarioData.alternative}
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
+                            <PrimaryButton
+                                title={currentScenario < 3 ? 'Try another example' : 'Continue to Reflection'}
                                 onPress={handleContinue}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>
-                                        {currentScenario < 3 ? 'Try another example' : 'Continue'}
-                                    </Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Final Screen
-    if (currentScreen === 5) {
+    // Reflection Screen with Journal
+    if (currentScreen === 6) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.alternativeCard}>
-                            <View style={styles.alternativeIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Image
                                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                                    style={commonStyles.heroImage}
                                 />
                             </View>
 
-                            <Text style={styles.alternativeTitle}>Money isn't holding you back.</Text>
+                            <Text style={commonStyles.reflectionTitle}>Amplifying Your Generosity</Text>
 
-                            <Text style={styles.alternativeText}>
-                                It's amplifying your ability to show love and support for the people and causes that matter most.
+                            <Text style={commonStyles.reflectionDescription}>
+                                These scenarios show how financial stability transforms generosity from something you carefully budget for to something that flows naturally from your lifestyle.
                             </Text>
 
-                            <Text style={styles.alternativeText}>
-                                Think about it. How could you give back if you gave yourself permission to earn more?
+                            <Text style={commonStyles.reflectionDescription}>
+                                When money isn't a constant concern, you can focus on what truly matters: showing up for the people you love and supporting the causes that align with your values.
                             </Text>
 
-                            <Text style={styles.alternativeClosing}>
-                                See you again tomorrow.
+                            <Text style={commonStyles.reflectionDescription}>
+                                Financial freedom gives you the capacity to make a real difference - whether it's for family, your dance community, or friends in need.
                             </Text>
 
+                            {/* YouTube Short Thumbnail */}
                             <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={onComplete}
+                                style={styles.videoThumbnailContainer}
+                                onPress={openYouTubeShort}
                                 activeOpacity={0.8}
                             >
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark as Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
+                                <Image
+                                    source={{ uri: 'https://img.youtube.com/vi/s-hpQ9XBGP4/maxresdefault.jpg' }}
+                                    style={styles.videoThumbnail}
+                                    resizeMode="cover"
+                                />
+                                <View style={styles.playButtonOverlay}>
+                                    <View style={styles.playButton}>
+                                        <Text style={styles.playIcon}>▶</Text>
+                                    </View>
                                 </View>
                             </TouchableOpacity>
-                        </View>
+
+                            <JournalEntrySection
+                                pathTag="money-mindsets"
+                                day="3"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Generosity"
+                                journalInstruction="How would your ability to give back change if you had more financial stability? What causes or people would you love to support more generously?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <View style={styles.journalCallout}>
+                                <Text style={styles.journalCalloutTitle}>Your Personal Space</Text>
+                                <Text style={styles.journalCalloutText}>
+                                    Remember, feel free to use the journal tab at any time to jot down your thoughts. This app is for you! Use it how you'd like to!
+                                </Text>
+                            </View>
+
+                            <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+                        </Card>
                     </View>
                 </ScrollView>
+
+                {/* Keep the modal as fallback */}
+                <Modal
+                    visible={showVideoModal}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={closeVideoModal}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <TouchableOpacity
+                                style={styles.closeButton}
+                                onPress={closeVideoModal}
+                                activeOpacity={0.8}
+                            >
+                                <X size={28} color="#FFFFFF" />
+                            </TouchableOpacity>
+
+                            <View style={styles.videoPlayerContainer}>
+                                <YoutubePlayer
+                                    height={height * 0.75}
+                                    play={isPlaying}
+                                    videoId={'ShIxdYpquqA'}
+                                    webViewProps={{
+                                        allowsFullscreenVideo: true,
+                                    }}
+                                    onChangeState={(state) => {
+                                        console.log('Video state:', state);
+                                    }}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
             </View>
         );
     }
@@ -387,124 +585,40 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    introCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#647C90',
-        textAlign: 'center',
+    // Welcome Screen Styles
+    celebrationBox: {
+        width: '100%',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
         marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
         borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderColor: 'rgba(146, 132, 144, 0.2)',
     },
-    startButtonText: {
+    celebrationTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        color: '#647C90',
+        marginBottom: 12,
         fontWeight: '600',
+        textAlign: 'center',
     },
-    scenarioCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    celebrationItem: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 24,
+        marginBottom: 8,
     },
+    welcomeFooter: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 30,
+        lineHeight: 22,
+    },
+    // Scenario Styles
     scenarioTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -521,39 +635,7 @@ const styles = StyleSheet.create({
         lineHeight: 26,
         marginBottom: 32,
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choicesCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+    // Choices Styles
     choicesTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -564,13 +646,23 @@ const styles = StyleSheet.create({
     },
     choicesContainer: {
         gap: 16,
+        marginBottom: 24,
     },
     choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 16,
-        padding: 20,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderWidth: 2,
         borderColor: 'transparent',
+    },
+    choiceButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
+    },
+    choiceContent: {
+        padding: 20,
+        paddingRight: 50,
     },
     choiceText: {
         fontFamily: 'Montserrat-Regular',
@@ -579,19 +671,22 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         textAlign: 'center',
     },
-    responseCard: {
-        marginHorizontal: 24,
-        marginTop: 100,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    choiceTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
     },
+    selectedIndicator: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    // Response Styles
     responseTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -608,33 +703,24 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 32,
     },
-    alternativeCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    // Follow-up Styles
+    followUpTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 25,
+        fontWeight: '700',
     },
-    alternativeIconContainer: {
-        marginBottom: 24,
+    followUpText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 24,
+        marginBottom: 32,
     },
-    alternativeIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
+    // Alternative Styles
     alternativeTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -651,40 +737,113 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 20,
     },
-    alternativeClosing: {
+    alternativeIconGradient: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+    },
+    // Journal Callout
+    journalCallout: {
+        width: '100%',
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 25,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 124, 144, 0.2)',
+    },
+    journalCalloutTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 32,
+        marginBottom: 12,
         fontWeight: '600',
     },
-    completeButton: {
-        borderRadius: 30,
+    journalCalloutText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 22,
+    },
+    // YouTube Thumbnail Styles
+    videoThumbnailContainer: {
+        width: '100%',
+        marginBottom: 25,
+        borderRadius: 16,
         overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 5,
+        position: 'relative',
     },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    videoThumbnail: {
+        width: '100%',
+        height: 200,
+        borderRadius: 16,
+    },
+    playButtonOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    },
+    playButton: {
+        width: 60,
+        height: 60,
         borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
+        backgroundColor: '#FF0000',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
     },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
+    playIcon: {
+        color: '#FFFFFF',
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginLeft: 4,
     },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#647C90',
-        borderWidth: 2,
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: width * 0.9,
+        maxWidth: 500,
+        position: 'relative',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: -50,
+        right: 0,
+        zIndex: 10,
+        padding: 10,
+    },
+    videoPlayerContainer: {
+        width: '100%',
+        aspectRatio: 9 / 16,
+        backgroundColor: '#000',
+        borderRadius: 16,
+        overflow: 'hidden',
     },
 });

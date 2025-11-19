@@ -1,8 +1,15 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
-import { ChevronRight, DollarSign, ArrowLeft, ChevronLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, Dimensions, Image, Linking, Animated, ScrollView } from 'react-native';
 
-const { width } = Dimensions.get('window');
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
+
+const { width, height } = Dimensions.get('window');
 
 interface TipCard {
     id: number;
@@ -78,8 +85,16 @@ interface MoreMoneyMoreHeadroomProps {
 
 export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyMoreHeadroomProps) {
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
-    const [screenHistory, setScreenHistory] = useState<number[]>([]);
-    const scrollViewRef = useRef<ScrollView>(null);
+    const [screenHistory, setScreenHistory] = useState<Array<{ cardIndex: number }>>([]);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry: addMorningJournalEntry } = useJournaling('money-mindsets');
+    const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('money-mindsets');
+
+    // Animation values
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const cardScale = useRef(new Animated.Value(1)).current;
+    const progressAnim = useRef(new Animated.Value(0)).current;
 
     const handleBack = useCallback(() => {
         if (onBack) {
@@ -88,138 +103,289 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
     }, [onBack]);
 
     const handleStart = () => {
-        setScreenHistory([0]);
+        setScreenHistory([{ cardIndex: 0 }]);
+        scrollToTop();
     };
 
-    const scrollToTop = () => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-    };
-
-    const handleContinue = () => {
+    const handleContinue = useCallback(() => {
         if (currentCardIndex < tipCards.length - 1) {
-            const newCardIndex = currentCardIndex + 1;
-            setCurrentCardIndex(newCardIndex);
-            setScreenHistory([...screenHistory, newCardIndex]);
-            scrollToTop();
+            // Fade out current card
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => {
+                const newCardIndex = currentCardIndex + 1;
+
+                // Reset animations BEFORE updating state
+                fadeAnim.setValue(0);
+
+                // Update state
+                setCurrentCardIndex(newCardIndex);
+
+                // Animate in the next card with a slight delay
+                setTimeout(() => {
+                    Animated.parallel([
+                        Animated.timing(fadeAnim, {
+                            toValue: 1,
+                            duration: 300,
+                            useNativeDriver: true,
+                        }),
+                        Animated.spring(progressAnim, {
+                            toValue: (newCardIndex + 1) / tipCards.length,
+                            tension: 50,
+                            friction: 7,
+                            useNativeDriver: false,
+                        })
+                    ]).start();
+                }, 50);
+
+                setScreenHistory(prev => [...prev, { cardIndex: newCardIndex }]);
+                scrollToTop();
+            });
         } else {
-            // All cards completed, go to final screen
-            setScreenHistory([...screenHistory, -1]); // -1 represents final screen
-            scrollToTop();
+            // Smooth transition to reflection screen
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+            }).start(() => {
+                setScreenHistory(prev => [...prev, { cardIndex: -2 }]);
+                fadeAnim.setValue(1);
+                scrollToTop();
+            });
         }
-    };
+    }, [currentCardIndex, fadeAnim, progressAnim, scrollToTop]);
 
     const handleComplete = () => {
-        onComplete();
+        // Add a subtle scale animation on complete
+        Animated.sequence([
+            Animated.timing(cardScale, {
+                toValue: 1.02,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(cardScale, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            })
+        ]).start(() => {
+            onComplete();
+        });
     };
 
     const goBack = () => {
         if (screenHistory.length <= 1) {
-            // If we're at the first screen, go back to intro
             setScreenHistory([]);
             setCurrentCardIndex(0);
+            fadeAnim.setValue(1);
+            cardScale.setValue(1);
+            scrollToTop();
             return;
         }
 
-        // Remove current screen from history
         const newHistory = [...screenHistory];
         newHistory.pop();
         setScreenHistory(newHistory);
 
-        // Get previous screen state
-        const prevScreenIndex = newHistory[newHistory.length - 1];
-
-        if (prevScreenIndex === -1) {
-            // Shouldn't happen as we handle final screen separately
+        const prevScreen = newHistory[newHistory.length - 1];
+        if (prevScreen.cardIndex === -1 || prevScreen.cardIndex === -2) {
             return;
         }
 
-        setCurrentCardIndex(prevScreenIndex);
-        scrollToTop();
+        // Animate the transition back
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setCurrentCardIndex(prevScreen.cardIndex);
+            // Reset animations based on current state
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+            scrollToTop();
+        });
     };
 
-    // Calculate progress for card screens
-    const cardProgress = ((currentCardIndex + 1) / tipCards.length) * 100;
+    const handleOpenEbook = () => {
+        Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
+    };
 
-    // Intro Screen
+    // Progress animation interpolation
+    const progressWidth = progressAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0%', '100%'],
+    });
+
+    // Update progress when currentCardIndex changes
+    React.useEffect(() => {
+        Animated.spring(progressAnim, {
+            toValue: (currentCardIndex + 1) / tipCards.length,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: false,
+        }).start();
+    }, [currentCardIndex]);
+
+    // Intro Screen with Morning Journal
     if (screenHistory.length === 0) {
         return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Image
                                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                                    style={commonStyles.heroImage}
                                 />
                             </View>
 
-                            <Text style={styles.introTitle}>More Headroom</Text>
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introTitle}>More Headroom</Text>
+                            <Text style={commonStyles.introDescription}>
                                 Wanting more isn't about greed… it's about creating breathing room so your mind can think, create, and choose. Go through the following reflections. Each one ends with a tiny action you can actually try this week.
                             </Text>
 
-                            <TouchableOpacity style={styles.startButton} onPress={handleStart}>
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Let's Explore</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <JournalEntrySection
+                                pathTag="money-mindsets"
+                                day="6"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="More Money More Headroom"
+                                journalInstruction="Before we begin, take a moment to reflect on your current financial headspace. What money pressures are you feeling right now?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Let's Explore" onPress={handleStart} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Final Screen (handled by -1 in history)
+    // Reflection Screen
     const currentScreen = screenHistory[screenHistory.length - 1];
-    if (currentScreen === -1) {
+    if (currentScreen.cardIndex === -2) {
         return (
-            <View style={styles.container}>
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.finalCard}>
-                            <View style={styles.introIconContainer}>
-                                <Image
-                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.reflectionHeader}>
+                                <Text style={styles.reflectionTitle}>Moving Towards Clarity</Text>
+                            </View>
+
+                            <View style={commonStyles.reflectionIntro}>
+                                <Text style={commonStyles.reflectionDescription}>
+                                    Hopefully, some of these reflections help you imagine a headspace that's clearer and more at peace. There are so many ways more money = more headroom and these ideas only just scratch the surface of what's possible.
+                                </Text>
+                            </View>
+
+                            <View style={styles.ebookCard}>
+                                <Text style={styles.ebookTitle}>Hungry for more?</Text>
+                                <Text style={styles.ebookDescription}>
+                                    Our How to Pivot eBook dives into psychological and philosophical concepts that can guide you through a career change, merging academic insights with real-world experience.
+                                </Text>
+                                <PrimaryButton
+                                    title="Learn More"
+                                    onPress={handleOpenEbook}
+                                    variant="secondary"
                                 />
                             </View>
-                            <Text style={styles.introTitle}>Moving Towards Clarity</Text>
-                            <Text style={styles.finalText}>
-                                Hopefully, some of these reflections help you imagine a headspace that's clearer and more at peace. There are so many ways more money = more headroom and these ideas only just scratch the surface of what's possible.
-                            </Text>
 
-                            <Text style={styles.finalClosing}>
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={() => {
+                                    setScreenHistory(prev => [...prev, { cardIndex: -1 }]);
+                                    scrollToTop();
+                                }}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Final Screen with End of Day Journal
+    if (currentScreen.cardIndex === -1) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <View style={commonStyles.finalHeader}>
+                                <Text style={commonStyles.finalHeading}>Creating Headroom</Text>
+                            </View>
+
+                            <View style={commonStyles.finalTextContainer}>
+                                <Text style={commonStyles.finalText}>
+                                    You've explored powerful ways to create more financial and mental headroom in your life. These practices will help you build the breathing room needed to make clearer decisions and reduce financial stress.
+                                </Text>
+                            </View>
+
+                            <JournalEntrySection
+                                pathTag="money-mindsets"
+                                day="6"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="More Money More Headroom"
+                                journalInstruction="Reflect on today's exercise. Which tiny action resonated most with you? How will you implement these headroom-creating practices?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <Text style={styles.alternativeClosing}>
                                 We're wrapping up tomorrow. See you then.
                             </Text>
 
-                            <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <View style={commonStyles.finalButtonContainer}>
+                                <PrimaryButton
+                                    title="Mark As Complete"
+                                    onPress={handleComplete}
+                                />
+                            </View>
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -230,59 +396,53 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
     const currentCard = tipCards[currentCardIndex];
 
     return (
-        <View style={styles.container}>
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>
-                            {currentCardIndex + 1} of {tipCards.length}
-                        </Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${cardProgress}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${currentCardIndex + 1} of ${tipCards.length}`}
+                progress={(currentCardIndex + 1) / tipCards.length}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
-                <View style={styles.centeredContent}>
-                    <View style={styles.card}>
-                        <Text style={styles.cardTitle}>{currentCard.title}</Text>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Animated.View style={[styles.cardContainer, { opacity: fadeAnim, transform: [{ scale: cardScale }] }]}>
+                        <Card style={styles.card}>
+                            <Text style={styles.cardTitle}>{currentCard.title}</Text>
 
-                        <View style={styles.section}>
-                            <Text style={styles.sectionLabel}>Why it matters:</Text>
-                            <View style={styles.sectionCard}>
-                                <Text style={styles.sectionText}>{currentCard.whyItMatters}</Text>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionLabel}>Why it matters:</Text>
+                                <View style={styles.sectionCard}>
+                                    <Text style={styles.sectionText}>{currentCard.whyItMatters}</Text>
+                                </View>
                             </View>
-                        </View>
 
-                        <View style={styles.section}>
-                            <Text style={styles.sectionLabel}>Reflection question:</Text>
-                            <View style={styles.sectionCard}>
-                                <Text style={styles.sectionText}>{currentCard.reflectionQuestion}</Text>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionLabel}>Reflection question:</Text>
+                                <View style={styles.sectionCard}>
+                                    <Text style={styles.sectionText}>{currentCard.reflectionQuestion}</Text>
+                                </View>
                             </View>
-                        </View>
 
-                        <View style={styles.section}>
-                            <Text style={styles.sectionLabel}>Tiny action:</Text>
-                            <View style={styles.sectionCard}>
-                                <Text style={styles.sectionText}>{currentCard.tinyAction}</Text>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionLabel}>Tiny action:</Text>
+                                <View style={styles.sectionCard}>
+                                    <Text style={styles.sectionText}>{currentCard.tinyAction}</Text>
+                                </View>
                             </View>
-                        </View>
 
-                        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                            <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                <Text style={styles.continueButtonText}>
-                                    {currentCardIndex < tipCards.length - 1 ? 'Next' : 'Finish'}
-                                </Text>
-                                <ChevronRight size={16} color="#E2DED0" />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
+                            <PrimaryButton
+                                title={currentCardIndex < tipCards.length - 1 ? 'Next' : 'Finish'}
+                                onPress={handleContinue}
+                            />
+                        </Card>
+                    </Animated.View>
                 </View>
             </ScrollView>
         </View>
@@ -290,71 +450,14 @@ export default function MoreMoneyMoreHeadroom({ onComplete, onBack }: MoreMoneyM
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-        zIndex: 1,
-    },
-    centeredContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingBottom: 30,
-    },
-
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-
-    card: {
+    cardContainer: {
         width: width * 0.85,
+    },
+    card: {
+        width: '100%',
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 32,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-        marginTop: 50,
-    },
-    introCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
@@ -362,54 +465,7 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 5,
         marginVertical: 20,
-        marginTop: 50,
     },
-    introIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(146,132,144,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#746C70',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 40,
-    },
-
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
     cardTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -440,107 +496,45 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         lineHeight: 24,
     },
-
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    continueButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    continueButtonText: {
+    alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
-    finalCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    finalIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(100,124,144,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
-    },
-    finalClosing: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
+        fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: 5,
+        marginTop: 0,
+        fontWeight: '600',
     },
-    completeButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
+    reflectionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
+        textAlign: 'center',
+        fontWeight: '700',
     },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#E2DED0',
-        marginRight: 8,
-    },
-
-    progressBar: {
+    ebookCard: {
+        backgroundColor: 'rgba(100, 124, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 32,
+        borderLeftWidth: 4,
+        borderLeftColor: '#647C90',
         width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
     },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
+    ebookTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
     },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#647C90',
-        borderWidth: 2,
+    ebookDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: 20,
     },
 });

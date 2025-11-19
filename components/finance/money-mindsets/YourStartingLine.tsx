@@ -1,7 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, ChevronLeft, DollarSign, ArrowLeft } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
+import { ChevronRight, ArrowLeft, DollarSign, Check } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
 
 interface QuizQuestion {
     id: number;
@@ -20,8 +29,6 @@ interface FinancialResult {
     description: string;
     color: string;
 }
-
-const { width, height } = Dimensions.get('window');
 
 const quizQuestions: QuizQuestion[] = [
     {
@@ -266,12 +273,29 @@ interface YourStartingLineProps {
 }
 
 export default function YourStartingLine({ onComplete, onBack }: YourStartingLineProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-10 = questions, 11 = result, 12 = final
+    const [currentScreen, setCurrentScreen] = useState(0);
     const [answers, setAnswers] = useState<{ [key: number]: string }>({});
     const [result, setResult] = useState<FinancialResult | null>(null);
+    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry } = useJournaling('money-mindsets');
+
+    const handleScreenChange = async (newScreen: number) => {
+        setIsTransitioning(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+        setCurrentScreen(newScreen);
+        scrollToTop();
+        setIsTransitioning(false);
+    };
+
+    const handleWelcomeContinue = () => {
+        handleScreenChange(1);
+    };
 
     const handleStartQuiz = () => {
-        setCurrentScreen(1);
+        handleScreenChange(2);
     };
 
     const handleBack = () => {
@@ -280,16 +304,30 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
         }
     };
 
-    const handleAnswer = (optionType: string) => {
-        const questionIndex = currentScreen - 1;
+    const handleAnswer = (optionId: string, optionType: string) => {
+        setSelectedOption(optionId);
+
+        const questionIndex = currentScreen - 2;
         const newAnswers = { ...answers, [questionIndex]: optionType };
         setAnswers(newAnswers);
+    };
 
-        if (currentScreen < 10) {
+    const handleContinue = async () => {
+        if (selectedOption === null || isTransitioning) return;
+
+        setIsTransitioning(true);
+
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        if (currentScreen < 11) {
             setCurrentScreen(currentScreen + 1);
+            setSelectedOption(null);
+            scrollToTop();
         } else {
-            calculateResult(newAnswers);
+            calculateResult(answers);
         }
+
+        setIsTransitioning(false);
     };
 
     const calculateResult = (finalAnswers: { [key: number]: string }) => {
@@ -305,133 +343,376 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
 
         const finalResult = financialResults[dominantType];
         setResult(finalResult);
-        setCurrentScreen(11);
-    };
-
-    const handleContinueToFinal = () => {
         setCurrentScreen(12);
+        scrollToTop();
     };
 
-    const handleComplete = () => {
-        if (result) {
-            onComplete(result);
-        }
+    const handleContinueToFinancialFreedom = () => {
+        handleScreenChange(13);
+    };
+
+    const handleContinueToTakeAction = () => {
+        handleScreenChange(14);
     };
 
     const goBack = () => {
-        if (currentScreen === 1) {
-            setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        if (currentScreen === 0) {
+            if (onBack) onBack();
+        } else if (currentScreen === 1) {
+            handleScreenChange(0);
+        } else if (currentScreen > 1 && currentScreen <= 11) {
             setCurrentScreen(currentScreen - 1);
+            setSelectedOption(null);
+            scrollToTop();
+        } else if (currentScreen === 12) {
+            handleScreenChange(11);
+        } else if (currentScreen === 13) {
+            handleScreenChange(12);
+        } else if (currentScreen === 14) {
+            handleScreenChange(13);
+        } else if (currentScreen === 15) {
+            handleScreenChange(14);
         }
     };
 
-    // Intro Screen
+    const handleComplete = async () => {
+        if (result) {
+            try {
+                await AsyncStorage.setItem('day2MoneyMindsetsResult', JSON.stringify(result));
+                onComplete(result);
+            } catch (error) {
+                console.error('Error saving quiz result to AsyncStorage:', error);
+                onComplete(result);
+            }
+        }
+    };
+
+    // Welcome Screen with Journal Prompt
     if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Starting Line</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <DollarSign size={32} color="#E2DED0" />
-                                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.introTitle}>Your Starting Line</Text>
-
-                            <Text style={styles.introDescription}>
-                                Before you can move forward with money, it helps to know where you're standing. Answer these 10 quick questions to uncover your money starting line. No shame, just awareness. Let's go.
+                            <Text style={commonStyles.introTitle}>
+                                Welcome to Your Money Journey
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={handleStartQuiz}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Start Quiz</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={commonStyles.introDescription}>
+                                Taking this first step towards understanding your money mindset is something to be truly proud of. It takes courage to look at your financial habits and explore what might be holding you back from financial freedom.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="money-mindsets"
+                                day="2"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Know Your Value"
+                                journalInstruction="Before we begin, let's take a moment to check in with yourself. How do you feel about money right now?"
+                                moodLabel=""
+                                saveButtonText="Add to Journal"
+                            />
+
+                            <View style={styles.welcomeHighlight}>
+                                <Text style={styles.welcomeHighlightText}>
+                                    We'll come back to how you're feeling a bit later. But now, are you ready to discover your financial starting line?
+                                </Text>
+                            </View>
+
+                            <PrimaryButton
+                                title="I'm Ready to Begin"
+                                onPress={handleWelcomeContinue}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Final Screen
-    if (currentScreen === 12) {
+    // Intro Screen
+    if (currentScreen === 1) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={() => setCurrentScreen(11)}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Starting Line</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.finalCard}>
-                            <View style={styles.finalIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Image
                                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                                    style={commonStyles.heroImage}
                                 />
                             </View>
 
-                            <View style={styles.finalHeader}>
-                                <Text style={styles.finalHeading}>Your Starting Line</Text>
-                            </View>
-
-                            <View style={styles.finalTextContainer}>
-                                <Text style={styles.finalText}>
-                                    Knowing where you're starting is half the battle, the other half is your mindset.
-                                </Text>
-                                <Text style={styles.finalText}>
-                                    Now that you know where you are and hopefully, where you could be, you can start to take action (perhaps on one of our other Finance Paths!).
-                                </Text>
-                            </View>
-
-                            <Text style={styles.alternativeClosing}>
-                                See you again tomorrow.
+                            <Text style={commonStyles.introTitle}>
+                                What's your financial starting line?
                             </Text>
 
-                            <View style={styles.finalButtonContainer}>
-                                <TouchableOpacity
-                                    style={styles.continueButton}
-                                    onPress={handleComplete}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                        <Text style={styles.continueButtonText}>Mark As Complete</Text>
-                                        <ChevronRight size={16} color="#E2DED0" />
-                                    </View>
-                                </TouchableOpacity>
+                            <Text style={commonStyles.introDescription}>
+                                Before you can move forward with money, it helps to know where you're standing. Answer these 10 quick questions to uncover your money starting line. No shame, just awareness. Let's go.
+                            </Text>
+
+                            <PrimaryButton
+                                title="Start Quiz"
+                                onPress={handleStartQuiz}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // The Financially Free Screen
+    if (currentScreen === 13 && result) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
-                        </View>
+
+                            <Text style={styles.expansiveTitle}>
+                                Here's What You Could Be:
+                            </Text>
+
+                            <Text style={styles.expansiveTitleBold}>
+                                The Financially Free
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                The Financially Free dancer is someone who sees money as a tool for creating the life they want <Text style={{ fontStyle: 'italic' }}>without stress or shame</Text>.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                This mindset understands that financial awareness brings freedom, not restriction. They use their dance discipline to create consistent financial habits that support their artistic journey and future goals.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                The Financially Free dancer doesn't avoid money conversations or opportunities. Instead, they see financial literacy as another skill to master, giving them more choices and reducing stress in their dance career.
+                            </Text>
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinueToTakeAction}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Take Action Screen
+    if (currentScreen === 14 && result) {
+        const getReflectionQuestions = () => {
+            switch (result.type) {
+                case 'A':
+                    return [
+                        'Is it serving me to be The Avoider?',
+                        'What would change if I faced my financial situation without shame?',
+                        'What small step can I take today to build financial awareness?'
+                    ];
+                case 'B':
+                    return [
+                        'Is it serving me to be The Juggler?',
+                        'How can I create more consistency in my financial habits?',
+                        'What system would help me feel more in control?'
+                    ];
+                case 'C':
+                    return [
+                        'Is it serving me to be The Builder?',
+                        'How can I leverage my current financial habits to create more opportunities?',
+                        'What financial goal would excite me to work towards?'
+                    ];
+                default:
+                    return [];
+            }
+        };
+
+        const getJournalPlaceholder = () => {
+            switch (result.type) {
+                case 'A':
+                    return 'I can start building financial awareness by...';
+                case 'B':
+                    return 'I can create more consistency by...';
+                case 'C':
+                    return 'I can leverage my current habits to...';
+                default:
+                    return 'Write your reflections here...';
+            }
+        };
+
+        const reflectionQuestions = getReflectionQuestions();
+        const journalPlaceholder = getJournalPlaceholder();
+
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={styles.takeactionTitle}>Take Action</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Do you feel that <Text style={styles.highlightText}>{result.title.toLowerCase()}</Text> describes you? Whatever's coming up for you, go with it. We got you!
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Now, how can you unlock the <Text style={styles.highlightText}>financially free</Text> mindset within?!
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Let's explore how to transform your relationship with money starting today.
+                            </Text>
+
+                            {/* Reflection Section */}
+                            <View style={styles.reflectionSection}>
+                                <View style={styles.sectionHeader}>
+                                    <Text style={styles.sectionTitle}>Time for Reflection</Text>
+                                    <View style={styles.sectionDivider} />
+                                </View>
+
+                                <Text style={styles.reflectionInstruction}>
+                                    Reflect on these questions about your money mindset:
+                                </Text>
+
+                                {/* Dynamic Reflection Questions */}
+                                <View style={styles.reflectionQuestionsContainer}>
+                                    {reflectionQuestions.map((question, index) => (
+                                        <View key={index} style={styles.reflectionQuestionCard}>
+                                            <View style={styles.questionNumber}>
+                                                <Text style={styles.questionNumberText}>{index + 1}</Text>
+                                            </View>
+                                            <Text style={styles.reflectionQuestion}>{question}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+
+                            {/* YouTube Video Player */}
+                            <View style={styles.videoSection}>
+                                <View style={styles.videoHeader}>
+                                    <Text style={styles.videoTitle}>Watch & Learn</Text>
+                                </View>
+                                <View style={styles.videoContainer}>
+                                    <View style={styles.youtubePlayer}>
+                                        <YoutubePlayer
+                                            height={140}
+                                            play={false}
+                                            videoId={'ZsvNvXLtcC4'} // Replace with actual financial mindset video ID
+                                            webViewStyle={styles.youtubeWebView}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+
+                            <JournalEntrySection
+                                pathTag="money-mindsets"
+                                day="2"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Know Your Value"
+                                journalInstruction="As you're reflecting, write your thoughts as a journal entry below."
+                                moodLabel="How are you feeling about money now?"
+                                saveButtonText="Add to Journal"
+                                placeholder={journalPlaceholder}
+                            />
+
+                            <PrimaryButton
+                                title="Continue Your Journey"
+                                onPress={() => handleScreenChange(15)}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Congratulations and Mark as Complete Screen
+    if (currentScreen === 15 && result) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={styles.congratulationsTitle}>Congratulations!</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                You've taken the first step toward becoming Financially Free. By understanding your current money mindset, you're already opening yourself up to new financial possibilities and reducing money-related stress.
+                            </Text>
+
+                            <Text style={styles.congratulationsClosing}>
+                                Your financially free future awaits!
+                            </Text>
+
+                            <PrimaryButton
+                                title="Mark as Complete"
+                                onPress={handleComplete}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -439,96 +720,100 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
     }
 
     // Result Screen
-    if (currentScreen === 11 && result) {
+    if (currentScreen === 12 && result) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Your Starting Line</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.centeredContent}>
-                        <View style={styles.resultCard}>
-                            <View style={styles.resultIconContainer}>
-                                <View style={[styles.resultIconGradient, { backgroundColor: '#928490' }]}>
-                                    <DollarSign size={40} color="#E2DED0" />
-                                </View>
-                            </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={commonStyles.introTitle}>{result.title}</Text>
+                            <Text style={styles.resultDescription}>{result.description}</Text>
 
-                            <Text style={styles.resultTitle}>{result.title}</Text>
-
-                            <View style={styles.resultTextContainer}>
-                                <Text style={styles.resultText}>{result.description}</Text>
-                            </View>
-
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinueToFinal}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinueToFinancialFreedom}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Question Screens
-    const question = quizQuestions[currentScreen - 1];
-    const progress = (currentScreen / 10) * 100;
+    // Question Screens with smooth transitions
+    const question = quizQuestions[currentScreen - 2];
+    const progress = ((currentScreen - 1) / 10) * 100;
 
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>Question {currentScreen} of 10</Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${progress}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${currentScreen - 1} of 10`}
+                progress={progress / 100}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.centeredContent}>
-                    <View style={styles.choiceCard}>
-                        <Text style={styles.questionText}>{question.question}</Text>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={styles.baseCardSkills}>
+                        <Text style={styles.questionText}>
+                            {question.question}
+                        </Text>
 
-                        <View style={styles.choiceButtons}>
-                            {question.options.map((option) => (
-                                <TouchableOpacity
-                                    key={option.id}
-                                    style={styles.choiceButton}
-                                    onPress={() => handleAnswer(option.type)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.choiceButtonText}>
-                                        {option.emoji ? `${option.emoji} ` : ''}{option.text}
-                                    </Text>
-                                </TouchableOpacity>
+                        <View style={styles.optionsContainer}>
+                            {question.options.map((option, index) => (
+                                <View key={option.id}>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.optionButton,
+                                            selectedOption === option.id && styles.optionButtonSelected
+                                        ]}
+                                        onPress={() => handleAnswer(option.id, option.type)}
+                                        activeOpacity={0.8}
+                                        disabled={isTransitioning}
+                                    >
+                                        <View style={styles.optionContent}>
+                                            {selectedOption === option.id && (
+                                                <View style={styles.selectedIndicator}>
+                                                    <Check size={16} color="#E2DED0" />
+                                                </View>
+                                            )}
+                                            <View style={styles.optionTextContainer}>
+                                                <Text style={[
+                                                    styles.optionText,
+                                                    selectedOption === option.id && styles.optionTextSelected
+                                                ]}>
+                                                    {option.emoji ? `${option.emoji} ` : ''}{option.text}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
                             ))}
                         </View>
-                    </View>
+
+                        <PrimaryButton
+                            title={currentScreen < 11 ? 'Continue' : 'See Results'}
+                            onPress={handleContinue}
+                            disabled={selectedOption === null || isTransitioning}
+                        />
+                    </Card>
                 </View>
             </ScrollView>
         </View>
@@ -536,242 +821,239 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-        zIndex: 1,
-    },
-    centeredContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: height - 200,
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    choiceCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-    },
-    questionText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 20,
-        color: '#4E4F50',
-        lineHeight: 28,
-        marginBottom: 30,
-        textAlign: 'center',
-    },
-    choiceButtons: {
-        gap: 15,
-    },
-    choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    // Welcome Screen Styles
+    welcomeHighlight: {
+        backgroundColor: 'rgba(146, 132, 144, 0.15)',
         borderRadius: 16,
         padding: 20,
+        marginBottom: 32,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 124, 144, 0.2)',
+    },
+    welcomeHighlightText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#647C90',
+        textAlign: 'center',
+        lineHeight: 24,
+        fontStyle: 'italic',
+        fontWeight: '500',
+    },
+    // Question Styles
+    questionText: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 22,
+        color: '#647C90',
+        lineHeight: 32,
+        marginBottom: 32,
+        textAlign: 'center',
+        fontWeight: '700',
+    },
+    optionsContainer: {
+        gap: 16,
+    },
+    optionButton: {
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderWidth: 2,
         borderColor: 'transparent',
     },
-    choiceButtonText: {
+    optionButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
+    },
+    optionContent: {
+        padding: 20,
+        paddingRight: 50,
+    },
+    optionTextContainer: {
+        flex: 1,
+    },
+    optionText: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
-        lineHeight: 22,
+        lineHeight: 24,
         textAlign: 'center',
     },
-    resultCard: {
-        width: width * 0.85,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
+    optionTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
     },
-    resultIconContainer: {
-        marginBottom: 24,
-    },
-    resultIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+    selectedIndicator: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#928490',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
     },
-    resultTitle: {
+    // Result Styles
+    resultDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#4E4F50',
+        lineHeight: 24,
+        marginBottom: 24,
+        textAlign: 'center',
+    },
+    // The Financially Free Screen Styles
+    expansiveTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
+    },
+    expansiveTitleBold: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
-        color: '#4E4F50',
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 24,
+        fontWeight: '700',
+    },
+    // Take Action Screen Styles
+    takeactionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
         textAlign: 'center',
         marginBottom: 20,
         fontWeight: '700',
     },
-    resultTextContainer: {
-        width: '100%',
+    highlightText: {
+        fontFamily: 'Montserrat-SemiBold',
+        color: '#928490',
+        fontWeight: '600',
+    },
+    reflectionSection: {
         marginBottom: 32,
     },
-    resultText: {
-        fontFamily: 'Montserrat-Regular',
+    reflectionInstruction: {
+        fontFamily: 'Montserrat-Medium',
         fontSize: 16,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 24,
+        fontWeight: '500',
+        marginBottom: 15,
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
+    reflectionQuestionsContainer: {
+        marginBottom: 0,
     },
-    continueButtonContent: {
+    reflectionQuestionCard: {
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
+        alignItems: 'flex-start',
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
         borderWidth: 1,
-        borderColor: '#E2DED0',
-        minWidth: width * 0.5,
+        borderColor: 'rgba(146, 132, 144, 0.1)',
     },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
+    questionNumber: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+        marginTop: 2,
+    },
+    questionNumberText: {
+        fontFamily: 'Montserrat-Bold',
         fontSize: 16,
         color: '#E2DED0',
-        marginRight: 8,
+        fontWeight: '700',
+    },
+    reflectionQuestion: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 22,
+        flex: 1,
+        paddingTop: 2,
+    },
+    videoSection: {
+        marginBottom: 32,
+    },
+    videoHeader: {
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    videoTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 20,
+        color: '#647C90',
+        textAlign: 'center',
+        fontWeight: '700',
+    },
+    videoContainer: {
+        width: '100%',
+    },
+    youtubePlayer: {
+        borderRadius: 16,
+        overflow: 'hidden',
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    youtubeWebView: {
+        borderRadius: 16,
+    },
+    // Congratulations Screen Styles
+    congratulationsTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 32,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 24,
+        fontWeight: '700',
+    },
+    congratulationsClosing: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 20,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
         fontWeight: '600',
     },
-    finalCard: {
-        width: width * 0.85,
+    // Journal Section Styles
+    sectionHeader: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    sectionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 22,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
+    },
+    sectionDivider: {
+        width: 60,
+        height: 3,
+        backgroundColor: '#928490',
+        borderRadius: 2,
+    },
+    baseCardSkills: {
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
@@ -782,66 +1064,6 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 5,
         marginVertical: 20,
-    },
-    finalIconGradient: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    finalHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 30,
-        gap: 12,
-    },
-    finalHeading: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        fontWeight: '700',
-    },
-    finalTextContainer: {
-        width: '100%',
-        marginBottom: 40,
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 28,
-        marginBottom: 20,
-    },
-    alternativeClosing: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 32,
-        marginTop: 20,
-        fontWeight: '600',
-    },
-    finalButtonContainer: {
-        width: '100%',
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    finalIconContainer: {
-        marginBottom: 30,
-    },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#647C90',
-        borderWidth: 2,
+        marginTop: 50,
     },
 });
