@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, ChevronLeft, RotateCcw, ArrowLeft } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
+import { ChevronRight, ArrowLeft, RotateCcw } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
 
 interface QuizQuestion {
     id: number;
@@ -140,12 +148,29 @@ interface ReflectAndAdjustProps {
 }
 
 export default function ReflectAndAdjust({ onComplete, onBack }: ReflectAndAdjustProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1-10 = questions, 11 = result, 12 = final
+    const [currentScreen, setCurrentScreen] = useState(0);
     const [answers, setAnswers] = useState<{ [key: number]: number }>({});
     const [result, setResult] = useState<ReflectionResult | null>(null);
+    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry } = useJournaling('work-life-balance');
+
+    const handleScreenChange = async (newScreen: number) => {
+        setIsTransitioning(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+        setCurrentScreen(newScreen);
+        scrollToTop();
+        setIsTransitioning(false);
+    };
+
+    const handleWelcomeContinue = () => {
+        handleScreenChange(1);
+    };
 
     const handleStartQuiz = () => {
-        setCurrentScreen(1);
+        handleScreenChange(2);
     };
 
     const handleBack = () => {
@@ -154,21 +179,34 @@ export default function ReflectAndAdjust({ onComplete, onBack }: ReflectAndAdjus
         }
     };
 
-    const handleAnswer = (score: number) => {
-        const questionIndex = currentScreen - 1;
+    const handleAnswer = (optionId: string, score: number) => {
+        setSelectedOption(optionId);
+
+        const questionIndex = currentScreen - 2;
         const newAnswers = { ...answers, [questionIndex]: score };
         setAnswers(newAnswers);
+    };
 
-        if (currentScreen < 10) {
+    const handleContinue = async () => {
+        if (selectedOption === null || isTransitioning) return;
+
+        setIsTransitioning(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        if (currentScreen < 11) {
             setCurrentScreen(currentScreen + 1);
+            setSelectedOption(null);
+            scrollToTop();
         } else {
-            calculateResult(newAnswers);
+            calculateResult(answers);
         }
+
+        setIsTransitioning(false);
     };
 
     const calculateResult = (finalAnswers: { [key: number]: number }) => {
         const totalScore = Object.values(finalAnswers).reduce((sum, score) => sum + score, 0);
-        const maxScore = 20; // 10 questions * 2 max points each
+        const maxScore = 20;
 
         let resultType: string;
         if (totalScore >= 14) {
@@ -181,70 +219,138 @@ export default function ReflectAndAdjust({ onComplete, onBack }: ReflectAndAdjus
 
         const finalResult = reflectionResults[resultType];
         setResult(finalResult);
-        setCurrentScreen(11);
+        setCurrentScreen(12);
+        scrollToTop();
     };
 
     const handleContinueToFinal = () => {
-        setCurrentScreen(12);
+        handleScreenChange(13);
     };
 
-    const handleComplete = () => {
+    const handleComplete = async () => {
         if (result) {
-            onComplete(result);
+            try {
+                await AsyncStorage.setItem('day7ReflectAndAdjustResult', JSON.stringify(result));
+                onComplete(result);
+            } catch (error) {
+                console.error('Error saving reflection result to AsyncStorage:', error);
+                onComplete(result);
+            }
         }
     };
 
     const goBack = () => {
-        if (currentScreen === 1) {
-            setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        if (currentScreen === 0) {
+            if (onBack) onBack();
+        } else if (currentScreen === 1) {
+            handleScreenChange(0);
+        } else if (currentScreen > 1 && currentScreen <= 11) {
             setCurrentScreen(currentScreen - 1);
+            setSelectedOption(null);
+            scrollToTop();
+        } else if (currentScreen === 12) {
+            handleScreenChange(11);
+        } else if (currentScreen === 13) {
+            handleScreenChange(12);
         }
     };
 
-    // Intro Screen
+    // Welcome Screen with Journal Prompt
     if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Reflect & Adjust</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.introTitle}>
+                                Welcome to Your Reflection
+                            </Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                You've tried new things this week to bring more balance into your life. Taking time to reflect on your progress is a powerful way to understand what's working and what you might want to adjust moving forward.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="work-life-balance"
+                                day="7"
+                                category="Mindset and Wellness"
+                                pathTitle="Work Life Balance"
+                                dayTitle="Reflect And Adjust"
+                                journalInstruction="Before we begin, take a moment to check in with yourself. How are you feeling about your work-life balance journey so far?"
+                                moodLabel=""
+                                saveButtonText="Add to Journal"
+                            />
+
+                            <View style={styles.welcomeHighlight}>
+                                <Text style={styles.welcomeHighlightText}>
+                                    We'll come back to how you're feeling later. Ready to reflect on your week and see what's working?
+                                </Text>
+                            </View>
+
+                            <PrimaryButton
+                                title="I'm Ready to Reflect"
+                                onPress={handleWelcomeContinue}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Intro Screen
+    if (currentScreen === 1) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
                                     <RotateCcw size={32} color="#E2DED0" />
                                 </View>
                             </View>
 
-                            <Text style={styles.introTitle}>Reflect & Adjust</Text>
+                            <Text style={commonStyles.introTitle}>
+                                Reflect & Adjust
+                            </Text>
 
-                            <Text style={styles.introDescription}>
+                            <Text style={commonStyles.introDescription}>
                                 You've tried new things this week to bring more balance into your life. Let's reflect on how it felt. Your answers will help you see what's working and what to adjust.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
+                            <PrimaryButton
+                                title="Start Reflection"
                                 onPress={handleStartQuiz}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Start Quiz</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -252,51 +358,55 @@ export default function ReflectAndAdjust({ onComplete, onBack }: ReflectAndAdjus
     }
 
     // Final Screen
-    if (currentScreen === 12) {
+    if (currentScreen === 13 && result) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>Keep Going!</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.finalCard}>
-                            <View style={styles.finalIconContainer}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
                                 <Image
                                     source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                    style={styles.heroImage}
+                                    style={commonStyles.heroImage}
                                 />
                             </View>
 
                             <Text style={styles.finalTitle}>Keep Going!</Text>
 
-                            <Text style={styles.finalDescription}>
+                            <Text style={commonStyles.reflectionDescription}>
                                 Finding balance isn't something you do once. It's something you constantly have to rediscover. And for us dancers, putting our own wants and needs at the forefront can feel particularly unfamiliar.
                             </Text>
 
-                            <Text style={styles.finalDescription}>
+                            <Text style={commonStyles.reflectionDescription}>
                                 But keep going, you're on the right track.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.completeButton}
+                            <JournalEntrySection
+                                pathTag="work-life-balance"
+                                day="7"
+                                category="Mindset and Wellness"
+                                pathTitle="Work Life Balance"
+                                dayTitle="Reflect And Adjust"
+                                journalInstruction="What's one insight you gained from this reflection that you want to carry forward?"
+                                moodLabel="How are you feeling now?"
+                                saveButtonText="Add to Journal"
+                            />
+
+                            <PrimaryButton
+                                title="Mark As Complete"
                                 onPress={handleComplete}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -304,84 +414,122 @@ export default function ReflectAndAdjust({ onComplete, onBack }: ReflectAndAdjus
     }
 
     // Result Screen
-    if (currentScreen === 11 && result) {
+    if (currentScreen === 12 && result) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: result.color }]}>
-                    <View style={styles.headerRow}>
-                        <View style={styles.backButton} />
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.titleText}>{result.title}</Text>
-                        </View>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.resultCard}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <Text style={commonStyles.introTitle}>{result.title}</Text>
                             <Text style={styles.resultDescription}>{result.description}</Text>
 
-                            <TouchableOpacity
-                                style={styles.continueButton}
-                                onPress={handleContinueToFinal}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.continueButtonContent, { backgroundColor: result.color }]}>
-                                    <Text style={styles.continueButtonText}>Continue</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
+                            <View style={styles.reflectionQuestionsContainer}>
+                                <View style={styles.reflectionQuestionCard}>
+                                    <View style={styles.questionNumber}>
+                                        <Text style={styles.questionNumberText}>1</Text>
+                                    </View>
+                                    <Text style={styles.reflectionQuestion}>
+                                        What's one area where I feel I made real progress this week?
+                                    </Text>
                                 </View>
-                            </TouchableOpacity>
-                        </View>
+                                <View style={styles.reflectionQuestionCard}>
+                                    <View style={styles.questionNumber}>
+                                        <Text style={styles.questionNumberText}>2</Text>
+                                    </View>
+                                    <Text style={styles.reflectionQuestion}>
+                                        What's one small adjustment I can make for next week?
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <JournalEntrySection
+                                pathTag="work-life-balance"
+                                day="7"
+                                category="Mindset and Wellness"
+                                pathTitle="Work Life Balance"
+                                dayTitle="Reflect And Adjust"
+                                journalInstruction="Reflect on these questions based on your results:"
+                                moodLabel="How are you feeling about your results?"
+                                saveButtonText="Add Reflection to Journal"
+                            />
+
+                            <PrimaryButton
+                                title="Continue"
+                                onPress={handleContinueToFinal}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Question Screens
-    const question = quizQuestions[currentScreen - 1];
-    const progress = (currentScreen / 10) * 100;
+    // Question Screens with smooth transitions
+    const question = quizQuestions[currentScreen - 2];
+    const progress = ((currentScreen - 1) / 10) * 100;
 
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>Question {currentScreen} of 10</Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${progress}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${currentScreen - 1} of 10`}
+                progress={progress / 100}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.content}>
-                    <View style={styles.questionCard}>
-                        <Text style={styles.questionText}>{question.question}</Text>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={styles.baseCardReflect}>
+                        <Text style={styles.questionText}>
+                            {question.question}
+                        </Text>
 
                         <View style={styles.optionsContainer}>
                             {question.options.map((option) => (
                                 <TouchableOpacity
                                     key={option.id}
-                                    style={styles.optionButton}
-                                    onPress={() => handleAnswer(option.score)}
+                                    style={[
+                                        styles.optionButton,
+                                        selectedOption === option.id && styles.optionButtonSelected
+                                    ]}
+                                    onPress={() => handleAnswer(option.id, option.score)}
                                     activeOpacity={0.8}
+                                    disabled={isTransitioning}
                                 >
                                     <View style={styles.optionContent}>
-                                        <Text style={styles.optionText}>{option.text}</Text>
+                                        <Text style={[
+                                            styles.optionText,
+                                            selectedOption === option.id && styles.optionTextSelected
+                                        ]}>
+                                            {option.text}
+                                        </Text>
                                     </View>
                                 </TouchableOpacity>
                             ))}
                         </View>
-                    </View>
+
+                        <PrimaryButton
+                            title={currentScreen < 11 ? 'Continue' : 'See Results'}
+                            onPress={handleContinue}
+                            disabled={selectedOption === null || isTransitioning}
+                        />
+                    </Card>
                 </View>
             </ScrollView>
         </View>
@@ -389,82 +537,25 @@ export default function ReflectAndAdjust({ onComplete, onBack }: ReflectAndAdjus
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
+    // Welcome Screen Styles
+    welcomeHighlight: {
+        backgroundColor: 'rgba(146, 132, 144, 0.15)',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 32,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 124, 144, 0.2)',
     },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
+    welcomeHighlightText: {
         fontFamily: 'Montserrat-Medium',
         fontSize: 16,
-        color: '#E2DED0',
+        color: '#647C90',
         textAlign: 'center',
+        lineHeight: 24,
+        fontStyle: 'italic',
+        fontWeight: '500',
     },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
+    // Intro Icon Styles
     introIconGradient: {
         width: 80,
         height: 80,
@@ -476,55 +567,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 8,
     },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#928490',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    startButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    questionCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+    // Question Styles
     questionText: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 22,
@@ -540,9 +583,14 @@ const styles = StyleSheet.create({
     optionButton: {
         borderRadius: 16,
         overflow: 'hidden',
-        backgroundColor: 'rgba(90, 125, 123, 0.1)',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderWidth: 2,
         borderColor: 'transparent',
+    },
+    optionButtonSelected: {
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderColor: '#928490',
+        borderWidth: 2,
     },
     optionContent: {
         padding: 20,
@@ -554,51 +602,72 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         textAlign: 'center',
     },
-    resultCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    optionTextSelected: {
+        color: '#4E4F50',
+        fontWeight: '600',
     },
+    // Result Styles
     resultDescription: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         color: '#4E4F50',
         lineHeight: 24,
-        marginBottom: 32,
+        marginBottom: 24,
         textAlign: 'center',
     },
-    continueButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
+    reflectionQuestionsContainer: {
+        marginBottom: 24,
     },
-    continueButtonContent: {
+    reflectionQuestionCard: {
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
+        alignItems: 'flex-start',
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
         borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderColor: 'rgba(146, 132, 144, 0.1)',
     },
-    continueButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
+    questionNumber: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+        marginTop: 2,
+    },
+    questionNumberText: {
+        fontFamily: 'Montserrat-Bold',
+        fontSize: 16,
         color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
+        fontWeight: '700',
     },
-    finalCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
+    reflectionQuestion: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 22,
+        flex: 1,
+        paddingTop: 2,
+    },
+    // Final Screen Styles
+    finalTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 20,
+        fontWeight: '700',
+    },
+    // Card Styles
+    baseCardReflect: {
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
         padding: 40,
@@ -608,53 +677,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 12,
         elevation: 5,
-    },
-    finalIconContainer: {
-        marginBottom: 32,
-    },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#647C90',
-        borderWidth: 2,
-    },
-    finalTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    finalDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
-    },
-    completeButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-        marginTop: 20,
-    },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
-    },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
+        marginVertical: 20,
+        marginTop: 50,
     },
 });
