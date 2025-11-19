@@ -354,7 +354,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                 pathTag="discover-dream-life"
                 journalInstruction="Before we begin, let’s take a moment to check in with yourself. How are you feeling after yesterday’s quiz? Is there anything you’re hoping to gain today?"
                 moodLabel=""
-                saveButtonText="Save Morning Entry"
+                saveButtonText="Save Entry"
               />
 
               <PrimaryButton title="Continue" onPress={() => setCurrentScreen(0)} />

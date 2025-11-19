@@ -355,7 +355,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
                 pathTag="discover-dream-life"
                 journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling as you continue this journey?"
                 moodLabel="How are you feeling right now?"
-                saveButtonText="Save Morning Entry"
+                saveButtonText="Save Entry"
               />
 
               <PrimaryButton title="Let's go" onPress={handleContinueToFlipScript} />

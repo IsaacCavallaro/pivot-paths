@@ -91,6 +91,7 @@ export default function EnhancedJournalScreen() {
     const [showPrompts, setShowPrompts] = useState(false);
     const [filterMood, setFilterMood] = useState<string | null>(null);
     const [showFilters, setShowFilters] = useState(false);
+    const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
 
     // Load entries from AsyncStorage
     useFocusEffect(
@@ -222,6 +223,32 @@ export default function EnhancedJournalScreen() {
     const cancelDelete = () => {
         setShowDeleteModal(false);
         setEntryToDelete(null);
+    };
+
+    // New function to handle delete all
+    const deleteAllEntries = () => {
+        if (entries.length === 0) {
+            Alert.alert('No Entries', 'There are no entries to delete.');
+            return;
+        }
+        setShowDeleteAllModal(true);
+    };
+
+    const confirmDeleteAll = async () => {
+        try {
+            setEntries([]);
+            await AsyncStorage.removeItem('journalEntries');
+            setShowDeleteAllModal(false);
+            Alert.alert('Success', 'All journal entries have been deleted.');
+        } catch (error) {
+            console.error('Error deleting all entries:', error);
+            Alert.alert('Error', 'Failed to delete all journal entries.');
+            setShowDeleteAllModal(false);
+        }
+    };
+
+    const cancelDeleteAll = () => {
+        setShowDeleteAllModal(false);
     };
 
     const getMoodIcon = (moodId: string) => {
@@ -398,6 +425,14 @@ export default function EnhancedJournalScreen() {
                     >
                         <Filter size={22} color="#E2DED0" />
                     </TouchableOpacity>
+                    {entries.length > 0 && (
+                        <TouchableOpacity
+                            style={styles.headerButton}
+                            onPress={deleteAllEntries}
+                        >
+                            <Trash2 size={22} color="#E2DED0" />
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
 
@@ -560,13 +595,42 @@ export default function EnhancedJournalScreen() {
                     </View>
                 </View>
             </Modal>
+
+            {/* Delete All Confirmation Modal */}
+            <Modal
+                visible={showDeleteAllModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={cancelDeleteAll}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContainer}>
+                        <Text style={styles.modalTitle}>Delete All Entries?</Text>
+                        <Text style={styles.modalMessage}>
+                            This will permanently delete all {entries.length} journal entries. This action cannot be undone.
+                        </Text>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={styles.modalCancelButton}
+                                onPress={cancelDeleteAll}
+                            >
+                                <Text style={styles.modalCancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalDeleteButton, { backgroundColor: '#647C90' }]}
+                                onPress={confirmDeleteAll}
+                            >
+                                <Text style={styles.modalDeleteText}>Delete All</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
 
-// ... (keep all your existing styles exactly the same)
 const styles = StyleSheet.create({
-    // ... (all your existing styles remain unchanged)
     container: {
         flex: 1,
         backgroundColor: '#E2DED0'

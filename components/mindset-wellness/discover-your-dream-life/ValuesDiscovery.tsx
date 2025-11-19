@@ -14,14 +14,6 @@ import { commonStyles } from '@/utils/styles/commonStyles';
 
 const { width, height } = Dimensions.get('window');
 
-const MOOD_OPTIONS = [
-  { id: 'angry', label: 'Angry', icon: Angry, color: '#DC2626' },
-  { id: 'sad', label: 'Sad', icon: Frown, color: '#2563EB' },
-  { id: 'neutral', label: 'Neutral', icon: Meh, color: '#CA8A04' },
-  { id: 'happy', label: 'Happy', icon: Smile, color: '#16A34A' },
-  { id: 'excited', label: 'Excited', icon: Laugh, color: '#7C3AED' },
-  { id: 'loved', label: 'Loved', icon: Heart, color: '#DB2777' },
-];
 
 interface ValuesQuestion {
   id: number;
@@ -561,7 +553,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
                 pathTag="discover-dream-life"
                 journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling as you continue this journey?"
                 moodLabel="How are you feeling right now?"
-                saveButtonText="Save Morning Entry"
+                saveButtonText="Save Entry"
               />
 
               <PrimaryButton title="Continue" onPress={handleStartQuiz} />
