@@ -33,10 +33,11 @@ import { MOOD_OPTIONS } from '@/utils/constants';
 interface JournalEntry {
     id: string;
     pathTag: string;
-    day: number;
+    day: string; // Changed from number to string
+    date: string; // Added date field
     content: string;
     mood?: string;
-    timestamp: number;
+    timestamp: number; // This field is not in utils/interfaces.ts, but seems to be used here. I will keep it for now.
 }
 
 interface MoodStats {

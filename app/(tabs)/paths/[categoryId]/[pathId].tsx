@@ -5,34 +5,33 @@ import { useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPathById } from '@/data/categories';
 import SkillsQuiz from '@/components/mindset-wellness/discover-your-dream-life/SkillsQuiz';
-import LeadershipExperience from '@/components/career-transitions/skills-assessment/LeadershipExperience';
 import MythBusterGame from '@/components/mindset-wellness/discover-your-dream-life/MythBusterGame';
 import RoleplayScenario from '@/components/mindset-wellness/discover-your-dream-life/RoleplayScenario';
 import DreamBiggerGame from '@/components/mindset-wellness/discover-your-dream-life/DreamBiggerGame';
 import ValuesDiscovery from '@/components/mindset-wellness/discover-your-dream-life/ValuesDiscovery';
 import FlipTheScript from '@/components/mindset-wellness/discover-your-dream-life/FlipTheScript';
 import VoiceMessage from '@/components/mindset-wellness/discover-your-dream-life/VoiceMessage';
-import ExpandYourHorizons from '@/components/career-transitions/skills-assessment/discover-your-direction/ExpandYourHorizons';
-import WhatEnergizesYou from '@/components/career-transitions/skills-assessment/discover-your-direction/WhatEnergizesYou';
-import SparkCuriosity from '@/components/career-transitions/skills-assessment/discover-your-direction/SparkCuriosity';
-import TryItOn from '@/components/career-transitions/skills-assessment/discover-your-direction/TryItOn';
-import BreakOutOfYourBubble from '@/components/career-transitions/skills-assessment/discover-your-direction/BreakOutOfYourBubble';
-import YourFirstExperiment from '@/components/career-transitions/skills-assessment/discover-your-direction/YourFirstExperiment';
-import DealBreakerGame from '@/components/career-transitions/skills-assessment/discover-your-direction/DealBreakerGame';
-import StartWithYourStrengths from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/StartWithYourStrengths';
-import FindYourLearningStyle from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/FindYourLearningStyle';
-import WorkBackwards from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/WorkBackwards';
-import YourHiddenNetwork from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/YourHiddenNetwork';
-import OvercomeAnalysisParalysis from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/OvercomeAnalysisParalysis';
-import EmbraceTheBeginner from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/EmbraceTheBeginner';
-import JustStart from '@/components/career-transitions/skills-assessment/upskilling-pathfinder/JustStart';
-import ConfidenceGap from '@/components/career-transitions/skills-assessment/prep-your-pivot/ConfidenceGap';
-import CureImposterSyndrome from '@/components/career-transitions/skills-assessment/prep-your-pivot/CureImposterSyndrome';
-import TalkTheTalk from '@/components/career-transitions/skills-assessment/prep-your-pivot/TalkTheTalk';
-import DanceSkillMatch from '@/components/career-transitions/skills-assessment/prep-your-pivot/DanceSkillMatch';
-import LinkedinUpgrade from '@/components/career-transitions/skills-assessment/prep-your-pivot/LinkedinUpgrade';
-import WhoWouldYouHire from '@/components/career-transitions/skills-assessment/prep-your-pivot/WhoWouldYouHire';
-import MakeYourPlan from '@/components/career-transitions/skills-assessment/prep-your-pivot/MakeYourPlan';
+import ExpandYourHorizons from '@/components/career-transitions/discover-your-direction/ExpandYourHorizons';
+import WhatEnergizesYou from '@/components/career-transitions/discover-your-direction/WhatEnergizesYou';
+import SparkCuriosity from '@/components/career-transitions/discover-your-direction/SparkCuriosity';
+import TryItOn from '@/components/career-transitions/discover-your-direction/TryItOn';
+import BreakOutOfYourBubble from '@/components/career-transitions/discover-your-direction/BreakOutOfYourBubble';
+import YourFirstExperiment from '@/components/career-transitions/discover-your-direction/YourFirstExperiment';
+import DealBreakerGame from '@/components/career-transitions/discover-your-direction/DealBreakerGame';
+import StartWithYourStrengths from '@/components/career-transitions/upskilling-pathfinder/StartWithYourStrengths';
+import FindYourLearningStyle from '@/components/career-transitions/upskilling-pathfinder/FindYourLearningStyle';
+import WorkBackwards from '@/components/career-transitions/upskilling-pathfinder/WorkBackwards';
+import YourHiddenNetwork from '@/components/career-transitions/upskilling-pathfinder/YourHiddenNetwork';
+import OvercomeAnalysisParalysis from '@/components/career-transitions/upskilling-pathfinder/OvercomeAnalysisParalysis';
+import EmbraceTheBeginner from '@/components/career-transitions/upskilling-pathfinder/EmbraceTheBeginner';
+import JustStart from '@/components/career-transitions/upskilling-pathfinder/JustStart';
+import ConfidenceGap from '@/components/career-transitions/prep-your-pivot/ConfidenceGap';
+import CureImposterSyndrome from '@/components/career-transitions/prep-your-pivot/CureImposterSyndrome';
+import TalkTheTalk from '@/components/career-transitions/prep-your-pivot/TalkTheTalk';
+import DanceSkillMatch from '@/components/career-transitions/prep-your-pivot/DanceSkillMatch';
+import LinkedinUpgrade from '@/components/career-transitions/prep-your-pivot/LinkedinUpgrade';
+import WhoWouldYouHire from '@/components/career-transitions/prep-your-pivot/WhoWouldYouHire';
+import MakeYourPlan from '@/components/career-transitions/prep-your-pivot/MakeYourPlan';
 import BeyondYourIdentity from '@/components/mindset-wellness/mindset-shifts/BeyondYourIdentity';
 import LettingGoOfValidation from '@/components/mindset-wellness/mindset-shifts/LettingGoOfValidation';
 import Grief from '@/components/mindset-wellness/mindset-shifts/Grief';
@@ -76,7 +75,6 @@ export default function PathDetailScreen() {
   const [currentDay, setCurrentDay] = useState(1);
   const [reflectionText, setReflectionText] = useState('');
   const [showQuiz, setShowQuiz] = useState(false);
-  const [showLeadershipExperience, setShowLeadershipExperience] = useState(false);
   const [showMythBuster, setShowMythBuster] = useState(false);
   const [showRoleplay, setShowRoleplay] = useState(false);
   const [showDreamBigger, setShowDreamBigger] = useState(false);
@@ -140,7 +138,6 @@ export default function PathDetailScreen() {
   const [showCelebrateTheWins, setShowCelebrateTheWins] = useState(false);
 
   const [quizResult, setQuizResult] = useState<any>(null);
-  const [leadershipResult, setLeadershipResult] = useState<any>(null);
   const [mythBusterResult, setMythBusterResult] = useState<boolean>(false);
   const [roleplayResult, setRoleplayResult] = useState<boolean>(false);
   const [dreamBiggerResult, setDreamBiggerResult] = useState<boolean>(false);
@@ -213,7 +210,6 @@ export default function PathDetailScreen() {
       loadProgress();
       // Always reset to timeline view when navigating to path
       setShowQuiz(false);
-      setShowLeadershipExperience(false);
       setShowMythBuster(false);
       setShowRoleplay(false);
       setShowDreamBigger(false);
@@ -402,8 +398,6 @@ export default function PathDetailScreen() {
       // Navigate directly to interactive experience for any accessible day
       if (dayData.hasQuiz) {
         setShowQuiz(true);
-      } else if (dayData.hasLeadershipExperience) {
-        setShowLeadershipExperience(true);
       } else if (dayData.hasMythBuster) {
         setShowMythBuster(true);
       } else if (dayData.hasRoleplay) {
@@ -589,15 +583,6 @@ export default function PathDetailScreen() {
   const handleQuizComplete = async (result: any) => {
     setQuizResult(result);
     setShowQuiz(false);
-    const newProgress = Math.max(progress, currentDay);
-    await saveProgress(newProgress);
-    router.push(`/profile`);
-  };
-
-  const handleLeadershipComplete = async (result: any) => {
-    setLeadershipResult(result);
-    setShowLeadershipExperience(false);
-    // Mark day as completed
     const newProgress = Math.max(progress, currentDay);
     await saveProgress(newProgress);
     router.push(`/profile`);
@@ -1121,10 +1106,6 @@ export default function PathDetailScreen() {
 
   if (showQuiz) {
     return <SkillsQuiz onComplete={handleQuizComplete} onBack={() => setShowQuiz(false)} />;
-  }
-
-  if (showLeadershipExperience) {
-    return <LeadershipExperience onComplete={handleLeadershipComplete} onBack={() => setShowLeadershipExperience(false)} />;
   }
 
   if (showDealBreakerGame) {

@@ -6,7 +6,6 @@ export interface PathDay {
   content: string;
   callout?: string;
   hasQuiz?: boolean;
-  hasLeadershipExperience?: boolean;
   hasMythBuster?: boolean;
   hasRoleplay?: boolean;
   hasDreamBigger?: boolean;
@@ -273,7 +272,7 @@ export const categories: Category[] = [
     icon: <Rocket size={24} color='rgba(226, 222, 208, 0.9)' />,
     paths: [
       {
-        id: 'skills-assessment',
+        id: 'map-your-direction',
         title: 'Map Your Direction', // previously "discover your direction"
         subtitle: '', // We only use subheadings for "Coming Soon"
         description: 'Not sure what career is right for you? Curious to know if you’re on the right path? Here’s a map to help discover your direction.',

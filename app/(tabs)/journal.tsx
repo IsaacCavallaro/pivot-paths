@@ -24,15 +24,7 @@ import {
 } from 'lucide-react-native';
 import { JournalEntrySection } from '../../utils/ui-components/JournalEntrySection';
 import { MOOD_OPTIONS } from '../../utils/constants';
-
-interface JournalEntry {
-    id: string;
-    pathTag: string;
-    day: number;
-    content: string;
-    mood?: string;
-    timestamp: number;
-}
+import { JournalEntry } from '../../utils/interfaces';
 
 export default function EnhancedJournalScreen() {
     const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -63,8 +55,8 @@ export default function EnhancedJournalScreen() {
                     ...entry,
                     // Handle old entries that might have 'date' instead of 'pathTag'
                     pathTag: entry.pathTag || 'general',
-                    // Ensure day is a number
-                    day: typeof entry.day === 'number' ? entry.day : 0,
+                    // Ensure day is a string
+                    day: typeof entry.day === 'string' ? entry.day : String(entry.day || '0'),
                     // Add timestamp if missing
                     timestamp: entry.timestamp || Date.now()
                 }));
@@ -176,7 +168,7 @@ export default function EnhancedJournalScreen() {
     const renderEntryTag = (entry: JournalEntry) => {
         const formattedPath = formatPathTag(entry.pathTag);
 
-        if (entry.day > 0) {
+        if (entry.day) { // Check if day has a value
             return `${formattedPath} • Day ${entry.day}`;
         } else {
             return formattedPath;
@@ -203,6 +195,7 @@ export default function EnhancedJournalScreen() {
                 <ScrollView style={styles.writeContent} showsVerticalScrollIndicator={false}>
                     <JournalEntrySection
                         pathTag="general" // Default pathTag for manual entries
+                        day="0" // Default day for manual entries
                         journalInstruction="Reflect on your day, thoughts, or experiences."
                         moodLabel="How are you feeling?"
                         saveButtonText="Add Entry"

@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { JournalEntry } from '../interfaces';
 
-export const useJournaling = (pathTag: string) => {
+export const useJournaling = (pathTag: string, day: string) => {
     const [journalEntry, setJournalEntry] = useState('');
     const [selectedMood, setSelectedMood] = useState<string | null>(null);
 
@@ -18,6 +18,7 @@ export const useJournaling = (pathTag: string) => {
             const newEntry: JournalEntry = {
                 id: Date.now().toString(),
                 pathTag: pathTag,
+                day: day,
                 date: new Date().toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
