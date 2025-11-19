@@ -605,7 +605,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               <Text style={styles.takeactionTitle}>Take Action</Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                Do you feel that the <Text style={styles.highlightText}>{result.title.toLowerCase()}</Text> describes you? Or are you bothered by the results? Whatever's coming up for you, go with it. We got you!
+                Do you feel that <Text style={styles.highlightText}>{result.title.toLowerCase()}</Text> describes you? Or are you bothered by the results? Whatever's coming up for you, go with it. We got you!
               </Text>
 
               <Text style={commonStyles.reflectionDescription}>
@@ -619,7 +619,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               {/* Reflection Section */}
               <View style={styles.reflectionSection}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Your Reflection Journey</Text>
+                  <Text style={styles.sectionTitle}>Time for Reflection</Text>
                   <View style={styles.sectionDivider} />
                 </View>
 
@@ -660,18 +660,10 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               <JournalEntrySection
                 pathTag="discover-dream-life"
                 journalInstruction="As you're watching, write your reflections as a journal entry below."
-                moodLabel="How are you feeling about this?"
+                moodLabel="How are you feeling?"
                 saveButtonText="Add to Journal"
                 placeholder={journalPlaceholder}
               />
-
-              {/* Inspirational Quote */}
-              <View style={styles.quoteContainer}>
-                <Text style={styles.quoteSymbol}>"</Text>
-                <Text style={styles.takeactionQuote}>
-                  The only limits that exist are the ones you place on yourself.
-                </Text>
-              </View>
 
               <PrimaryButton
                 title="Continue Your Journey"
@@ -704,7 +696,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               <Text style={styles.congratulationsTitle}>Congratulations!</Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                You've taken the first step toward becoming an Expansive Dreamer. By understanding your current dreaming style, you're already opening yourself up to new possibilities.
+                You’ve taken the first step toward becoming an Expansive Dreamer. By understanding your current dreaming style, you’re already opening yourself up to new possibilities beyond your dance dreams.
               </Text>
 
               <JournalEntrySection
