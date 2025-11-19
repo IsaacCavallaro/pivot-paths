@@ -10,5 +10,8 @@ export const STORAGE_KEYS = {
     BEYOND_IDENTITY_MATCHED_PAIRS: 'beyongIdentityrMatchedPairs',
     STRENGTH_MATCHED_PAIRS: 'strengthMatchedPairs',
     DEAL_BREAKER_MATCHED_PAIRS: 'dealBreakerMatchedPairs',
-    DANCE_MATCHED_PAIRS: 'danceMatchedPairs'
+    DANCE_MATCHED_PAIRS: 'danceMatchedPairs',
+    DAY7_CURIOSITY_RESULT: 'day7CuriosityResult',
+    DAY1_ENERGY_AUDIT_RESULT: 'day1EnergyAuditResult',
+    DAY7_REFLECT_AND_ADJUST: 'day7ReflectAndAdjustResult'
 };

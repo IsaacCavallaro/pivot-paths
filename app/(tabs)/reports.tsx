@@ -69,6 +69,16 @@ interface ValuesResult {
     color: string;
 }
 
+interface CuriosityResult {
+    // Add the structure for curiosity result based on your data
+    [key: string]: any;
+}
+
+// ADD INTERFACE FOR ENERGY AUDIT RESULT
+interface EnergyAuditResult {
+    [key: string]: any;
+}
+
 const screenWidth = Dimensions.get('window').width;
 
 // Helper functions moved outside to avoid initialization issues
@@ -111,6 +121,9 @@ export default function ReportsScreen() {
     const [skillsQuizResult, setSkillsQuizResult] = useState<DreamerResult | null>(null);
     const [roleplayScenarioChoice, setRoleplayScenarioChoice] = useState<string | null>(null);
     const [valuesDiscoveryResult, setValuesDiscoveryResult] = useState<ValuesResult | null>(null);
+    const [curiosityResult, setCuriosityResult] = useState<CuriosityResult | null>(null);
+    // ADD STATE FOR ENERGY AUDIT RESULT
+    const [energyAuditResult, setEnergyAuditResult] = useState<EnergyAuditResult | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -190,6 +203,17 @@ export default function ReportsScreen() {
             const loadedValuesDiscoveryResult = await storageService.load<ValuesResult>(STORAGE_KEYS.VALUES_DISCOVERY_RESULT);
             if (loadedValuesDiscoveryResult) {
                 setValuesDiscoveryResult(loadedValuesDiscoveryResult);
+            }
+
+            const loadedCuriosityResult = await storageService.load<CuriosityResult>(STORAGE_KEYS.DAY7_CURIOSITY_RESULT);
+            if (loadedCuriosityResult) {
+                setCuriosityResult(loadedCuriosityResult);
+            }
+
+            // ADD LOADING FOR ENERGY AUDIT RESULT
+            const loadedEnergyAuditResult = await storageService.load<EnergyAuditResult>(STORAGE_KEYS.DAY1_ENERGY_AUDIT_RESULT);
+            if (loadedEnergyAuditResult) {
+                setEnergyAuditResult(loadedEnergyAuditResult);
             }
 
             setLoading(false);
@@ -392,6 +416,81 @@ Keep up the great work on your pivot journey!
         );
     };
 
+    const renderCuriosityResult = () => {
+        if (!curiosityResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Curiosity Assessment</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {curiosityResult.title || 'Your Curiosity Profile'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {curiosityResult.description || 'Curiosity assessment completed'}
+                            </Text>
+                            {curiosityResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{curiosityResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    // ADD FUNCTION TO RENDER ENERGY AUDIT RESULT
+    const renderEnergyAuditResult = () => {
+        if (!energyAuditResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Energy Audit</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {energyAuditResult.title || 'Your Energy Profile'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {energyAuditResult.description || 'Energy audit assessment completed'}
+                            </Text>
+                            {energyAuditResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{energyAuditResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    // Conditionally render the appropriate component based on path name
+    const renderPathSpecificContent = () => {
+        if (!selectedPath) return null;
+
+        if (selectedPath.pathName === 'Mindset Shift') {
+            return renderCuriosityResult();
+        } else if (selectedPath.pathName === 'Discover Dream Life') {
+            return renderDreamerProfile();
+        } else if (selectedPath.pathName === 'Work Life Balance') {
+            // UPDATE HERE - Add the energy audit result
+            return renderEnergyAuditResult();
+        }
+
+        return null;
+    };
+
     if (loading) {
         return (
             <View style={styles.container}>
@@ -563,8 +662,8 @@ Keep up the great work on your pivot journey!
                             </View>
                         )}
 
-                        {/* Dreamer Profile Section */}
-                        {renderDreamerProfile()}
+                        {/* Conditionally render path-specific content */}
+                        {renderPathSpecificContent()}
 
                         <View style={styles.exportCard}>
                             <Download size={32} color="#647C90" />
@@ -653,6 +752,7 @@ Keep up the great work on your pivot journey!
     );
 }
 
+// ... (styles remain exactly the same)
 const styles = StyleSheet.create({
     container: {
         flex: 1,
