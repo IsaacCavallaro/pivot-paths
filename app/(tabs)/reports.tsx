@@ -28,6 +28,7 @@ import { PieChart } from 'react-native-svg-charts';
 import { useStorage } from '@/hooks/useStorage';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
 import { storageService } from '@/utils/storageService';
+import { MOOD_OPTIONS } from '@/utils/constants';
 
 interface JournalEntry {
     id: string;
@@ -78,28 +79,19 @@ const formatPathTag = (pathTag: string): string => {
         .join(' ');
 };
 
-const getMoodEmoji = (mood: string): string => {
-    const emojiMap: { [key: string]: string } = {
-        angry: '😠',
-        sad: '😢',
-        neutral: '😐',
-        happy: '😊',
-        excited: '😄',
-        loved: '❤️'
-    };
-    return emojiMap[mood] || '😐';
+const getMoodIcon = (mood: string) => {
+    const moodOption = MOOD_OPTIONS.find(m => m.id === mood);
+    return moodOption ? moodOption.icon : null;
 };
 
 const getMoodColor = (mood: string): string => {
-    const colorMap: { [key: string]: string } = {
-        angry: '#DC2626',
-        sad: '#2563EB',
-        neutral: '#CA8A04',
-        happy: '#16A34A',
-        excited: '#7C3AED',
-        loved: '#DB2777'
-    };
-    return colorMap[mood] || '#928490';
+    const moodOption = MOOD_OPTIONS.find(m => m.id === mood);
+    return moodOption ? moodOption.color : '#928490';
+};
+
+const getMoodLabel = (mood: string): string => {
+    const moodOption = MOOD_OPTIONS.find(m => m.id === mood);
+    return moodOption ? moodOption.label : 'Neutral';
 };
 
 export default function ReportsScreen() {
@@ -331,7 +323,7 @@ export default function ReportsScreen() {
             // Build mood distribution section
             const moodDistributionText = Object.entries(insights.moodStats).length > 0
                 ? `Mood Distribution:\n${Object.entries(insights.moodStats)
-                    .map(([mood, count]) => `${getMoodEmoji(mood)} ${mood}: ${count} entries (${((count / insights.totalEntries) * 100).toFixed(0)}%)`)
+                    .map(([mood, count]) => `${getMoodLabel(mood)}: ${count} entries (${((count / insights.totalEntries) * 100).toFixed(0)}%)`)
                     .join('\n')}`
                 : 'Mood Distribution: No data available';
 
@@ -526,7 +518,7 @@ Keep up the great work on your pivot journey!
                                                         ]}
                                                     />
                                                     <Text style={styles.legendText}>
-                                                        {mood.charAt(0).toUpperCase() + mood.slice(1)} ({count})
+                                                        {getMoodLabel(mood)} ({count})
                                                     </Text>
                                                 </View>
                                             ))}
@@ -537,34 +529,37 @@ Keep up the great work on your pivot journey!
                                 {/* Detailed Mood Stats */}
                                 <View style={styles.moodContainer}>
                                     <Text style={styles.dominantMood}>
-                                        Most Common Mood: {getMoodEmoji(insights.mostCommonMood)} {insights.mostCommonMood.charAt(0).toUpperCase() + insights.mostCommonMood.slice(1)}
+                                        Most Common Mood: {getMoodLabel(insights.mostCommonMood)}
                                     </Text>
                                     <View style={styles.moodList}>
                                         {Object.entries(insights.moodStats)
                                             .sort((a, b) => b[1] - a[1])
-                                            .map(([mood, count]) => (
-                                                <View key={mood} style={styles.moodItem}>
-                                                    <Text style={styles.moodEmoji}>{getMoodEmoji(mood)}</Text>
-                                                    <Text style={styles.moodName}>
-                                                        {mood.charAt(0).toUpperCase() + mood.slice(1)}
-                                                    </Text>
-                                                    <View style={styles.moodBar}>
-                                                        <View
-                                                            style={[
-                                                                styles.moodBarFill,
-                                                                {
-                                                                    width: `${(count / insights.totalEntries) * 100}%`,
-                                                                    backgroundColor: getMoodColor(mood)
-                                                                }
-                                                            ]}
-                                                        />
+                                            .map(([mood, count]) => {
+                                                const MoodIcon = getMoodIcon(mood);
+                                                return (
+                                                    <View key={mood} style={styles.moodItem}>
+                                                        {MoodIcon && <MoodIcon size={20} color={getMoodColor(mood)} />}
+                                                        <Text style={styles.moodName}>
+                                                            {getMoodLabel(mood)}
+                                                        </Text>
+                                                        <View style={styles.moodBar}>
+                                                            <View
+                                                                style={[
+                                                                    styles.moodBarFill,
+                                                                    {
+                                                                        width: `${(count / insights.totalEntries) * 100}%`,
+                                                                        backgroundColor: getMoodColor(mood)
+                                                                    }
+                                                                ]}
+                                                            />
+                                                        </View>
+                                                        <Text style={styles.moodCount}>{count}</Text>
+                                                        <Text style={styles.moodPercentage}>
+                                                            {((count / insights.totalEntries) * 100).toFixed(0)}%
+                                                        </Text>
                                                     </View>
-                                                    <Text style={styles.moodCount}>{count}</Text>
-                                                    <Text style={styles.moodPercentage}>
-                                                        {((count / insights.totalEntries) * 100).toFixed(0)}%
-                                                    </Text>
-                                                </View>
-                                            ))}
+                                                );
+                                            })}
                                     </View>
                                 </View>
                             </View>
@@ -952,15 +947,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
-    moodEmoji: {
-        fontSize: 20,
-        width: 24,
-    },
     moodName: {
         fontSize: 12,
         color: '#4E4F50',
         fontWeight: '500',
-        width: 60,
+        width: 80,
         marginLeft: 8,
     },
     moodBar: {

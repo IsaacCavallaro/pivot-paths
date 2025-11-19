@@ -73,6 +73,17 @@ export default function ProfileScreen() {
         await AsyncStorage.multiRemove(currentDayKeys);
       }
 
+      // Clear all the specific storage keys
+      await AsyncStorage.multiRemove([
+        'dreamBiggerChoices',
+        'mythBusterMatchedPairs',
+        'day1SkillsQuizResult',
+        'journalEntries',
+        'pathProgress',
+        'roleplayScenarioChoice',
+        'valuesDiscoveryResult'
+      ]);
+
       // Reset local state
       setProgress({});
       setShowResetModal(false);
