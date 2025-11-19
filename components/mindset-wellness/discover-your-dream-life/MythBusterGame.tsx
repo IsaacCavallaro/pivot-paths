@@ -316,7 +316,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                     Yesterday, you discovered your "Dreamer Type":
                   </Text>
                   <View style={[styles.learningBox, { borderColor: day1SkillsQuizResult.color + '20' }]}>
-                    <Text style={[styles.learningBoxTitle, { color: day1SkillsQuizResult.color }]}>
+                    <Text style={[styles.resultTitle, { color: day1SkillsQuizResult.color }]}>
                       {day1SkillsQuizResult.title}
                     </Text>
                   </View>
@@ -610,12 +610,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(146, 132, 144, 0.2)',
   },
+  resultTitle: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   learningBoxTitle: {
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 18,
     color: '#647C90',
     marginBottom: 12,
     fontWeight: '600',
+
   },
   learningBoxItem: {
     fontFamily: 'Montserrat-Regular',

@@ -972,7 +972,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   reflectionQuestionsContainer: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
   reflectionQuestionCard: {
     flexDirection: 'row',
