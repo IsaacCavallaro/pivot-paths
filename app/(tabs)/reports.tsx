@@ -100,6 +100,15 @@ interface WhatEnergizesYouResult {
     [key: string]: any;
 }
 
+// ADD INTERFACE FOR DAY2 LEARNING STYLE RESULT
+interface Day2LearningStyleResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
 const screenWidth = Dimensions.get('window').width;
 
 // Helper functions moved outside to avoid initialization issues
@@ -148,6 +157,8 @@ export default function ReportsScreen() {
     const [reflectAndAdjustResult, setReflectAndAdjustResult] = useState<ReflectAndAdjustResult | null>(null);
     // ADD STATE FOR WHAT ENERGIZES YOU RESULT
     const [whatEnergizesYouResult, setWhatEnergizesYouResult] = useState<WhatEnergizesYouResult | null>(null);
+    // ADD STATE FOR DAY2 LEARNING STYLE RESULT
+    const [day2LearningStyleResult, setDay2LearningStyleResult] = useState<Day2LearningStyleResult | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -249,6 +260,12 @@ export default function ReportsScreen() {
             const loadedWhatEnergizesYouResult = await storageService.load<WhatEnergizesYouResult>(STORAGE_KEYS.WHAT_ENERGIZES_YOU_RESULT);
             if (loadedWhatEnergizesYouResult) {
                 setWhatEnergizesYouResult(loadedWhatEnergizesYouResult);
+            }
+
+            // ADD LOADING FOR DAY2 LEARNING STYLE RESULT
+            const loadedDay2LearningStyleResult = await storageService.load<Day2LearningStyleResult>(STORAGE_KEYS.DAY2_LEARNING_STYLE_RESULT);
+            if (loadedDay2LearningStyleResult) {
+                setDay2LearningStyleResult(loadedDay2LearningStyleResult);
             }
 
             setLoading(false);
@@ -562,6 +579,36 @@ Keep up the great work on your pivot journey!
         );
     };
 
+    // ADD FUNCTION TO RENDER DAY2 LEARNING STYLE RESULT
+    const renderDay2LearningStyleResult = () => {
+        if (!day2LearningStyleResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Learning Style</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: day2LearningStyleResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {day2LearningStyleResult.title || 'Your Learning Style'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {day2LearningStyleResult.description || 'Learning style assessment completed'}
+                            </Text>
+                            {day2LearningStyleResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{day2LearningStyleResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
     // Conditionally render the appropriate component based on path name - UPDATED
     const renderPathSpecificContent = () => {
         if (!selectedPath) return null;
@@ -574,6 +621,8 @@ Keep up the great work on your pivot journey!
             return renderEnergyAuditResult();
         } else if (selectedPath.pathName === 'Map Your Direction') {
             return renderWhatEnergizesYouResult();
+        } else if (selectedPath.pathName === 'Upskilling Pathfinder') {
+            return renderDay2LearningStyleResult();
         }
 
         return null;

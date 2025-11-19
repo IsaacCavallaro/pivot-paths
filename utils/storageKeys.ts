@@ -15,5 +15,8 @@ export const STORAGE_KEYS = {
     DAY1_ENERGY_AUDIT_RESULT: 'day1EnergyAuditResult',
     DAY7_REFLECT_AND_ADJUST: 'day7ReflectAndAdjustResult',
     WHAT_ENERGIZES_YOU_RESULT: 'whatEnergizesYouResult',
-    DAY2_LEARNING_STYLE_RESULT: 'day2LearningStyleResult'
+    DAY2_LEARNING_STYLE_RESULT: 'day2LearningStyleResult',
+    DAY2_MONEY_MINDSET_RESULT: 'day2MoneyMindsetsResult',
+    DAY2_SPENDING_TEMP_CHECK: 'day2SpendingTemperatureResult',
+    DAY6_LIFESTYLE_CREEP_RISK: 'day6LifestyleCreepResult'
 };
