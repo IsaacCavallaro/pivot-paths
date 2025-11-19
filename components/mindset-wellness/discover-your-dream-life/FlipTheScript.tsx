@@ -420,7 +420,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
           <View style={commonStyles.centeredContent}>
             <Card style={commonStyles.baseCard}>
               <View style={commonStyles.reflectionHeader}>
-                <Text style={commonStyles.reflectionTitle}>Navigating Imposter Syndrome</Text>
+                <Text style={styles.reflectionTitle}>Navigating Imposter Syndrome</Text>
               </View>
 
               <View style={commonStyles.reflectionIntro}>
@@ -431,7 +431,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
 
               <View style={commonStyles.videoSection}>
                 <View style={commonStyles.videoContainer}>
-                  <View style={commonStyles.youtubePlayer}>
+                  <View style={styles.youtubePlayer}>
                     <YoutubePlayer
                       height={140}
                       play={false}
@@ -493,7 +493,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
                 pathTag="discover-dream-life"
                 journalInstruction="    Write your own script for how you'll talk about your transition. What feels authentic and empowering to you?"
                 moodLabel=""
-                saveButtonText="Save End of Day Entry"
+                saveButtonText="Save Entry"
               />
 
               <Text style={styles.alternativeClosing}>
@@ -701,5 +701,21 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     marginTop: 0,
     fontWeight: '600',
+  },
+  reflectionTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 28,
+    color: '#647C90',
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  youtubePlayer: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
   },
 });

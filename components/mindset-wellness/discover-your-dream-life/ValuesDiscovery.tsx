@@ -552,7 +552,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
               <JournalEntrySection
                 pathTag="discover-dream-life"
                 journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling as you continue this journey?"
-                moodLabel="How are you feeling right now?"
+                moodLabel=""
                 saveButtonText="Save Entry"
               />
 
@@ -935,7 +935,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   reflectionQuestionsContainer: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
   reflectionQuestionCard: {
     flexDirection: 'row',

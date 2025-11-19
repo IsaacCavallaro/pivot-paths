@@ -723,7 +723,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#647C90',
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 10,
     fontWeight: '600',
   },
   // YouTube Thumbnail Styles

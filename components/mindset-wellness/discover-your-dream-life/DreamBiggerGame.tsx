@@ -219,7 +219,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
               <JournalEntrySection
                 pathTag="discover-dream-life"
                 journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling as you continue this journey?"
-                moodLabel="How are you feeling right now?"
+                moodLabel=""
                 saveButtonText="Save Entry"
               />
 
@@ -458,7 +458,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                 pathTag="discover-dream-life"
                 journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?"
                 moodLabel="How are you feeling now?"
-                saveButtonText="Save End of Day Entry"
+                saveButtonText="Save Entry"
               />
 
               <Text style={styles.alternativeClosing}>
