@@ -74,8 +74,20 @@ interface CuriosityResult {
     [key: string]: any;
 }
 
-// ADD INTERFACE FOR ENERGY AUDIT RESULT
+// ADD INTERFACES FOR ENERGY AUDIT RESULTS
 interface EnergyAuditResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
+interface ReflectAndAdjustResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
     [key: string]: any;
 }
 
@@ -122,8 +134,9 @@ export default function ReportsScreen() {
     const [roleplayScenarioChoice, setRoleplayScenarioChoice] = useState<string | null>(null);
     const [valuesDiscoveryResult, setValuesDiscoveryResult] = useState<ValuesResult | null>(null);
     const [curiosityResult, setCuriosityResult] = useState<CuriosityResult | null>(null);
-    // ADD STATE FOR ENERGY AUDIT RESULT
+    // ADD STATE FOR ENERGY AUDIT RESULTS
     const [energyAuditResult, setEnergyAuditResult] = useState<EnergyAuditResult | null>(null);
+    const [reflectAndAdjustResult, setReflectAndAdjustResult] = useState<ReflectAndAdjustResult | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -210,10 +223,15 @@ export default function ReportsScreen() {
                 setCuriosityResult(loadedCuriosityResult);
             }
 
-            // ADD LOADING FOR ENERGY AUDIT RESULT
+            // ADD LOADING FOR ENERGY AUDIT RESULTS
             const loadedEnergyAuditResult = await storageService.load<EnergyAuditResult>(STORAGE_KEYS.DAY1_ENERGY_AUDIT_RESULT);
             if (loadedEnergyAuditResult) {
                 setEnergyAuditResult(loadedEnergyAuditResult);
+            }
+
+            const loadedReflectAndAdjustResult = await storageService.load<ReflectAndAdjustResult>(STORAGE_KEYS.DAY7_REFLECT_AND_ADJUST);
+            if (loadedReflectAndAdjustResult) {
+                setReflectAndAdjustResult(loadedReflectAndAdjustResult);
             }
 
             setLoading(false);
@@ -445,31 +463,53 @@ Keep up the great work on your pivot journey!
         );
     };
 
-    // ADD FUNCTION TO RENDER ENERGY AUDIT RESULT
     const renderEnergyAuditResult = () => {
-        if (!energyAuditResult) {
+        if (!energyAuditResult && !reflectAndAdjustResult) {
             return null;
         }
 
         return (
             <View style={styles.card}>
                 <View style={styles.profileContainer}>
-                    <View style={styles.quizResultSection}>
-                        <Text style={styles.profileSectionTitle}>Energy Audit</Text>
-                        <View style={[styles.resultCard, { borderLeftColor: '#647C90' }]}>
-                            <Text style={styles.resultTitle}>
-                                {energyAuditResult.title || 'Your Energy Profile'}
-                            </Text>
-                            <Text style={styles.resultDescription}>
-                                {energyAuditResult.description || 'Energy audit assessment completed'}
-                            </Text>
-                            {energyAuditResult.subtitle && (
-                                <View style={styles.subtitleContainer}>
-                                    <Text style={styles.resultSubtitle}>{energyAuditResult.subtitle}</Text>
-                                </View>
-                            )}
+                    {/* Energy Audit Result */}
+                    {energyAuditResult && (
+                        <View style={styles.quizResultSection}>
+                            <Text style={styles.profileSectionTitle}>Energy Audit</Text>
+                            <View style={[styles.resultCard, { borderLeftColor: energyAuditResult.color || '#647C90' }]}>
+                                <Text style={styles.resultTitle}>
+                                    {energyAuditResult.title || 'Your Energy Profile'}
+                                </Text>
+                                <Text style={styles.resultDescription}>
+                                    {energyAuditResult.description || 'Energy audit assessment completed'}
+                                </Text>
+                                {energyAuditResult.subtitle && (
+                                    <View style={styles.subtitleContainer}>
+                                        <Text style={styles.resultSubtitle}>{energyAuditResult.subtitle}</Text>
+                                    </View>
+                                )}
+                            </View>
                         </View>
-                    </View>
+                    )}
+
+                    {/* Reflect and Adjust Result */}
+                    {reflectAndAdjustResult && (
+                        <View style={styles.quizResultSection}>
+                            <Text style={styles.profileSectionTitle}>Reflect & Adjust</Text>
+                            <View style={[styles.resultCard, { borderLeftColor: reflectAndAdjustResult.color || '#647C90' }]}>
+                                <Text style={styles.resultTitle}>
+                                    {reflectAndAdjustResult.title || 'Your Reflection'}
+                                </Text>
+                                <Text style={styles.resultDescription}>
+                                    {reflectAndAdjustResult.description || 'Reflection and adjustment completed'}
+                                </Text>
+                                {reflectAndAdjustResult.subtitle && (
+                                    <View style={styles.subtitleContainer}>
+                                        <Text style={styles.resultSubtitle}>{reflectAndAdjustResult.subtitle}</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                    )}
                 </View>
             </View>
         );
@@ -484,7 +524,6 @@ Keep up the great work on your pivot journey!
         } else if (selectedPath.pathName === 'Discover Dream Life') {
             return renderDreamerProfile();
         } else if (selectedPath.pathName === 'Work Life Balance') {
-            // UPDATE HERE - Add the energy audit result
             return renderEnergyAuditResult();
         }
 
@@ -752,7 +791,6 @@ Keep up the great work on your pivot journey!
     );
 }
 
-// ... (styles remain exactly the same)
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -1283,7 +1321,6 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '500',
     },
-    // NEW STYLES FOR QUIZ RESULTS
     quizResultSection: {
         marginBottom: 20,
     },
