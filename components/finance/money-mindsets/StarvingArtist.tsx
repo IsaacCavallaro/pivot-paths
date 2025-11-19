@@ -1,6 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { ChevronRight, Star, ArrowLeft } from 'lucide-react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
+import { ChevronRight, ArrowLeft, PlusCircle, Smile, Frown, Meh, Laugh, Angry, Heart } from 'lucide-react-native';
+
+import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
+import { useStorage } from '@/hooks/useStorage';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
+import { StickyHeader } from '@/utils/ui-components/StickyHeader';
+import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
+import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { Card } from '@/utils/ui-components/Card';
+import { commonStyles } from '@/utils/styles/commonStyles';
 
 interface BeliefPair {
     id: number;
@@ -67,13 +77,36 @@ const beliefPairs: BeliefPair[] = [
 ];
 
 export default function StarvingArtist({ onComplete, onBack }: StarvingArtistProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0 = intro, 1 = game, 2 = reflection
+    const [currentScreen, setCurrentScreen] = useState(-1);
     const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; pairId: number; type: 'oldBelief' | 'reframe' }>>([]);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
     const [currentPairIndex, setCurrentPairIndex] = useState(0);
     const [showMismatch, setShowMismatch] = useState(false);
+    const [journalEntry, setJournalEntry] = useState('');
+    const [morningJournalEntry, setMorningJournalEntry] = useState('');
+    const [endOfDayJournalEntry, setEndOfDayJournalEntry] = useState('');
+    const [selectedMorningMood, setSelectedMorningMood] = useState<string | null>(null);
+    const [selectedEndOfDayMood, setSelectedEndOfDayMood] = useState<string | null>(null);
+    const [selectedReflectionMood, setSelectedReflectionMood] = useState<string | null>(null);
     const [animatedValues] = useState(() => new Map());
+
+    const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry: addMorningJournalEntry } = useJournaling('money-mindsets');
+    const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('money-mindsets');
+
+    const [starvingArtistMatchedPairs, setStarvingArtistMatchedPairs] = useStorage<number[]>('STARVING_ARTIST_MATCHED_PAIRS', []);
+
+    // Ensure we always have an array, even if storage returns null/undefined
+    const matchedPairs = Array.isArray(starvingArtistMatchedPairs) ? starvingArtistMatchedPairs : [];
+
+    useEffect(() => {
+        // No need to load quiz result here, useStorage handles it
+    }, []);
+
+    // Scroll to top whenever screen changes
+    useEffect(() => {
+        scrollToTop();
+    }, [currentScreen]);
 
     const handleBack = () => {
         onBack?.();
@@ -83,12 +116,23 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
         onComplete();
     };
 
-    const goBack = () => {
-        if (currentScreen === 1) {
+    const goBack = async () => {
+        if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen === 1) {
             setCurrentScreen(0);
-        } else if (currentScreen > 1) {
+        } else if (currentScreen === 2) {
+            await setStarvingArtistMatchedPairs([]); // Reset matched pairs in storage
+            setSelectedItems([]);
+            setCurrentPairIndex(0);
+            setShowMismatch(false);
+            setCurrentScreen(1);
+        } else if (currentScreen === 3) {
+            setCurrentScreen(2);
+        } else if (currentScreen > 3) {
             setCurrentScreen(currentScreen - 1);
         }
+        scrollToTop();
     };
 
     useEffect(() => {
@@ -128,25 +172,25 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
         setCurrentPairIndex(3); // Next pair to add
     };
 
-    const handleItemPress = (itemId: string) => {
+    const handleItemPress = async (itemId: string) => {
         if (selectedItems.includes(itemId) || showMismatch) return;
 
         const newSelected = [...selectedItems, itemId];
         setSelectedItems(newSelected);
 
         if (newSelected.length === 2) {
-            checkMatch(newSelected);
+            await checkMatch(newSelected);
         }
     };
 
-    const checkMatch = (selected: string[]) => {
+    const checkMatch = async (selected: string[]) => {
         const item1 = gameItems.find(item => item.id === selected[0]);
         const item2 = gameItems.find(item => item.id === selected[1]);
 
         if (item1 && item2 && item1.pairId === item2.pairId) {
             // Match found!
             const newMatchedPairs = [...matchedPairs, item1.pairId];
-            setMatchedPairs(newMatchedPairs);
+            await setStarvingArtistMatchedPairs(newMatchedPairs);
 
             // Remove matched items and add new pair if available
             setTimeout(() => {
@@ -228,106 +272,236 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
         }
     };
 
-    // Intro Screen
-    if (currentScreen === 0) {
-        return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+    const openYouTubeShort = async () => {
+        const youtubeUrl = `https://www.youtube.com/shorts/8DwWYZHsUHw`;
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.introCard}>
-                            <View style={styles.introIconContainer}>
-                                <View style={styles.finalIconContainer}>
-                                    <Image
-                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                        style={styles.heroImage}
-                                    />
-                                </View>
+        try {
+            const supported = await Linking.canOpenURL(youtubeUrl);
+
+            if (supported) {
+                await Linking.openURL(youtubeUrl);
+            } else {
+                console.log("YouTube app not available");
+            }
+        } catch (error) {
+            console.log("Error opening YouTube:", error);
+        }
+    };
+
+    // Welcome Screen with Morning Journal Section
+    if (currentScreen === -1) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={handleBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.introTitle}>Starving Artist No More</Text>
-
-                            <Text style={styles.introDescription}>
-                                You don't have to buy into the starving artist stereotype anymore. In this game, you'll match the old belief with a reframe that frees you.
+                            <Text style={commonStyles.introTitle}>Welcome Back!</Text>
+                            <Text style={commonStyles.introDescription}>
+                                Today, we're diving into the money mindsets that shape our thinking as artists and dancers.
+                            </Text>
+                            <Text style={commonStyles.introDescription}>
+                                Many of us carry beliefs about money that may actually be holding us back from building sustainable, fulfilling careers.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.startButton}
-                                onPress={() => setCurrentScreen(1)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.startButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.startButtonText}>Start the Game</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <View style={styles.learningBox}>
+                                <Text style={styles.learningBoxTitle}>What You'll Learn:</Text>
+                                <Text style={styles.learningBoxItem}>• Common money beliefs that artists carry</Text>
+                                <Text style={styles.learningBoxItem}>• How to reframe these limiting beliefs</Text>
+                                <Text style={styles.learningBoxItem}>• Whether you still hold onto any starving artist stereotypes</Text>
+                            </View>
+
+                            <Text style={styles.welcomeFooter}>
+                                You'll be playing a match game to help you identify and challenge the money mindsets you might be holding onto.
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="money-mindsets"
+                                day="1"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Starving Artist No More"
+                                journalInstruction="Before we begin, let's take a moment to check in with yourself. What are your current thoughts about money and being an artist? Is there anything you're hoping to gain today?"
+                                moodLabel=""
+                                saveButtonText="Save Entry"
+                            />
+
+                            <PrimaryButton title="Continue" onPress={() => setCurrentScreen(0)} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Reflection Screen
-    if (currentScreen === 2) {
+    // Intro Screen
+    if (currentScreen === 0) {
         return (
-            <View style={styles.container}>
-                {/* Sticky Header */}
-                <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                            <ArrowLeft size={28} color="#E2DED0" />
-                        </TouchableOpacity>
-                        <View style={styles.backButton} />
-                    </View>
-                </View>
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
 
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    <View style={styles.content}>
-                        <View style={styles.reflectionCard}>
-                            <View style={styles.reflectionIconContainer}>
-                                <View style={styles.finalIconContainer}>
-                                    <Image
-                                        source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
-                                        style={styles.heroImage}
-                                    />
-                                </View>
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
-                            <Text style={styles.reflectionTitle}>Great Work!</Text>
+                            <Text style={commonStyles.introTitle}>Starving Artist No More</Text>
 
-                            <Text style={styles.reflectionText}>
+                            <Text style={commonStyles.introDescription}>
+                                You don't have to buy into the starving artist stereotype anymore. In this game, you'll match the old belief with a reframe that frees you.
+                            </Text>
+
+                            <PrimaryButton title="Start the Game" onPress={() => setCurrentScreen(1)} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Reflection Screen after Game Completion
+    if (currentScreen === 2) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.reflectionTitle}>Time for Reflection</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Which money belief are you not convinced is actually limiting?{"\n"}
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Take a moment to reflect on the money mindsets you encountered.
+                            </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                <Text style={styles.reflectionEmphasis}>(If you're having trouble recalling, feel free to go back and play the match game again)</Text>
+                            </Text>
+
+                            <JournalEntrySection
+                                pathTag="money-mindsets"
+                                day="1"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Starving Artist No More"
+                                journalInstruction="Which money belief are you still holding onto? Why does it feel true to you?"
+                                moodLabel=""
+                                saveButtonText="Add to Journal"
+                            />
+
+                            <PrimaryButton title="Continue" onPress={() => setCurrentScreen(3)} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Congratulations Screen with End of Day Journal Section
+    if (currentScreen === 3) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+
+                            <Text style={commonStyles.reflectionTitle}>Great Work!</Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
                                 You've spent years in an industry that romanticizes struggle, where working for little or nothing is framed as paying your dues. But you don't have to keep carrying that story.
                             </Text>
 
-                            <Text style={styles.reflectionText}>
+                            <Text style={commonStyles.reflectionDescription}>
                                 The truth is, being a dancer has already made you resourceful, disciplined, and creative. Those are the exact qualities that can help you build stability and freedom in this next chapter.
                             </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Take a detour and check out the money mindsets our founder had to unlearn. But don't forget to come back and mark this day as complete!
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.videoThumbnailContainer}
+                                onPress={openYouTubeShort}
+                                activeOpacity={0.8}
+                            >
+                                <Image
+                                    source={{ uri: 'https://img.youtube.com/vi/8DwWYZHsUHw/maxresdefault.jpg' }}
+                                    style={styles.videoThumbnail}
+                                    resizeMode="cover"
+                                />
+                                <View style={styles.playButtonOverlay}>
+                                    <View style={styles.playButton}>
+                                        <Text style={styles.playIcon}>▶</Text>
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
 
                             <Text style={styles.reflectionClosing}>
                                 See you tomorrow.
                             </Text>
 
-                            <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={handleComplete}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.completeButtonContent, { backgroundColor: '#928490' }]}>
-                                    <Text style={styles.completeButtonText}>Mark As Complete</Text>
-                                    <ChevronRight size={16} color="#E2DED0" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
+                            <PrimaryButton title="Mark As Complete" onPress={handleComplete} />
+                        </Card>
                     </View>
                 </ScrollView>
             </View>
@@ -336,28 +510,23 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
 
     // Game Screen
     return (
-        <View style={styles.container}>
-            {/* Sticky Header with Progress */}
-            <View style={[styles.stickyHeader, { backgroundColor: '#928490' }]}>
-                <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                        <ArrowLeft size={28} color="#E2DED0" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.progressText}>
-                            {matchedPairs.length}/{beliefPairs.length} pairs matched
-                        </Text>
-                    </View>
-                    <View style={styles.backButton} />
-                </View>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${(matchedPairs.length / beliefPairs.length) * 100}%` }]} />
-                </View>
-            </View>
+        <View style={commonStyles.container}>
+            <StickyHeader
+                onBack={goBack}
+                title={`${matchedPairs.length}/${beliefPairs.length} pairs matched`}
+                progress={matchedPairs.length / beliefPairs.length}
+            />
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.content}>
-                    <View style={styles.gameCard}>
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                onContentSizeChange={() => scrollToTop()}
+                onLayout={() => scrollToTop()}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={commonStyles.baseCard}>
                         <Text style={styles.gameTitle}>Starving Artist No More</Text>
                         <Text style={styles.gameInstructions}>
                             Tap to match old beliefs with their reframes
@@ -408,7 +577,7 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
                                 ))}
                             </View>
                         </View>
-                    </View>
+                    </Card>
                 </View>
             </ScrollView>
         </View>
@@ -416,141 +585,47 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E2DED0',
-    },
-    stickyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    scrollView: {
-        flex: 1,
-        marginTop: 100,
-    },
-    content: {
-        paddingBottom: 30,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        width: 28,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 25,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 16,
-        color: '#E2DED0',
-        textAlign: 'center',
-    },
-    progressBar: {
+    // Welcome Screen Styles
+    learningBox: {
         width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(226, 222, 208, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginTop: 12,
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#E2DED0',
-        borderRadius: 3,
-    },
-    introCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    introIconContainer: {
-        marginBottom: 24,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    introTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 32,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 15,
-        fontWeight: '700',
-    },
-    introDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#928490',
-        textAlign: 'center',
-        marginBottom: 40,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    startButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 30,
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 20,
         borderWidth: 1,
-        borderColor: '#E2DED0',
+        borderColor: 'rgba(146, 132, 144, 0.2)',
     },
-    startButtonText: {
+    resultTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
+        color: '#647C90',
         fontWeight: '600',
+        textAlign: 'center',
     },
-    gameCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+    learningBoxTitle: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        marginBottom: 12,
+        fontWeight: '600',
+
     },
+    learningBoxItem: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 24,
+        marginBottom: 8,
+    },
+    welcomeFooter: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#928490',
+        textAlign: 'center',
+        marginBottom: 30,
+        lineHeight: 22,
+    },
+    // Game Styles
     gameTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -624,86 +699,63 @@ const styles = StyleSheet.create({
     mismatchButtonText: {
         color: '#dc3545',
     },
-    reflectionCard: {
-        marginHorizontal: 24,
-        marginTop: 50,
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    reflectionIconContainer: {
-        marginBottom: 30,
-    },
-    reflectionIconGradient: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    reflectionTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 30,
-        fontWeight: '700',
-    },
-    reflectionText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 20,
+    reflectionEmphasis: {
+        fontStyle: 'italic',
+        color: '#928490',
     },
     reflectionClosing: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: 10,
         fontWeight: '600',
     },
-    completeButton: {
-        borderRadius: 30,
+    // YouTube Thumbnail Styles
+    videoThumbnailContainer: {
+        width: '100%',
+        marginBottom: 25,
+        borderRadius: 16,
         overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 5,
+        position: 'relative',
     },
-    completeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    videoThumbnail: {
+        width: '100%',
+        height: 200,
+        borderRadius: 16,
+    },
+    playButtonOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    },
+    playButton: {
+        width: 60,
+        height: 60,
         borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#E2DED0',
+        backgroundColor: '#FF0000',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
     },
-    completeButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    finalIconContainer: {
-        marginBottom: 0,
-    },
-    heroImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderColor: '#647C90',
-        borderWidth: 2,
+    playIcon: {
+        color: '#FFFFFF',
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginLeft: 4,
     },
 });
