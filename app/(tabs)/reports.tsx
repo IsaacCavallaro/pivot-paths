@@ -109,6 +109,15 @@ interface Day2LearningStyleResult {
     [key: string]: any;
 }
 
+// ADD INTERFACE FOR DAY2 MONEY MINDSET RESULT
+interface Day2MoneyMindsetResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
 const screenWidth = Dimensions.get('window').width;
 
 // Helper functions moved outside to avoid initialization issues
@@ -159,6 +168,8 @@ export default function ReportsScreen() {
     const [whatEnergizesYouResult, setWhatEnergizesYouResult] = useState<WhatEnergizesYouResult | null>(null);
     // ADD STATE FOR DAY2 LEARNING STYLE RESULT
     const [day2LearningStyleResult, setDay2LearningStyleResult] = useState<Day2LearningStyleResult | null>(null);
+    // ADD STATE FOR DAY2 MONEY MINDSET RESULT
+    const [day2MoneyMindsetResult, setDay2MoneyMindsetResult] = useState<Day2MoneyMindsetResult | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -266,6 +277,12 @@ export default function ReportsScreen() {
             const loadedDay2LearningStyleResult = await storageService.load<Day2LearningStyleResult>(STORAGE_KEYS.DAY2_LEARNING_STYLE_RESULT);
             if (loadedDay2LearningStyleResult) {
                 setDay2LearningStyleResult(loadedDay2LearningStyleResult);
+            }
+
+            // ADD LOADING FOR DAY2 MONEY MINDSET RESULT
+            const loadedDay2MoneyMindsetResult = await storageService.load<Day2MoneyMindsetResult>(STORAGE_KEYS.DAY2_MONEY_MINDSET_RESULT);
+            if (loadedDay2MoneyMindsetResult) {
+                setDay2MoneyMindsetResult(loadedDay2MoneyMindsetResult);
             }
 
             setLoading(false);
@@ -609,6 +626,36 @@ Keep up the great work on your pivot journey!
         );
     };
 
+    // ADD FUNCTION TO RENDER DAY2 MONEY MINDSET RESULT
+    const renderDay2MoneyMindsetResult = () => {
+        if (!day2MoneyMindsetResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>Money Mindset</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: day2MoneyMindsetResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {day2MoneyMindsetResult.title || 'Your Money Mindset'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {day2MoneyMindsetResult.description || 'Money mindset assessment completed'}
+                            </Text>
+                            {day2MoneyMindsetResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{day2MoneyMindsetResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
     // Conditionally render the appropriate component based on path name - UPDATED
     const renderPathSpecificContent = () => {
         if (!selectedPath) return null;
@@ -623,6 +670,8 @@ Keep up the great work on your pivot journey!
             return renderWhatEnergizesYouResult();
         } else if (selectedPath.pathName === 'Upskilling Pathfinder') {
             return renderDay2LearningStyleResult();
+        } else if (selectedPath.pathName === 'Money Mindsets') {
+            return renderDay2MoneyMindsetResult();
         }
 
         return null;
