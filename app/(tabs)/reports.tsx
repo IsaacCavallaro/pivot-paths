@@ -91,6 +91,15 @@ interface ReflectAndAdjustResult {
     [key: string]: any;
 }
 
+// ADD INTERFACE FOR WHAT ENERGIZES YOU RESULT
+interface WhatEnergizesYouResult {
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    color?: string;
+    [key: string]: any;
+}
+
 const screenWidth = Dimensions.get('window').width;
 
 // Helper functions moved outside to avoid initialization issues
@@ -137,6 +146,8 @@ export default function ReportsScreen() {
     // ADD STATE FOR ENERGY AUDIT RESULTS
     const [energyAuditResult, setEnergyAuditResult] = useState<EnergyAuditResult | null>(null);
     const [reflectAndAdjustResult, setReflectAndAdjustResult] = useState<ReflectAndAdjustResult | null>(null);
+    // ADD STATE FOR WHAT ENERGIZES YOU RESULT
+    const [whatEnergizesYouResult, setWhatEnergizesYouResult] = useState<WhatEnergizesYouResult | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -232,6 +243,12 @@ export default function ReportsScreen() {
             const loadedReflectAndAdjustResult = await storageService.load<ReflectAndAdjustResult>(STORAGE_KEYS.DAY7_REFLECT_AND_ADJUST);
             if (loadedReflectAndAdjustResult) {
                 setReflectAndAdjustResult(loadedReflectAndAdjustResult);
+            }
+
+            // ADD LOADING FOR WHAT ENERGIZES YOU RESULT
+            const loadedWhatEnergizesYouResult = await storageService.load<WhatEnergizesYouResult>(STORAGE_KEYS.WHAT_ENERGIZES_YOU_RESULT);
+            if (loadedWhatEnergizesYouResult) {
+                setWhatEnergizesYouResult(loadedWhatEnergizesYouResult);
             }
 
             setLoading(false);
@@ -515,7 +532,37 @@ Keep up the great work on your pivot journey!
         );
     };
 
-    // Conditionally render the appropriate component based on path name
+    // ADD FUNCTION TO RENDER WHAT ENERGIZES YOU RESULT
+    const renderWhatEnergizesYouResult = () => {
+        if (!whatEnergizesYouResult) {
+            return null;
+        }
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.profileContainer}>
+                    <View style={styles.quizResultSection}>
+                        <Text style={styles.profileSectionTitle}>What Energizes You</Text>
+                        <View style={[styles.resultCard, { borderLeftColor: whatEnergizesYouResult.color || '#647C90' }]}>
+                            <Text style={styles.resultTitle}>
+                                {whatEnergizesYouResult.title || 'Your Energy Profile'}
+                            </Text>
+                            <Text style={styles.resultDescription}>
+                                {whatEnergizesYouResult.description || 'Energy assessment completed'}
+                            </Text>
+                            {whatEnergizesYouResult.subtitle && (
+                                <View style={styles.subtitleContainer}>
+                                    <Text style={styles.resultSubtitle}>{whatEnergizesYouResult.subtitle}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    // Conditionally render the appropriate component based on path name - UPDATED
     const renderPathSpecificContent = () => {
         if (!selectedPath) return null;
 
@@ -525,6 +572,8 @@ Keep up the great work on your pivot journey!
             return renderDreamerProfile();
         } else if (selectedPath.pathName === 'Work Life Balance') {
             return renderEnergyAuditResult();
+        } else if (selectedPath.pathName === 'Map Your Direction') {
+            return renderWhatEnergizesYouResult();
         }
 
         return null;

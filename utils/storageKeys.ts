@@ -14,5 +14,6 @@ export const STORAGE_KEYS = {
     DAY7_CURIOSITY_RESULT: 'day7CuriosityResult',
     DAY1_ENERGY_AUDIT_RESULT: 'day1EnergyAuditResult',
     DAY7_REFLECT_AND_ADJUST: 'day7ReflectAndAdjustResult',
-    WHAT_ENERGIZES_YOU_RESULT: 'whatEnergizesYouResult'
+    WHAT_ENERGIZES_YOU_RESULT: 'whatEnergizesYouResult',
+    DAY2_LEARNING_STYLE_RESULT: 'day2LearningStyleResult'
 };
