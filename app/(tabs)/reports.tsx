@@ -394,9 +394,6 @@ Keep up the great work on your journaling journey! 📝✨
                             <View style={[styles.resultCard, { borderLeftColor: valuesDiscoveryResult.color || '#647C90' }]}>
                                 <Text style={styles.resultTitle}>{valuesDiscoveryResult.title}</Text>
                                 <Text style={styles.resultDescription}>{valuesDiscoveryResult.description}</Text>
-                                <View style={styles.valueTagContainer}>
-                                    <Text style={styles.valueTag}>{valuesDiscoveryResult.primaryValue || valuesDiscoveryResult.title}</Text>
-                                </View>
                             </View>
                         </View>
                     )}
@@ -446,7 +443,7 @@ Keep up the great work on your journaling journey! 📝✨
                     <Sparkles size={64} color="#928490" />
                     <Text style={styles.emptyTitle}>Complete Your Path</Text>
                     <Text style={styles.emptyText}>
-                        Finish the "Discover Your Dream Life" path to unlock your personalized journal insights report.
+                        Complete a path to unlock your personalized journal insights report.
                     </Text>
                     <View style={styles.progressContainer}>
                         <View style={styles.progressBar}>
