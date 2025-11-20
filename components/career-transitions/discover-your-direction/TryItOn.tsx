@@ -22,7 +22,7 @@ const hanndleMockInterviewOpen = () => {
 export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     const [currentScreen, setCurrentScreen] = useState(-1);
     const [currentScenario, setCurrentScenario] = useStorage<number>('TRY_IT_ON_CURRENT_SCENARIO', 0);
-    const [scenarioResponses, setScenarioResponses] = useStorage<{ [key: string]: number[] }>('TRY_IT_ON_RESPONSES', {});
+    const [selectedChoices, setSelectedChoices] = useState<{ [key: number]: number }>({});
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
 
@@ -116,16 +116,11 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
         scrollToTop();
     };
 
-    const handleChoiceSelect = async (choiceNumber: number) => {
-        const scenarioKey = `scenario_${currentScenario}`;
-        const responses = scenarioResponses[scenarioKey] || [];
-        responses.push(choiceNumber);
-        await setScenarioResponses({
-            ...scenarioResponses,
-            [scenarioKey]: responses
-        });
-        setCurrentScreen(currentScreen + 1);
-        scrollToTop();
+    const handleChoiceSelect = (questionNumber: number, choiceNumber: number) => {
+        setSelectedChoices(prev => ({
+            ...prev,
+            [questionNumber]: choiceNumber
+        }));
     };
 
     const handleContinue = () => {
@@ -136,6 +131,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     const handleNextScenario = () => {
         if (currentScenario < scenarios.length - 1) {
             setCurrentScenario(currentScenario + 1);
+            setSelectedChoices({});
             setCurrentScreen(1);
         } else {
             setCurrentScreen(6); // Changed from 7 to 6 to match the final screen
@@ -153,9 +149,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     };
 
     const getCurrentResponse = (questionNumber: number) => {
-        const scenarioKey = `scenario_${currentScenario}`;
-        const responses = scenarioResponses[scenarioKey] || [];
-        return responses[questionNumber - 1];
+        return selectedChoices[questionNumber];
     };
 
     // Screen -1: Welcome Screen
@@ -257,7 +251,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                                         styles.choiceButton,
                                         selectedChoice === 1 && styles.choiceButtonSelected
                                     ]}
-                                    onPress={() => handleChoiceSelect(1)}
+                                    onPress={() => handleChoiceSelect(1, 1)}
                                     activeOpacity={0.8}
                                 >
                                     <View style={styles.choiceContent}>
@@ -280,7 +274,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                                         styles.choiceButton,
                                         selectedChoice === 2 && styles.choiceButtonSelected
                                     ]}
-                                    onPress={() => handleChoiceSelect(2)}
+                                    onPress={() => handleChoiceSelect(1, 2)}
                                     activeOpacity={0.8}
                                 >
                                     <View style={styles.choiceContent}>
@@ -398,7 +392,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                                         styles.choiceButton,
                                         selectedChoice === 1 && styles.choiceButtonSelected
                                     ]}
-                                    onPress={() => handleChoiceSelect(1)}
+                                    onPress={() => handleChoiceSelect(2, 1)}
                                     activeOpacity={0.8}
                                 >
                                     <View style={styles.choiceContent}>
@@ -421,7 +415,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                                         styles.choiceButton,
                                         selectedChoice === 2 && styles.choiceButtonSelected
                                     ]}
-                                    onPress={() => handleChoiceSelect(2)}
+                                    onPress={() => handleChoiceSelect(2, 2)}
                                     activeOpacity={0.8}
                                 >
                                     <View style={styles.choiceContent}>

@@ -57,7 +57,7 @@ export default function ProfileScreen() {
   // for testing only
   // const confirmReset = async () => {
   //   await AsyncStorage.multiRemove([
-  //     'beyongIdentityrMatchedPairs',
+  //     'tryItOnCurrent',
   //   ]);
   // };
 
