@@ -54,6 +54,13 @@ export default function ProfileScreen() {
     Linking.openURL('https://pivotfordancers.com/services/mentorship/');
   };
 
+  // for testing only
+  // const confirmReset = async () => {
+  //   await AsyncStorage.multiRemove([
+  //     'beyongIdentityrMatchedPairs',
+  //   ]);
+  // };
+
   const confirmReset = async () => {
     try {
       // Clear all progress-related data

@@ -19,5 +19,5 @@ export const STORAGE_KEYS = {
     DAY2_MONEY_MINDSET_RESULT: 'day2MoneyMindsetsResult',
     DAY2_SPENDING_TEMP_CHECK: 'day2SpendingTemperatureResult',
     DAY6_LIFESTYLE_CREEP_RISK: 'day6LifestyleCreepResult',
-    DAY1_CONFIDENCE_GAP: 'day1ConfidenceGapResult'
+    DAY1_CONFIDENCE_GAP: 'day1ConfidenceGapResult',
 };

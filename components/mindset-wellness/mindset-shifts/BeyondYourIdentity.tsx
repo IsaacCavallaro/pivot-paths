@@ -475,7 +475,7 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
 
                         <View style={styles.columnsContainer}>
                             <View style={styles.column}>
-                                <Text style={styles.columnTitle}>Identity Phrase</Text>
+                                <Text style={styles.columnTitle}>Identity</Text>
                                 {gameItems.filter(item => item.type === 'identity').map((item) => (
                                     <TouchableOpacity
                                         key={item.id}
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 2,
         borderColor: 'transparent',
-        height: 80,
+        height: 100, // Changed from 80 to 100 to match MythBusterGame
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     },
     gameButtonText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 14,
+        fontSize: 10,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 18,
