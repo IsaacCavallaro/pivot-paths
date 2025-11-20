@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, Animated, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Animated, ScrollView, Image } from 'react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { useJournaling } from '@/utils/hooks/useJournaling';
@@ -279,7 +279,10 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                <Text style={styles.planningIcon}>📅</Text>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <Text style={commonStyles.introTitle}>Plan Your Ideal Week</Text>
@@ -324,7 +327,10 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                <Text style={styles.planningIcon}>⏰</Text>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.introTitle}>Design Your Weekly Rhythm</Text>
@@ -443,7 +449,10 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                <Text style={styles.finalIcon}>✨</Text>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <View style={commonStyles.finalHeader}>

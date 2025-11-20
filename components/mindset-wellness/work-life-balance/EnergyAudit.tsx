@@ -459,9 +459,10 @@ export default function EnergyAudit({ onComplete, onBack }: EnergyAuditProps) {
                 >
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
-                            <View style={commonStyles.introIconContainer}>
-                                <Zap size={48} color="#928490" />
-                            </View>
+                            <Image
+                                source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                style={commonStyles.heroImage}
+                            />
 
                             <Text style={commonStyles.introTitle}>
                                 Discover Your Energy Pattern
@@ -500,7 +501,10 @@ export default function EnergyAudit({ onComplete, onBack }: EnergyAuditProps) {
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                <Zap size={48} color="#928490" />
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.energyMasterTitle}>

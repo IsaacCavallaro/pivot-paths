@@ -332,9 +332,10 @@ export default function ReflectAndAdjust({ onComplete, onBack }: ReflectAndAdjus
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <RotateCcw size={32} color="#E2DED0" />
-                                </View>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <Text style={commonStyles.introTitle}>

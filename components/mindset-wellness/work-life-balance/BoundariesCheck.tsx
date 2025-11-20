@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 2,
         borderColor: 'transparent',
-        height: 80,
+        height: 100,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
     },
     gameButtonText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 14,
+        fontSize: 12,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 18,
