@@ -277,7 +277,10 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                <Users size={48} color="#928490" />
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <Text style={commonStyles.introTitle}>Your Hidden Network</Text>

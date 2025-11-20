@@ -462,20 +462,6 @@ export default function JustStart({ onComplete, onBack }: JustStartProps) {
                                     {currentCard.action}
                                 </Text>
                             </View>
-
-                            <View style={styles.navigationDots}>
-                                {actionCards.map((_, index) => (
-                                    <View
-                                        key={index}
-                                        style={[
-                                            styles.dot,
-                                            index === currentCardIndex && styles.activeDot,
-                                            completedCards.has(index) && styles.completedDot
-                                        ]}
-                                    />
-                                ))}
-                            </View>
-
                             <PrimaryButton
                                 title={isCompleted ? '✓ ' + currentCard.buttonText : currentCard.buttonText}
                                 onPress={handleCardComplete}

@@ -498,7 +498,7 @@ export default function OvercomeAnalysisParalysis({ onComplete, onBack }: Overco
                 onLayout={() => scrollToTop()}
             >
                 <View style={commonStyles.centeredContent}>
-                    <Card style={commonStyles.baseCard}>
+                    <Card style={styles.baseCard}>
                         <Text style={styles.gameTitle}>Overcome Analysis Paralysis</Text>
                         <Text style={styles.gameInstructions}>
                             Tap to match overthinking thoughts with breakthrough actions
@@ -557,6 +557,19 @@ export default function OvercomeAnalysisParalysis({ onComplete, onBack }: Overco
 }
 
 const styles = StyleSheet.create({
+    baseCard: {
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 50,
+    },
     // Welcome Screen Styles
     learningBox: {
         width: '100%',
@@ -629,7 +642,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 2,
         borderColor: 'transparent',
-        height: 80,
+        height: 120,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -648,7 +661,7 @@ const styles = StyleSheet.create({
     },
     gameButtonText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 14,
+        fontSize: 12,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 18,

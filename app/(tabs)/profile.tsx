@@ -55,51 +55,51 @@ export default function ProfileScreen() {
   };
 
   // for testing only
-  // const confirmReset = async () => {
-  //   await AsyncStorage.multiRemove([
-  //     'tryItOnCurrent',
-  //   ]);
-  // };
-
   const confirmReset = async () => {
-    try {
-      // Clear all progress-related data
-      await AsyncStorage.removeItem('pathProgress');
-      await AsyncStorage.removeItem('currentDay');
-      await AsyncStorage.removeItem('lastActiveDate');
-      await AsyncStorage.removeItem('streakDays');
-
-      // Clear all reflection data
-      const keys = await AsyncStorage.getAllKeys();
-      const reflectionKeys = keys.filter(key => key.startsWith('reflection_'));
-      const currentDayKeys = keys.filter(key => key.startsWith('currentDay_'));
-      if (reflectionKeys.length > 0) {
-        await AsyncStorage.multiRemove(reflectionKeys);
-      }
-      if (currentDayKeys.length > 0) {
-        await AsyncStorage.multiRemove(currentDayKeys);
-      }
-
-      // Clear all the specific storage keys
-      await AsyncStorage.multiRemove([
-        'dreamBiggerChoices',
-        'mythBusterMatchedPairs',
-        'day1SkillsQuizResult',
-        'journalEntries',
-        'pathProgress',
-        'roleplayScenarioChoice',
-        'valuesDiscoveryResult',
-        'starvingArtistrMatchedPairs'
-      ]);
-
-      // Reset local state
-      setProgress({});
-      setShowResetModal(false);
-    } catch (error) {
-      console.error('Error resetting progress:', error);
-      setShowResetModal(false);
-    }
+    await AsyncStorage.multiRemove([
+      'test',
+    ]);
   };
+
+  // const confirmReset = async () => {
+  //   try {
+  //     // Clear all progress-related data
+  //     await AsyncStorage.removeItem('pathProgress');
+  //     await AsyncStorage.removeItem('currentDay');
+  //     await AsyncStorage.removeItem('lastActiveDate');
+  //     await AsyncStorage.removeItem('streakDays');
+
+  //     // Clear all reflection data
+  //     const keys = await AsyncStorage.getAllKeys();
+  //     const reflectionKeys = keys.filter(key => key.startsWith('reflection_'));
+  //     const currentDayKeys = keys.filter(key => key.startsWith('currentDay_'));
+  //     if (reflectionKeys.length > 0) {
+  //       await AsyncStorage.multiRemove(reflectionKeys);
+  //     }
+  //     if (currentDayKeys.length > 0) {
+  //       await AsyncStorage.multiRemove(currentDayKeys);
+  //     }
+
+  //     // Clear all the specific storage keys
+  //     await AsyncStorage.multiRemove([
+  //       'dreamBiggerChoices',
+  //       'mythBusterMatchedPairs',
+  //       'day1SkillsQuizResult',
+  //       'journalEntries',
+  //       'pathProgress',
+  //       'roleplayScenarioChoice',
+  //       'valuesDiscoveryResult',
+  //       'starvingArtistrMatchedPairs'
+  //     ]);
+
+  //     // Reset local state
+  //     setProgress({});
+  //     setShowResetModal(false);
+  //   } catch (error) {
+  //     console.error('Error resetting progress:', error);
+  //     setShowResetModal(false);
+  //   }
+  // };
 
   const cancelReset = () => {
     setShowResetModal(false);
