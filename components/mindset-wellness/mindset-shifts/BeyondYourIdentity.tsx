@@ -273,9 +273,10 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                    <Heart size={32} color="#E2DED0" />
-                                </View>
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <Text style={commonStyles.introTitle}>Welcome to Beyond Your Identity!</Text>

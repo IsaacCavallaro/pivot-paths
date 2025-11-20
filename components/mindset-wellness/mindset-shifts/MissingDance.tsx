@@ -419,7 +419,7 @@ export default function MissingDance({ onComplete, onBack }: MissingDanceProps) 
                 onContentSizeChange={() => scrollToTop()}
                 onLayout={() => scrollToTop()}
             >
-                <View style={commonStyles.centeredContent}>
+                <View style={styles.centeredContent}>
                     <Animated.View style={[styles.tipContainer, { opacity: fadeAnim, transform: [{ scale: cardScale }] }]}>
                         <Card style={styles.tipCard}>
                             <Text style={styles.tipTitle}>{currentTip.title}</Text>
@@ -441,6 +441,14 @@ export default function MissingDance({ onComplete, onBack }: MissingDanceProps) 
 }
 
 const styles = StyleSheet.create({
+    centeredContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: height - 200, // Ensure content takes most of the screen height
+        paddingBottom: 30,
+        marginTop: 20,
+    },
     // Intro screen styles
     introTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -494,7 +502,7 @@ const styles = StyleSheet.create({
     },
     tipText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
+        fontSize: 14,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 26,

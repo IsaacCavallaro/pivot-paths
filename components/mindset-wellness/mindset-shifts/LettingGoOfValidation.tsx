@@ -637,11 +637,11 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
     },
     newBeliefCard: {
-        backgroundColor: 'rgba(90,125,123,0.15)',
+        backgroundColor: 'rgba(146,132,144,0.15)',
         borderRadius: 16,
         padding: 24,
         borderLeftWidth: 4,
-        borderLeftColor: '#5A7D7B',
+        borderLeftColor: '#928490',
         width: '100%',
         height: '100%',
         justifyContent: 'center',

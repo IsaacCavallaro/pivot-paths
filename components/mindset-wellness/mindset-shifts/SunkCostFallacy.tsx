@@ -495,7 +495,7 @@ export default function SunkCostFallacy({ onComplete, onBack }: SunkCostFallacyP
                 onLayout={() => scrollToTop()}
             >
                 <View style={commonStyles.centeredContent}>
-                    <Card style={commonStyles.baseCard}>
+                    <Card style={styles.baseCard}>
                         <Text style={styles.gameTitle}>The Sunk Cost Fallacy</Text>
                         <Text style={styles.gameInstructions}>
                             Tap to match sunk-cost thoughts with their reframes
@@ -554,7 +554,19 @@ export default function SunkCostFallacy({ onComplete, onBack }: SunkCostFallacyP
 }
 
 const styles = StyleSheet.create({
-    // Welcome Screen Styles
+    baseCard: {
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 50,
+    },
     learningBox: {
         width: '100%',
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
@@ -645,7 +657,7 @@ const styles = StyleSheet.create({
     },
     gameButtonText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 14,
+        fontSize: 10,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 18,
