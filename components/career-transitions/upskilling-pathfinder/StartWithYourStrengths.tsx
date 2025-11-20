@@ -495,7 +495,7 @@ export default function StartWithYourStrengths({ onComplete, onBack }: StartWith
                 onLayout={() => scrollToTop()}
             >
                 <View style={commonStyles.centeredContent}>
-                    <Card style={commonStyles.baseCard}>
+                    <Card style={styles.baseCard}>
                         <Text style={styles.gameTitle}>Start With Your Strengths</Text>
                         <Text style={styles.gameInstructions}>
                             Tap to match dancer strengths with relevant job titles
@@ -554,6 +554,19 @@ export default function StartWithYourStrengths({ onComplete, onBack }: StartWith
 }
 
 const styles = StyleSheet.create({
+    baseCard: {
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 40,
+    },
     // Welcome Screen Styles
     learningBox: {
         width: '100%',

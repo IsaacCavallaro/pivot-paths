@@ -390,7 +390,7 @@ export default function FindYourLearningStyle({ onComplete, onBack }: FindYourLe
                             </View>
 
                             <Text style={commonStyles.introTitle}>
-                                Welcome to Day 2
+                                Welcome back!
                             </Text>
 
                             <Text style={commonStyles.introDescription}>

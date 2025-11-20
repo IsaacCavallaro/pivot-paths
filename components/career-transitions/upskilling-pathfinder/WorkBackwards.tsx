@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, Animated, Image } from 'react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { useJournaling } from '@/utils/hooks/useJournaling';
@@ -243,7 +243,10 @@ export default function WorkBackwards({ onComplete, onBack }: WorkBackwardsProps
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                <Target size={48} color="#928490" />
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <Text style={commonStyles.introTitle}>Work Backwards from Job Descriptions</Text>
@@ -291,7 +294,10 @@ export default function WorkBackwards({ onComplete, onBack }: WorkBackwardsProps
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                <Target size={48} color="#928490" />
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <Text style={styles.introTitle}>The 5-Step Process</Text>
@@ -327,7 +333,10 @@ export default function WorkBackwards({ onComplete, onBack }: WorkBackwardsProps
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                <Target size={48} color="#928490" />
+                                <Image
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
 
                             <View style={commonStyles.finalHeader}>
@@ -393,7 +402,7 @@ export default function WorkBackwards({ onComplete, onBack }: WorkBackwardsProps
                 onContentSizeChange={() => scrollToTop()}
                 onLayout={() => scrollToTop()}
             >
-                <View style={commonStyles.centeredContent}>
+                <View style={styles.centeredContent}>
                     <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: cardScale }] }}>
                         <Card style={commonStyles.baseCard}>
                             <Text style={styles.stepTitle}>{currentStep.title}</Text>
@@ -433,6 +442,13 @@ export default function WorkBackwards({ onComplete, onBack }: WorkBackwardsProps
 }
 
 const styles = StyleSheet.create({
+    centeredContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingBottom: 30,
+        marginTop: 20,
+    },
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
