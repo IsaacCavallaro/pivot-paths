@@ -172,8 +172,11 @@ export default function CardPromptEngine({
         setSelectedOption(id);
     };
 
-    const handleConfirmSelection = () => {
-        if (!selectedOption) return;
+    const handleConfirmSelection = (optionId?: number) => {
+        const selectedId = optionId || selectedOption;
+        if (!selectedId) return;
+
+        setSelectedOption(selectedId);
 
         Animated.timing(fadeAnim, {
             toValue: 0,
@@ -391,44 +394,62 @@ export default function CardPromptEngine({
                     <View style={commonStyles.centeredContent}>
                         <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: cardScale }] }}>
                             <Card style={commonStyles.baseCard}>
-                                <Text style={styles.selectionTitle}>{selectionScreen.title}</Text>
+                                {selectionScreen.title && (
+                                    <Text style={styles.selectionTitle}>{selectionScreen.title}</Text>
+                                )}
                                 <Text style={styles.selectionDescription}>
                                     {selectionScreen.description}
                                 </Text>
 
-                                {selectionScreen.options.map((option) => (
-                                    <TouchableOpacity
-                                        key={option.id}
-                                        style={[
-                                            styles.selectionOption,
-                                            selectedOption === option.id && styles.selectionOptionSelected
-                                        ]}
-                                        onPress={() => handleSelectOption(option.id)}
-                                    >
-                                        {option.icon && (
-                                            <View style={styles.selectionOptionIcon}>
-                                                {option.icon}
-                                            </View>
-                                        )}
-                                        <View style={styles.selectionOptionText}>
-                                            <Text style={styles.selectionOptionTitle}>
-                                                {option.title}
+                                {selectionScreen.useButtons ? (
+                                    // Button-based selection (for debt methods)
+                                    <View style={styles.methodButtonsContainer}>
+                                        {selectionScreen.options.map((option) => (
+                                            <PrimaryButton
+                                                key={option.id}
+                                                title={option.title}
+                                                onPress={() => handleConfirmSelection(option.id)}
+                                            />
+                                        ))}
+                                    </View>
+                                ) : (
+                                    // Card-based selection (for savings challenges)
+                                    <>
+                                        {selectionScreen.options.map((option) => (
+                                            <TouchableOpacity
+                                                key={option.id}
+                                                style={[
+                                                    styles.selectionOption,
+                                                    selectedOption === option.id && styles.selectionOptionSelected
+                                                ]}
+                                                onPress={() => handleSelectOption(option.id)}
+                                            >
+                                                {option.icon && (
+                                                    <View style={styles.selectionOptionIcon}>
+                                                        {option.icon}
+                                                    </View>
+                                                )}
+                                                <View style={styles.selectionOptionText}>
+                                                    <Text style={styles.selectionOptionTitle}>
+                                                        {option.title}
+                                                    </Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        ))}
+
+                                        {selectionScreen.footer && (
+                                            <Text style={styles.selectionFooter}>
+                                                {selectionScreen.footer}
                                             </Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                ))}
+                                        )}
 
-                                {selectionScreen.footer && (
-                                    <Text style={styles.selectionFooter}>
-                                        {selectionScreen.footer}
-                                    </Text>
+                                        <PrimaryButton
+                                            title={selectionScreen.buttonText || "Confirm Selection"}
+                                            onPress={() => handleConfirmSelection()}
+                                            disabled={!selectedOption}
+                                        />
+                                    </>
                                 )}
-
-                                <PrimaryButton
-                                    title={selectionScreen.buttonText}
-                                    onPress={handleConfirmSelection}
-                                    disabled={!selectedOption}
-                                />
                             </Card>
                         </Animated.View>
                     </View>
@@ -554,7 +575,7 @@ export default function CardPromptEngine({
     });
 
     const titleText = cardType === 'method' || cardType === 'challenge'
-        ? `${currentIndex + 1} of ${cards.length}`
+        ? `${cardType === 'method' ? 'Method' : ''} ${currentIndex + 1} of ${cards.length}`.trim()
         : `${currentIndex + 1} of ${cards.length} ${cardType === 'swipe' ? 'activities' : 'validations'}`;
 
     return (
@@ -611,6 +632,27 @@ export default function CardPromptEngine({
                                             </View>
                                         )}
 
+                                        {currentCard.strategy && (
+                                            <View style={styles.section}>
+                                                <Text style={styles.sectionTitle}>The Strategy:</Text>
+                                                <Text style={styles.sectionContent}>{currentCard.strategy}</Text>
+                                            </View>
+                                        )}
+
+                                        {currentCard.why && (
+                                            <View style={styles.section}>
+                                                <Text style={styles.sectionTitle}>The Why:</Text>
+                                                <Text style={styles.sectionContent}>{currentCard.why}</Text>
+                                            </View>
+                                        )}
+
+                                        {currentCard.result && (
+                                            <View style={styles.section}>
+                                                <Text style={styles.sectionTitle}>The Result:</Text>
+                                                <Text style={styles.sectionContent}>{currentCard.result}</Text>
+                                            </View>
+                                        )}
+
                                         {currentCard.bestFor && (
                                             <View style={styles.section}>
                                                 <Text style={styles.sectionTitle}>Best for:</Text>
@@ -643,7 +685,7 @@ export default function CardPromptEngine({
                                         )}
 
                                         <PrimaryButton
-                                            title={currentIndex < cards.length - 1 ? 'Next Method' : 'See All Methods'}
+                                            title={currentIndex < cards.length - 1 ? 'Next Method' : (selectionScreen ? 'Choose Strategy' : 'See All Methods')}
                                             onPress={handleContinue}
                                         />
                                     </>
@@ -867,7 +909,7 @@ const styles = StyleSheet.create({
     },
     methodTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
+        fontSize: 28,
         color: '#4E4F50',
         textAlign: 'center',
         marginBottom: 16,
@@ -881,40 +923,40 @@ const styles = StyleSheet.create({
     },
     methodDescription: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
+        fontSize: 18,
         color: '#746C70',
         textAlign: 'center',
         marginBottom: 30,
-        lineHeight: 22,
+        lineHeight: 24,
     },
     section: {
-        marginBottom: 24,
+        marginBottom: 30,
         alignSelf: 'stretch',
     },
     sectionTitle: {
         fontFamily: 'Merriweather-Bold',
-        fontSize: 18,
+        fontSize: 20,
         color: '#4E4F50',
         marginBottom: 12,
     },
     sectionContent: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 14,
+        fontSize: 16,
         color: '#746C70',
-        lineHeight: 20,
+        lineHeight: 22,
     },
     stepText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 14,
+        fontSize: 16,
         color: '#746C70',
-        lineHeight: 20,
+        lineHeight: 22,
         marginBottom: 8,
     },
     proTipText: {
         fontFamily: 'Montserrat-Italic',
-        fontSize: 14,
+        fontSize: 16,
         color: '#647C90',
-        lineHeight: 20,
+        lineHeight: 22,
     },
     // Challenge Card Styles
     challengeTitle: {
@@ -1043,5 +1085,10 @@ const styles = StyleSheet.create({
         color: '#746C70',
         textAlign: 'center',
         marginVertical: 20,
+    },
+    methodButtonsContainer: {
+        gap: 20,
+        marginBottom: 40,
+        width: '100%',
     },
 });

@@ -22,7 +22,7 @@ export interface CardPromptEngineProps {
     // General Props
     primaryButtonText: string;
     imageSource?: string;
-    iconComponent?: ReactNode; // For custom icons like Calculator, PiggyBank
+    iconComponent?: ReactNode; // For custom icons like Calculator, PiggyBank, TrendingDown
 
     // Intro Screen Props (Journal + Button)
     introScreen: {
@@ -52,14 +52,18 @@ export interface CardPromptEngineProps {
         option1?: string;
         option2?: string;
         resultKey?: string;
-        // Method card props
+        // Method card props (shared structure)
         title?: string;
         description?: string;
+        // Method card props (budgeting variant)
         breakdown?: string;
+        // Method card props (debt variant)
+        strategy?: string;
+        why?: string;
+        result?: string;
         // Challenge card props
         goal?: string;
         target?: string;
-        result?: string;
         // Shared method/challenge props
         bestFor?: string;
         steps?: string[];
@@ -70,15 +74,17 @@ export interface CardPromptEngineProps {
 
     // Selection Screen Props (for choosing between options after cards)
     selectionScreen?: {
-        title: string;
+        title?: string; // Optional - TamingYourDebt doesn't use a title
         description: string;
         options: Array<{
             id: number;
             title: string;
-            icon?: ReactNode;
+            subtitle?: string; // For button-based selection (e.g., "Momentum Builder")
+            icon?: ReactNode; // For card-based selection (e.g., PiggyBank icon)
         }>;
-        footer?: string;
-        buttonText: string;
+        footer?: string; // Optional footer text
+        buttonText?: string; // Optional - only needed for card-based selection
+        useButtons?: boolean; // If true, render as PrimaryButtons instead of selection cards
     };
 
     // Reflection Screen Props (Text + Button or Journal + Button)
@@ -95,7 +101,7 @@ export interface CardPromptEngineProps {
         title: string;
         descriptions: string[];
         alternativeClosing?: string;
-        customContent?: ReactNode; // For custom content like mission steps
+        customContent?: ReactNode; // For custom content like mission steps or assignments
         journalSectionProps: JournalSectionProps;
         buttonText: string;
     };
