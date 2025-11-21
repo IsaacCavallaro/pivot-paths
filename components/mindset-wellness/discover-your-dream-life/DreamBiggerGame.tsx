@@ -105,11 +105,11 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
   const [randomizedChoices, setRandomizedChoices] = useState<DreamChoice[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [dreamBiggerChoices, setDreamBiggerChoices] = useState<{ [key: string]: string }>({});
 
   const { scrollViewRef, scrollToTop } = useScrollToTop();
   const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
   const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
-  const [dreamBiggerChoices, setDreamBiggerChoices] = useStorage<{ [key: string]: string }>('DREAM_BIGGER_CHOICES', {});
 
   useEffect(() => {
     const shuffled = [...dreamChoices].sort(() => Math.random() - 0.5);
@@ -147,7 +147,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
     await new Promise(resolve => setTimeout(resolve, 150));
 
     const newChoices = { ...dreamBiggerChoices, [choiceKey]: selectedOption };
-    await setDreamBiggerChoices(newChoices);
+    setDreamBiggerChoices(newChoices);
 
     if (currentScreen < 10) {
       setCurrentScreen(currentScreen + 1);
@@ -170,7 +170,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
 
     if (currentChoice) {
       const newChoices = { ...dreamBiggerChoices, [currentChoice.storyKey]: selectedOption };
-      await setDreamBiggerChoices(newChoices);
+      setDreamBiggerChoices(newChoices);
     }
 
     if (currentScreen < 10) {

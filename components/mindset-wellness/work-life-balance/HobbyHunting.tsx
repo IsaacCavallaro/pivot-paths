@@ -4,7 +4,6 @@ import { ChevronRight, Sparkles, ArrowLeft, Check } from 'lucide-react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { useJournaling } from '@/utils/hooks/useJournaling';
-import { useStorage } from '@/hooks/useStorage';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
@@ -87,11 +86,11 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
     const [randomizedChoices, setRandomizedChoices] = useState<HobbyChoice[]>([]);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [hobbyHuntingChoices, setHobbyHuntingChoices] = useState<{ [key: string]: string }>({});
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
     const { addJournalEntry: addMorningJournalEntry } = useJournaling('work-life-balance');
     const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('work-life-balance');
-    const [hobbyHuntingChoices, setHobbyHuntingChoices] = useStorage<{ [key: string]: string }>('HOBBY_HUNTING_CHOICES', {});
 
     useEffect(() => {
         const shuffled = [...hobbyChoices].sort(() => Math.random() - 0.5);
@@ -129,7 +128,7 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
         await new Promise(resolve => setTimeout(resolve, 150));
 
         const newChoices = { ...hobbyHuntingChoices, [choiceKey]: selectedOption };
-        await setHobbyHuntingChoices(newChoices);
+        setHobbyHuntingChoices(newChoices);
 
         if (currentScreen < 9) {
             setCurrentScreen(currentScreen + 1);
@@ -152,7 +151,7 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
 
         if (currentChoice) {
             const newChoices = { ...hobbyHuntingChoices, [currentChoice.storyKey]: selectedOption };
-            await setHobbyHuntingChoices(newChoices);
+            setHobbyHuntingChoices(newChoices);
         }
 
         if (currentScreen < 9) {
@@ -166,29 +165,35 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
     };
 
     const handleContinueStory = () => {
-        if (currentScreen < 16) {
+        if (currentScreen < 18) {
             setCurrentScreen(currentScreen + 1);
-        } else if (currentScreen === 16) {
-            setCurrentScreen(17);
+        } else if (currentScreen === 18) {
+            setCurrentScreen(19);
         } else {
             onComplete();
         }
         scrollToTop();
     };
 
+    const handleOpenEbook = () => {
+        Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
+    };
+
     const getStoryText = (screenNumber: number) => {
         switch (screenNumber) {
             case 11:
-                return `After work, you dive into ${hobbyHuntingChoices.creative?.toLowerCase()}, feeling curious and excited by this new form of expression or challenge. And as you wind down for the day, your new ${hobbyHuntingChoices.winddown === 'Cooking' ? 'cookbook' : 'knitting project'} keeps you engaged.`;
+                return "Explore Your New Hobby Life";
             case 12:
-                return `A few times a week, you find balance and focus through ${hobbyHuntingChoices.balance?.toLowerCase()}, letting your body and mind reconnect in new ways.`;
+                return `After work, you dive into ${hobbyHuntingChoices.creative?.toLowerCase()}, feeling curious and excited by this new form of expression or challenge. And as you wind down for the day, your new ${hobbyHuntingChoices.winddown === 'Cooking' ? 'cookbook' : 'knitting project'} keeps you engaged.`;
             case 13:
-                return `Your weekends are filled with ${hobbyHuntingChoices.weekend?.toLowerCase()} to help you slow down and notice the details, giving you a sense of accomplishment and calm.\n\nAnd when you're itching for a challenge, you decide to stretch your mind ${hobbyHuntingChoices.challenge?.toLowerCase()}.`;
+                return `A few times a week, you find balance and focus through ${hobbyHuntingChoices.balance?.toLowerCase()}, letting your body and mind reconnect in new ways.`;
             case 14:
-                return `As a summer project, you explore connection and purpose through ${hobbyHuntingChoices.connection?.toLowerCase()}, sharing your time, skills, or thoughts with others.\n\nAnd your daily movement off the stage finally becomes playtime again as you enjoy ${hobbyHuntingChoices.movement?.toLowerCase()} with friends.`;
+                return `Your weekends are filled with ${hobbyHuntingChoices.weekend?.toLowerCase()} to help you slow down and notice the details, giving you a sense of accomplishment and calm.\n\nAnd when you're itching for a challenge, you decide to stretch your mind ${hobbyHuntingChoices.challenge?.toLowerCase()}.`;
             case 15:
-                return `${hobbyHuntingChoices.social === 'Board games' ? 'Board games with family' : 'A book club with friends'} and ${hobbyHuntingChoices.saturday === 'Pickleball' ? 'pickleball tournaments' : 'solo paddleboarding excursions'} fill those Saturdays that used to be spent auditioning (or scrolling).`;
+                return `As a summer project, you explore connection and purpose through ${hobbyHuntingChoices.connection?.toLowerCase()}, sharing your time, skills, or thoughts with others.\n\nAnd your daily movement off the stage finally becomes playtime again as you enjoy ${hobbyHuntingChoices.movement?.toLowerCase()} with friends.`;
             case 16:
+                return `${hobbyHuntingChoices.social === 'Board games' ? 'Board games with family' : 'A book club with friends'} and ${hobbyHuntingChoices.saturday === 'Pickleball' ? 'pickleball tournaments' : 'solo paddleboarding excursions'} fill those Saturdays that used to be spent auditioning (or scrolling).`;
+            case 17:
                 return "You actually have hobbies now and letting go of dance doesn't seem so hard. You have other things to enjoy and new ways to recharge and play.\n\nTry adding at least one of these hobbies to your routine this week.";
             default:
                 return "";
@@ -218,10 +223,14 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
                                 />
                             </View>
 
-                            <Text style={commonStyles.introTitle}>Hobby Hunting</Text>
+                            <Text style={commonStyles.introTitle}>You're back for more!</Text>
 
                             <Text style={commonStyles.introDescription}>
-                                As dancers, we often have a one-track mind and hobbies often get put on the backburner. So, today we're hobby hunting! Pick the option that excites you most.
+                                This is where we're diving deeper into building a balanced life beyond dance.
+                            </Text>
+
+                            <Text style={commonStyles.introDescription}>
+                                You've already started exploring what life after dance could look like. Now, let's discover hobbies that can bring you joy and fulfillment.
                             </Text>
 
                             <JournalEntrySection
@@ -367,10 +376,11 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
         );
     }
 
-    // Story Screens (11-16)
-    if (currentScreen >= 11 && currentScreen <= 16) {
+    // Story Screens (11-17)
+    if (currentScreen >= 11 && currentScreen <= 17) {
         const storyText = getStoryText(currentScreen);
-        const isFinal = currentScreen === 16;
+        const isTitle = currentScreen === 11;
+        const isFinal = currentScreen === 17;
 
         return (
             <View style={commonStyles.container}>
@@ -386,12 +396,19 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
                 >
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
-                            <View style={styles.storyTextContainer}>
-                                <Text style={styles.storyText}>{storyText}</Text>
-                            </View>
+                            {isTitle ? (
+                                <View style={styles.storyTitleContainer}>
+                                    <Text style={styles.storyTitle}>{storyText}</Text>
+                                    <View style={styles.titleUnderline} />
+                                </View>
+                            ) : (
+                                <View style={styles.storyTextContainer}>
+                                    <Text style={styles.storyText}>{storyText}</Text>
+                                </View>
+                            )}
 
                             <PrimaryButton
-                                title={isFinal ? 'Continue' : 'Continue'}
+                                title={isFinal ? 'Own It' : 'Continue'}
                                 onPress={handleContinueStory}
                             />
                         </Card>
@@ -401,8 +418,8 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
         );
     }
 
-    // Reflection Screen (now screen 17)
-    if (currentScreen === 17) {
+    // Reflection Screen (now screen 18)
+    if (currentScreen === 18) {
         return (
             <View style={commonStyles.container}>
                 <StickyHeader onBack={goBack} />
@@ -446,8 +463,8 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
         );
     }
 
-    // Final Screen (now screen 18) with End of Day Journal
-    if (currentScreen === 18) {
+    // Final Screen (now screen 19) with End of Day Journal
+    if (currentScreen === 19) {
         return (
             <View style={commonStyles.container}>
                 <StickyHeader onBack={goBack} />
@@ -481,6 +498,19 @@ export default function HobbyHunting({ onComplete, onBack }: HobbyHuntingProps) 
                                 <Text style={styles.storyText}>
                                     These mindset shifts around time and identity are exactly what we explore in our dancer-specific resources, helping you create space for life beyond dance.
                                 </Text>
+                            </View>
+
+                            {/* Ebook Callout */}
+                            <View style={styles.ebookCard}>
+                                <Text style={styles.ebookTitle}>Explore Balance Tools</Text>
+                                <Text style={styles.ebookDescription}>
+                                    If you'd like to dive deeper into creating work-life balance, our book "How to Pivot" offers practical strategies that might help.
+                                </Text>
+                                <PrimaryButton
+                                    title="Learn More"
+                                    onPress={handleOpenEbook}
+                                    style={styles.ebookButton}
+                                />
                             </View>
 
                             <JournalEntrySection
@@ -551,6 +581,26 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         transform: [{ translateY: -12 }],
     },
+    storyTitleContainer: {
+        alignItems: 'center',
+        marginBottom: 40,
+    },
+    storyTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 32,
+        color: '#647C90',
+        textAlign: 'center',
+        lineHeight: 38,
+        fontWeight: '700',
+    },
+    titleUnderline: {
+        height: 4,
+        width: 60,
+        backgroundColor: '#928490',
+        borderRadius: 2,
+        marginTop: 16,
+        opacity: 0.6,
+    },
     storyTextContainer: {
         width: '100%',
         marginBottom: 32,
@@ -562,6 +612,34 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 28,
         marginTop: 10,
+    },
+    ebookCard: {
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 32,
+        borderLeftWidth: 4,
+        borderLeftColor: '#928490',
+        width: '100%',
+    },
+    ebookTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '700',
+    },
+    ebookDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: 20,
+    },
+    ebookButton: {
+        alignSelf: 'center',
     },
     alternativeClosing: {
         fontFamily: 'Montserrat-SemiBold',
