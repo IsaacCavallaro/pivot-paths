@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react-native';
 interface StickyHeaderProps {
     onBack: () => void;
     title?: string;
-    progress?: number; // Value between 0 and 1 for progress bar
+    progress?: number | Animated.AnimatedInterpolation<string>; // Value between 0 and 1 or an Animated Interpolation
     backgroundColor?: string;
     textColor?: string;
 }
@@ -17,14 +17,15 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
     backgroundColor = '#928490',
     textColor = '#E2DED0',
 }) => {
-    const progressWidth = progress !== undefined ? new Animated.Value(progress) : null;
-
-    const animatedProgressStyle = progressWidth ? {
-        width: progressWidth.interpolate({
-            inputRange: [0, 1],
-            outputRange: ['0%', '100%'],
-        }),
-    } : {};
+    const interpolatedProgress = React.useMemo(() => {
+        if (typeof progress === 'number') {
+            return new Animated.Value(progress).interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0%', '100%'],
+            });
+        }
+        return progress;
+    }, [progress]);
 
     return (
         <View style={[styles.stickyHeader, { backgroundColor }]}>
@@ -39,8 +40,8 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
             </View>
             {progress !== undefined && (
                 <View style={styles.progressBar}>
-                    {progressWidth && (
-                        <Animated.View style={[styles.progressFill, { backgroundColor: textColor }, animatedProgressStyle]} />
+                    {interpolatedProgress && (
+                        <Animated.View style={[styles.progressFill, { backgroundColor: textColor, width: interpolatedProgress }]} />
                     )}
                 </View>
             )}
