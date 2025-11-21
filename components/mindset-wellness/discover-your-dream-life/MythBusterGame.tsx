@@ -100,7 +100,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
   const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
 
   const [day1SkillsQuizResult] = useStorage<DreamerResult | null>('DAY1_SKILLS_QUIZ_RESULT', null);
-  const [mythBusterMatchedPairs, setMythBusterMatchedPairs] = useStorage<number[]>('MYTH_BUSTER_MATCHED_PAIRS', []);
+  const [mythBusterMatchedPairs, setMythBusterMatchedPairs] = useState<number[]>([]);
 
   useEffect(() => {
     // No need to load quiz result here, useStorage handles it
@@ -125,7 +125,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     } else if (currentScreen === 1) {
       setCurrentScreen(0);
     } else if (currentScreen === 2) {
-      await setMythBusterMatchedPairs([]); // Reset matched pairs in storage
+      setMythBusterMatchedPairs([]); // Reset matched pairs
       setSelectedItems([]);
       setCurrentPairIndex(0);
       setShowMismatch(false);
@@ -189,7 +189,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
 
     if (item1 && item2 && item1.pairId === item2.pairId) {
       const newMatchedPairs = [...mythBusterMatchedPairs, item1.pairId];
-      await setMythBusterMatchedPairs(newMatchedPairs);
+      setMythBusterMatchedPairs(newMatchedPairs);
 
       setTimeout(() => {
         const remainingItems = gameItems.filter(item => !selected.includes(item.id));
@@ -339,7 +339,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               </View>
 
               <Text style={styles.welcomeFooter}>
-                You’ll be playing a match game to help you identify and challenge the myths you might be holding onto.
+                You'll be playing a match game to help you identify and challenge the myths you might be holding onto.
               </Text>
 
               <JournalEntrySection
@@ -348,7 +348,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                 category="Mindset and Wellness"
                 pathTitle="Discover Your Dream Life"
                 dayTitle="Myth Buster"
-                journalInstruction="Before we begin, let’s take a moment to check in with yourself. How are you feeling after yesterday’s quiz? Is there anything you’re hoping to gain today?"
+                journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling after yesterday's quiz? Is there anything you're hoping to gain today?"
                 moodLabel=""
                 saveButtonText="Save Entry"
               />
@@ -479,7 +479,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               <Text style={commonStyles.reflectionTitle}>Great Work!</Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                When pivoting away from dance, it’s so important to really think about the myths you currently believe and whether or not they’re serving you.
+                When pivoting away from dance, it's so important to really think about the myths you currently believe and whether or not they're serving you.
               </Text>
 
               <Text style={commonStyles.reflectionDescription}>
@@ -487,7 +487,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
               </Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                Take a detour and check out the myths our founder had to unlearn. But don’t forget to come back and mark this day as complete!
+                Take a detour and check out the myths our founder had to unlearn. But don't forget to come back and mark this day as complete!
               </Text>
 
               <TouchableOpacity
