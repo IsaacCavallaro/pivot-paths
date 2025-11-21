@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, Image, Animated, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Image, Animated, ScrollView, TouchableOpacity } from 'react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
@@ -21,12 +21,14 @@ export default function CardPromptEngine({
     introScreen,
     secondaryIntroScreen,
     cards,
+    selectionScreen,
     reflectionScreen,
     finalScreen,
 }: CardPromptEngineProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showNewBelief, setShowNewBelief] = useState(false);
     const [showSecondPhase, setShowSecondPhase] = useState(false);
+    const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [screenHistory, setScreenHistory] = useState<Array<{ index: number, showNew?: boolean, showPhase2?: boolean }>>([]);
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
@@ -113,13 +115,14 @@ export default function CardPromptEngine({
         }
 
         if (isLastCard) {
-            // Smooth transition to reflection screen
+            // Smooth transition to selection or reflection screen
+            const nextScreen = selectionScreen ? -4 : -2; // -4 for selection, -2 for reflection
             Animated.timing(fadeAnim, {
                 toValue: 0,
                 duration: 400,
                 useNativeDriver: true,
             }).start(() => {
-                setScreenHistory(prev => [...prev, { index: -2, showNew: false, showPhase2: false }]);
+                setScreenHistory(prev => [...prev, { index: nextScreen, showNew: false, showPhase2: false }]);
                 fadeAnim.setValue(1);
                 scrollToTop();
             });
@@ -163,7 +166,25 @@ export default function CardPromptEngine({
                 scrollToTop();
             });
         }
-    }, [cardType, showNewBelief, showSecondPhase, currentIndex, cards.length, flipCard, fadeAnim, flipAnim, cardScale, progressAnim, scrollToTop]);
+    }, [cardType, showNewBelief, showSecondPhase, currentIndex, cards.length, selectionScreen, flipCard, fadeAnim, flipAnim, cardScale, progressAnim, scrollToTop]);
+
+    const handleSelectOption = (id: number) => {
+        setSelectedOption(id);
+    };
+
+    const handleConfirmSelection = () => {
+        if (!selectedOption) return;
+
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true,
+        }).start(() => {
+            setScreenHistory(prev => [...prev, { index: -1, showNew: false, showPhase2: false }]);
+            fadeAnim.setValue(1);
+            scrollToTop();
+        });
+    };
 
     const handleComplete = () => {
         Animated.sequence([
@@ -188,6 +209,7 @@ export default function CardPromptEngine({
             setCurrentIndex(0);
             setShowNewBelief(false);
             setShowSecondPhase(false);
+            setSelectedOption(null);
             flipAnim.setValue(0);
             fadeAnim.setValue(1);
             cardScale.setValue(1);
@@ -200,7 +222,7 @@ export default function CardPromptEngine({
         setScreenHistory(newHistory);
 
         const prevScreen = newHistory[newHistory.length - 1];
-        if (prevScreen.index === -1 || prevScreen.index === -2 || prevScreen.index === -3) {
+        if (prevScreen.index === -1 || prevScreen.index === -2 || prevScreen.index === -3 || prevScreen.index === -4) {
             setShowNewBelief(false);
             setShowSecondPhase(false);
         } else {
@@ -352,8 +374,71 @@ export default function CardPromptEngine({
         );
     }
 
+    // Selection Screen (for challenge selection flow)
+    if (screenIdentifier === -4 && selectionScreen) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: cardScale }] }}>
+                            <Card style={commonStyles.baseCard}>
+                                <Text style={styles.selectionTitle}>{selectionScreen.title}</Text>
+                                <Text style={styles.selectionDescription}>
+                                    {selectionScreen.description}
+                                </Text>
+
+                                {selectionScreen.options.map((option) => (
+                                    <TouchableOpacity
+                                        key={option.id}
+                                        style={[
+                                            styles.selectionOption,
+                                            selectedOption === option.id && styles.selectionOptionSelected
+                                        ]}
+                                        onPress={() => handleSelectOption(option.id)}
+                                    >
+                                        {option.icon && (
+                                            <View style={styles.selectionOptionIcon}>
+                                                {option.icon}
+                                            </View>
+                                        )}
+                                        <View style={styles.selectionOptionText}>
+                                            <Text style={styles.selectionOptionTitle}>
+                                                {option.title}
+                                            </Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+
+                                {selectionScreen.footer && (
+                                    <Text style={styles.selectionFooter}>
+                                        {selectionScreen.footer}
+                                    </Text>
+                                )}
+
+                                <PrimaryButton
+                                    title={selectionScreen.buttonText}
+                                    onPress={handleConfirmSelection}
+                                    disabled={!selectedOption}
+                                />
+                            </Card>
+                        </Animated.View>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
     // Reflection Screen
-    if (screenIdentifier === -2) {
+    if (screenIdentifier === -2 && reflectionScreen) {
         return (
             <View style={commonStyles.container}>
                 <StickyHeader onBack={goBack} />
@@ -413,50 +498,54 @@ export default function CardPromptEngine({
                     onLayout={() => scrollToTop()}
                 >
                     <View style={commonStyles.centeredContent}>
-                        <Card style={commonStyles.baseCard}>
-                            <View style={commonStyles.introIconContainer}>
-                                {iconComponent || (imageSource && (
-                                    <Image
-                                        source={{ uri: imageSource }}
-                                        style={commonStyles.heroImage}
-                                    />
-                                ))}
-                            </View>
+                        <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: cardScale }] }}>
+                            <Card style={commonStyles.baseCard}>
+                                <View style={commonStyles.introIconContainer}>
+                                    {iconComponent || (imageSource && (
+                                        <Image
+                                            source={{ uri: imageSource }}
+                                            style={commonStyles.heroImage}
+                                        />
+                                    ))}
+                                </View>
 
-                            <View style={commonStyles.finalHeader}>
-                                <Text style={commonStyles.finalHeading}>{finalScreen.title}</Text>
-                            </View>
+                                <View style={commonStyles.finalHeader}>
+                                    <Text style={commonStyles.finalHeading}>{finalScreen.title}</Text>
+                                </View>
 
-                            <View style={commonStyles.finalTextContainer}>
-                                {finalScreen.descriptions.map((desc, index) => (
-                                    <Text key={index} style={commonStyles.finalText}>
-                                        {desc}
+                                <View style={commonStyles.finalTextContainer}>
+                                    {finalScreen.descriptions.map((desc, index) => (
+                                        <Text key={index} style={commonStyles.finalText}>
+                                            {desc}
+                                        </Text>
+                                    ))}
+                                </View>
+
+                                {finalScreen.customContent}
+
+                                <JournalEntrySection {...finalScreen.journalSectionProps} />
+
+                                {finalScreen.alternativeClosing && (
+                                    <Text style={styles.alternativeClosing}>
+                                        {finalScreen.alternativeClosing}
                                     </Text>
-                                ))}
-                            </View>
+                                )}
 
-                            <JournalEntrySection {...finalScreen.journalSectionProps} />
-
-                            {finalScreen.alternativeClosing && (
-                                <Text style={styles.alternativeClosing}>
-                                    {finalScreen.alternativeClosing}
-                                </Text>
-                            )}
-
-                            <View style={commonStyles.finalButtonContainer}>
-                                <PrimaryButton
-                                    title={finalScreen.buttonText}
-                                    onPress={handleComplete}
-                                />
-                            </View>
-                        </Card>
+                                <View style={commonStyles.finalButtonContainer}>
+                                    <PrimaryButton
+                                        title={finalScreen.buttonText}
+                                        onPress={handleComplete}
+                                    />
+                                </View>
+                            </Card>
+                        </Animated.View>
                     </View>
                 </ScrollView>
             </View>
         );
     }
 
-    // Card Screens (Flip, Swipe, or Method)
+    // Card Screens (Flip, Swipe, Method, or Challenge)
     const currentCard = cards[currentIndex];
 
     const progressWidth = progressAnim.interpolate({
@@ -464,7 +553,7 @@ export default function CardPromptEngine({
         outputRange: ['0%', '100%'],
     });
 
-    const titleText = cardType === 'method'
+    const titleText = cardType === 'method' || cardType === 'challenge'
         ? `${currentIndex + 1} of ${cards.length}`
         : `${currentIndex + 1} of ${cards.length} ${cardType === 'swipe' ? 'activities' : 'validations'}`;
 
@@ -487,72 +576,30 @@ export default function CardPromptEngine({
                 <View style={commonStyles.centeredContent}>
                     {cardType === "flip" ? (
                         <View style={styles.flipContainer}>
-                            {/* Front of card (old belief view) */}
-                            <Animated.View
-                                style={[
-                                    styles.choiceCard,
-                                    styles.cardFace,
-                                    frontAnimatedStyle,
-                                ]}
-                            >
-                                <Text style={styles.beliefLabel}>
-                                    What I used to believe:
-                                </Text>
-
+                            <Animated.View style={[styles.choiceCard, styles.cardFace, frontAnimatedStyle]}>
+                                <Text style={styles.beliefLabel}>What I used to believe:</Text>
                                 <View style={styles.beliefCard}>
                                     <View style={styles.oldBeliefCard}>
-                                        <Text style={styles.oldBeliefText}>
-                                            "{currentCard.oldBelief}"
-                                        </Text>
+                                        <Text style={styles.oldBeliefText}>"{currentCard.oldBelief}"</Text>
                                     </View>
                                 </View>
-
-                                <PrimaryButton
-                                    title="See the alternative"
-                                    onPress={handleContinue}
-                                />
+                                <PrimaryButton title="See the alternative" onPress={handleContinue} />
                             </Animated.View>
 
-                            {/* Back of card (new belief view) */}
-                            <Animated.View
-                                style={[
-                                    styles.choiceCard,
-                                    styles.cardFace,
-                                    styles.cardBack,
-                                    backAnimatedStyle,
-                                ]}
-                            >
-                                <Text style={styles.beliefLabel}>
-                                    What I can say instead:
-                                </Text>
-
+                            <Animated.View style={[styles.choiceCard, styles.cardFace, styles.cardBack, backAnimatedStyle]}>
+                                <Text style={styles.beliefLabel}>What I can say instead:</Text>
                                 <View style={styles.beliefCard}>
                                     <View style={styles.newBeliefCard}>
-                                        <Text style={styles.newBeliefText}>
-                                            "{currentCard.newBelief}"
-                                        </Text>
+                                        <Text style={styles.newBeliefText}>"{currentCard.newBelief}"</Text>
                                     </View>
                                 </View>
-
-                                <PrimaryButton
-                                    title={currentCard.buttonText}
-                                    onPress={handleContinue}
-                                />
+                                <PrimaryButton title={currentCard.buttonText} onPress={handleContinue} />
                             </Animated.View>
                         </View>
                     ) : cardType === "method" ? (
-                        <Animated.View
-                            style={[
-                                styles.methodContainer,
-                                {
-                                    opacity: fadeAnim,
-                                    transform: [{ scale: cardScale }]
-                                }
-                            ]}
-                        >
+                        <Animated.View style={[styles.methodContainer, { opacity: fadeAnim, transform: [{ scale: cardScale }] }]}>
                             <Card style={commonStyles.baseCard}>
                                 {!showSecondPhase ? (
-                                    // Phase 1: Method Overview
                                     <>
                                         <Text style={styles.methodTitle}>{currentCard.title}</Text>
                                         <Text style={styles.methodDescription}>{currentCard.description}</Text>
@@ -571,13 +618,9 @@ export default function CardPromptEngine({
                                             </View>
                                         )}
 
-                                        <PrimaryButton
-                                            title="How to start"
-                                            onPress={handleContinue}
-                                        />
+                                        <PrimaryButton title="How to start" onPress={handleContinue} />
                                     </>
                                 ) : (
-                                    // Phase 2: How to Start
                                     <>
                                         <Text style={styles.howToTitle}>How to Start {currentCard.title}</Text>
 
@@ -607,27 +650,76 @@ export default function CardPromptEngine({
                                 )}
                             </Card>
                         </Animated.View>
-                    ) : (
-                        // Swipe card
-                        <Animated.View
-                            style={[
-                                styles.choiceCard,
-                                {
-                                    opacity: fadeAnim,
-                                    transform: [{ scale: cardScale }]
-                                }
-                            ]}
-                        >
-                            <View style={styles.swipeCard}>
-                                <Text style={styles.swipeText}>
-                                    "{currentCard.prompt}"
-                                </Text>
-                            </View>
+                    ) : cardType === "challenge" ? (
+                        <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: cardScale }] }}>
+                            <Card style={commonStyles.baseCard}>
+                                <Text style={styles.challengeTitle}>{currentCard.title}</Text>
+                                <Text style={styles.challengeDescription}>{currentCard.description}</Text>
 
-                            <PrimaryButton
-                                title={currentCard.buttonText}
-                                onPress={handleContinue}
-                            />
+                                <View style={styles.infoCard}>
+                                    {currentCard.goal && (
+                                        <>
+                                            <Text style={styles.infoLabel}>The Goal:</Text>
+                                            <Text style={styles.infoText}>{currentCard.goal}</Text>
+                                        </>
+                                    )}
+
+                                    {currentCard.target && (
+                                        <>
+                                            <Text style={styles.infoLabel}>The Target:</Text>
+                                            <Text style={styles.infoText}>{currentCard.target}</Text>
+                                        </>
+                                    )}
+
+                                    {currentCard.result && (
+                                        <>
+                                            <Text style={styles.infoLabel}>The Result:</Text>
+                                            <Text style={styles.infoText}>{currentCard.result}</Text>
+                                        </>
+                                    )}
+
+                                    {currentCard.bestFor && (
+                                        <>
+                                            <Text style={styles.infoLabel}>Best for:</Text>
+                                            <Text style={styles.infoText}>{currentCard.bestFor}</Text>
+                                        </>
+                                    )}
+                                </View>
+
+                                {currentCard.steps && currentCard.steps.length > 0 && (
+                                    <>
+                                        <Text style={styles.sectionTitle}>How to Do It</Text>
+                                        <View style={styles.stepsContainer}>
+                                            {currentCard.steps.map((step, index) => (
+                                                <View key={index} style={styles.stepRow}>
+                                                    <View style={styles.stepNumber}>
+                                                        <Text style={styles.stepNumberText}>{index + 1}</Text>
+                                                    </View>
+                                                    <Text style={styles.stepRowText}>{step}</Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    </>
+                                )}
+
+                                {currentCard.proTip && (
+                                    <View style={styles.proTipContainer}>
+                                        <Text style={styles.proTipContainerText}>Pro Tip: {currentCard.proTip}</Text>
+                                    </View>
+                                )}
+
+                                <PrimaryButton
+                                    title={currentIndex < cards.length - 1 ? 'Next Challenge' : 'Choose Your Challenge'}
+                                    onPress={handleContinue}
+                                />
+                            </Card>
+                        </Animated.View>
+                    ) : (
+                        <Animated.View style={[styles.choiceCard, { opacity: fadeAnim, transform: [{ scale: cardScale }] }]}>
+                            <View style={styles.swipeCard}>
+                                <Text style={styles.swipeText}>"{currentCard.prompt}"</Text>
+                            </View>
+                            <PrimaryButton title={currentCard.buttonText} onPress={handleContinue} />
                         </Animated.View>
                     )}
                 </View>
@@ -823,5 +915,133 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#647C90',
         lineHeight: 20,
+    },
+    // Challenge Card Styles
+    challengeTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 10,
+    },
+    challengeDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#746C70',
+        textAlign: 'center',
+        marginBottom: 30,
+    },
+    infoCard: {
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 30,
+        width: '100%',
+    },
+    infoLabel: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 16,
+        color: '#4E4F50',
+        marginBottom: 5,
+    },
+    infoText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#746C70',
+        marginBottom: 15,
+        lineHeight: 22,
+    },
+    stepsContainer: {
+        marginBottom: 20,
+        width: '100%',
+    },
+    stepRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: 15,
+    },
+    stepNumber: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        backgroundColor: '#928490',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+        marginTop: 2,
+    },
+    stepNumberText: {
+        fontFamily: 'Montserrat-Bold',
+        fontSize: 16,
+        color: '#E2DED0',
+    },
+    stepRowText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 15,
+        color: '#4E4F50',
+        flex: 1,
+        lineHeight: 22,
+    },
+    proTipContainer: {
+        backgroundColor: 'rgba(90, 125, 123, 0.1)',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 30,
+        borderLeftWidth: 4,
+        borderLeftColor: '#928490',
+        width: '100%',
+    },
+    proTipContainerText: {
+        fontFamily: 'Montserrat-Italic',
+        fontSize: 15,
+        color: '#4E4F50',
+        lineHeight: 22,
+    },
+    // Selection Screen Styles
+    selectionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 10,
+    },
+    selectionDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#746C70',
+        textAlign: 'center',
+        marginBottom: 30,
+    },
+    selectionOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(146, 132, 144, 0.1)',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 15,
+        width: '100%',
+    },
+    selectionOptionSelected: {
+        backgroundColor: 'rgba(90, 125, 123, 0.2)',
+        borderWidth: 2,
+        borderColor: '#928490',
+    },
+    selectionOptionIcon: {
+        marginRight: 15,
+    },
+    selectionOptionText: {
+        flex: 1,
+    },
+    selectionOptionTitle: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 16,
+        color: '#4E4F50',
+    },
+    selectionFooter: {
+        fontFamily: 'Montserrat-Italic',
+        fontSize: 15,
+        color: '#746C70',
+        textAlign: 'center',
+        marginVertical: 20,
     },
 });

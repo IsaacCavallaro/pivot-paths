@@ -17,12 +17,12 @@ export interface CardPromptEngineProps {
     onBack?: () => void;
 
     // Config for card type
-    cardType: "flip" | "swipe" | "choice" | "method";
+    cardType: "flip" | "swipe" | "choice" | "method" | "challenge";
 
     // General Props
     primaryButtonText: string;
     imageSource?: string;
-    iconComponent?: ReactNode; // For custom icons like Calculator
+    iconComponent?: ReactNode; // For custom icons like Calculator, PiggyBank
 
     // Intro Screen Props (Journal + Button)
     introScreen: {
@@ -56,6 +56,11 @@ export interface CardPromptEngineProps {
         title?: string;
         description?: string;
         breakdown?: string;
+        // Challenge card props
+        goal?: string;
+        target?: string;
+        result?: string;
+        // Shared method/challenge props
         bestFor?: string;
         steps?: string[];
         proTip?: string;
@@ -63,8 +68,21 @@ export interface CardPromptEngineProps {
         buttonText: string;
     }>;
 
+    // Selection Screen Props (for choosing between options after cards)
+    selectionScreen?: {
+        title: string;
+        description: string;
+        options: Array<{
+            id: number;
+            title: string;
+            icon?: ReactNode;
+        }>;
+        footer?: string;
+        buttonText: string;
+    };
+
     // Reflection Screen Props (Text + Button or Journal + Button)
-    reflectionScreen: {
+    reflectionScreen?: {
         title: string;
         description: string;
         journalSectionProps?: JournalSectionProps; // Optional for reflection
@@ -77,6 +95,7 @@ export interface CardPromptEngineProps {
         title: string;
         descriptions: string[];
         alternativeClosing?: string;
+        customContent?: ReactNode; // For custom content like mission steps
         journalSectionProps: JournalSectionProps;
         buttonText: string;
     };
