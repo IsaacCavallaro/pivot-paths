@@ -13,6 +13,7 @@ interface JournalEntrySectionProps {
     category?: string; // Add category
     pathTitle?: string; // Add path title
     dayTitle?: string; // Add day title for better organization
+    placeholder?: string; // Add placeholder prop
 }
 export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
     pathTag,
@@ -23,6 +24,7 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
     category = 'General', // Default value
     pathTitle = '', // Default empty
     dayTitle = '', // Default empty
+    placeholder = "Add your entry here", // Default placeholder
 }) => {
     const {
         journalEntry,
@@ -90,7 +92,7 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
             <View style={styles.journalInputContainer}>
                 <TextInput
                     style={styles.journalTextInput}
-                    placeholder="Add your entry here"
+                    placeholder={placeholder}
                     placeholderTextColor="#928490"
                     multiline
                     value={journalEntry}
