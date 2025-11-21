@@ -85,4 +85,11 @@ export interface MiniQuizEngineProps {
         closingText: string;
         buttonText: string;
     };
+
+    expansiveDreamerScreen?: {
+        title: string;
+        expansiveTitle: string;
+        descriptions: string[];
+        buttonText: string;
+    };
 }

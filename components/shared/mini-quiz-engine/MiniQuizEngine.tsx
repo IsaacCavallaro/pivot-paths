@@ -11,6 +11,16 @@ import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
 import { MiniQuizEngineProps, QuizResult } from '@/types/miniQuizEngine';
 
+// Extended interface to include the optional expansive dreamer screen
+interface ExtendedMiniQuizEngineProps extends MiniQuizEngineProps {
+    expansiveDreamerScreen?: {
+        title: string;
+        expansiveTitle: string;
+        descriptions: string[];
+        buttonText: string;
+    };
+}
+
 export default function MiniQuizEngine({
     onComplete,
     onBack,
@@ -22,10 +32,11 @@ export default function MiniQuizEngine({
     welcomeScreen,
     quizIntroScreen,
     mainResultScreen,
+    expansiveDreamerScreen, // NEW: Optional expansive dreamer screen
     takeActionScreen,
     finalCompletionScreen,
-}: MiniQuizEngineProps) {
-    const [currentScreen, setCurrentScreen] = useState(0); // 0: Welcome, 1: Quiz Intro, 2+: Questions, Result Screen Index (totalQuestions + 2), Take Action Index (totalQuestions + 3), Final Index (totalQuestions + 4)
+}: ExtendedMiniQuizEngineProps) {
+    const [currentScreen, setCurrentScreen] = useState(0);
     const [answers, setAnswers] = useState<{ [key: number]: string }>({});
     const [result, setResult] = useState<QuizResult | null>(null);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -33,10 +44,11 @@ export default function MiniQuizEngine({
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
 
-    const resultScreenIndex = totalQuestions + 2;
+    // Screen indices - dynamically adjust based on whether expansive dreamer screen exists
     const mainResultScreenIndex = totalQuestions + 2;
-    const takeActionScreenIndex = totalQuestions + 3;
-    const finalCompletionScreenIndex = totalQuestions + 4;
+    const expansiveDreamerScreenIndex = totalQuestions + 3;
+    const takeActionScreenIndex = expansiveDreamerScreen ? totalQuestions + 4 : totalQuestions + 3;
+    const finalCompletionScreenIndex = expansiveDreamerScreen ? totalQuestions + 5 : totalQuestions + 4;
 
     useEffect(() => {
         scrollToTop();
@@ -67,12 +79,28 @@ export default function MiniQuizEngine({
             scrollToTop();
         } else if (currentScreen === mainResultScreenIndex) {
             handleScreenChange(currentScreen - 1); // Back to last question
+        } else if (currentScreen === expansiveDreamerScreenIndex && expansiveDreamerScreen) {
+            handleScreenChange(mainResultScreenIndex); // Back to main result
         } else if (currentScreen === takeActionScreenIndex) {
-            handleScreenChange(mainResultScreenIndex);
+            // Go back to expansive dreamer screen if it exists, otherwise to main result
+            if (expansiveDreamerScreen) {
+                handleScreenChange(expansiveDreamerScreenIndex);
+            } else {
+                handleScreenChange(mainResultScreenIndex);
+            }
         } else if (currentScreen === finalCompletionScreenIndex) {
             handleScreenChange(takeActionScreenIndex);
         }
-    }, [currentScreen, mainResultScreenIndex, takeActionScreenIndex, finalCompletionScreenIndex, handleScreenChange, handleBackPress]);
+    }, [
+        currentScreen,
+        mainResultScreenIndex,
+        expansiveDreamerScreenIndex,
+        takeActionScreenIndex,
+        finalCompletionScreenIndex,
+        handleScreenChange,
+        handleBackPress,
+        expansiveDreamerScreen
+    ]);
 
     const handleAnswer = useCallback((optionId: string, optionType: string) => {
         setSelectedOption(optionId);
@@ -83,7 +111,7 @@ export default function MiniQuizEngine({
 
     const calculateResult = useCallback(() => {
         const typeCounts: { [key: string]: number } = {};
-        Object.values(quizResults).forEach(res => typeCounts[res.type] = 0); // Initialize counts
+        Object.values(quizResults).forEach(res => typeCounts[res.type] = 0);
 
         Object.values(answers).forEach(answer => {
             if (typeCounts[answer] !== undefined) {
@@ -104,8 +132,6 @@ export default function MiniQuizEngine({
         const finalResult = quizResults[dominantType];
         if (!finalResult) {
             console.error(`Error: Could not find quiz result for dominant type '${dominantType}'. Check quizResults prop. Answers: ${JSON.stringify(answers)}, Quiz Results: ${JSON.stringify(quizResults)}`);
-            // Attempt to recover or provide a generic error, or simply stop
-            // For now, returning to prevent crash, but this implies data mismatch.
             return;
         }
         setResult(finalResult);
@@ -134,22 +160,20 @@ export default function MiniQuizEngine({
         }
     }, [result, onComplete]);
 
-    const openYouTubeVideo = useCallback(async (videoId?: string) => {
-        if (!videoId) return;
-        const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
-        try {
-            const supported = await Linking.canOpenURL(youtubeUrl);
-            if (supported) {
-                await Linking.openURL(youtubeUrl);
-            } else {
-                console.log("YouTube app not available or URL is invalid:", youtubeUrl);
-            }
-        } catch (error) {
-            console.error("Error opening YouTube video:", error);
+    // Handle navigation from main result screen
+    const handleMainResultContinue = useCallback(() => {
+        if (expansiveDreamerScreen) {
+            handleScreenChange(expansiveDreamerScreenIndex);
+        } else {
+            handleScreenChange(takeActionScreenIndex);
         }
-    }, []);
+    }, [expansiveDreamerScreen, expansiveDreamerScreenIndex, takeActionScreenIndex, handleScreenChange]);
 
-    // Screen rendering logic
+    // Handle navigation from expansive dreamer screen
+    const handleExpansiveDreamerContinue = useCallback(() => {
+        handleScreenChange(takeActionScreenIndex);
+    }, [takeActionScreenIndex, handleScreenChange]);
+
     // Welcome Screen (0)
     if (currentScreen === 0) {
         return (
@@ -246,7 +270,54 @@ export default function MiniQuizEngine({
                             </View>
                             <PrimaryButton
                                 title={mainResultScreen.buttonText}
-                                onPress={() => handleScreenChange(takeActionScreenIndex)}
+                                onPress={handleMainResultContinue}
+                                disabled={isTransitioning}
+                            />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Expansive Dreamer Screen (optional)
+    if (currentScreen === expansiveDreamerScreenIndex && expansiveDreamerScreen && result) {
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader onBack={goBack} />
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={() => scrollToTop()}
+                    onLayout={() => scrollToTop()}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            <View style={commonStyles.introIconContainer}>
+                                {imageSource && (
+                                    <Image source={{ uri: imageSource }} style={commonStyles.heroImage} />
+                                )}
+                            </View>
+
+                            <Text style={styles.expansiveTitle}>
+                                {expansiveDreamerScreen.title}
+                            </Text>
+
+                            <Text style={styles.expansiveTitleBold}>
+                                {expansiveDreamerScreen.expansiveTitle}
+                            </Text>
+
+                            {expansiveDreamerScreen.descriptions.map((desc, index) => (
+                                <Text key={index} style={commonStyles.reflectionDescription}>
+                                    {desc}
+                                </Text>
+                            ))}
+
+                            <PrimaryButton
+                                title={expansiveDreamerScreen.buttonText}
+                                onPress={handleExpansiveDreamerContinue}
                                 disabled={isTransitioning}
                             />
                         </Card>
@@ -287,7 +358,9 @@ export default function MiniQuizEngine({
                                         <View style={styles.sectionDivider} />
                                     </View>
                                     <Text style={styles.reflectionInstruction}>
-                                        Consider these questions as you reflect on your curiosity style:
+                                        {takeActionScreen.videoLink
+                                            ? "Start by watching the video below and reflect on these questions:"
+                                            : "Consider these questions as you reflect on your results:"}
                                     </Text>
                                     <View style={styles.reflectionQuestionsContainer}>
                                         {result.reflectionQuestions.map((question, index) => (
@@ -540,8 +613,17 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
         fontWeight: '500',
     },
-    // The Effective Learner Screen Styles
-    effectiveTitle: {
+    resultChallenge: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 16,
+        color: '#647C90',
+        textAlign: 'center',
+        lineHeight: 24,
+        fontWeight: '500',
+        marginTop: 8,
+    },
+    // Expansive Dreamer Screen Styles
+    expansiveTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 18,
         color: '#4E4F50',
@@ -549,7 +631,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         fontWeight: '700',
     },
-    effectiveTitleBold: {
+    expansiveTitleBold: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
         color: '#928490',
@@ -690,18 +772,5 @@ const styles = StyleSheet.create({
         height: 3,
         backgroundColor: '#928490',
         borderRadius: 2,
-    },
-    baseCardSkills: {
-        borderRadius: 24,
-        backgroundColor: '#F5F5F5',
-        padding: 40,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
-        marginVertical: 20,
-        marginTop: 50,
     },
 });

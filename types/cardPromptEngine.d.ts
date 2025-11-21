@@ -16,7 +16,7 @@ export interface CardPromptEngineProps {
     onBack?: () => void;
 
     // Config for card type
-    cardType: "flip" | "swipe"; // "flip" for LettingGoOfValidation, "swipe" for others
+    cardType: "flip" | "swipe" | "choice";
 
     // General Props
     primaryButtonText: string;
@@ -40,9 +40,13 @@ export interface CardPromptEngineProps {
     // Card Content Props
     cards: Array<{
         id: number;
-        oldBelief?: string; // For 'flip' type
-        newBelief?: string; // For 'flip' type
-        prompt?: string; // For 'swipe' type
+        oldBelief?: string;
+        newBelief?: string;
+        prompt?: string;
+        question?: string;
+        option1?: string;
+        option2?: string;
+        resultKey?: string;
         buttonText: string;
     }>;
 
