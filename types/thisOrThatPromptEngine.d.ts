@@ -26,9 +26,13 @@ export interface ThisOrThatEngineProps {
 
     // Content Configuration
     morningJournalPrompt: string;
+    introButtonText?: string; // Optional: defaults to "Start dreaming"
+    introScreenDescription?: string; // Optional: defaults to generic description
+    morningIntroText?: string; // Optional: defaults to "Expansive Dreamer" text
     reflectionTitle: string;
     reflectionDescription: string | string[]; // Can be single string or array of paragraphs
     finalReflectionPrompt: string | string[]; // Can be single string or array of paragraphs
+    finalJournalPrompt?: string; // Optional: defaults to generic prompt
 
     // Story Configuration
     getStoryText: (screenNumber: number, choices: { [key: string]: string }) => string;
