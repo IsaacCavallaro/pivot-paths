@@ -1,93 +1,99 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { ChevronRight, ArrowLeft, Heart } from 'lucide-react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking, TextInput, Alert } from 'react-native';
+import { ChevronRight, ArrowLeft, PlusCircle, Smile, Frown, Meh, Laugh, Angry, Heart } from 'lucide-react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
+import { useJournaling } from '@/utils/hooks/useJournaling';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
-import { useStorage } from '@/hooks/useStorage';
 
-interface IdentityPair {
+interface BeliefPair {
     id: number;
-    identityPhrase: string;
+    oldBelief: string;
     reframe: string;
 }
 
-interface BeyondYourIdentityProps {
+interface StarvingArtistProps {
     onComplete: () => void;
     onBack?: () => void;
 }
 
-const identityPairs: IdentityPair[] = [
+const beliefPairs: BeliefPair[] = [
     {
         id: 1,
-        identityPhrase: "I am a dancer.",
-        reframe: "Dancing is something I do, but it's not all of me."
+        oldBelief: "If I make money, I'm selling out.",
+        reframe: "Earning money gives me freedom to create on my own terms."
     },
     {
         id: 2,
-        identityPhrase: "I am a teacher.",
-        reframe: "Teaching is one way I share my gifts."
+        oldBelief: "Artists should suffer for their art.",
+        reframe: "My art is stronger when I'm supported and cared for."
     },
     {
         id: 3,
-        identityPhrase: "I am a failure.",
-        reframe: "I failed this time but I can learn and grow."
+        oldBelief: "Money and creativity don't mix.",
+        reframe: "Financial stability fuels creativity and risk-taking."
     },
     {
         id: 4,
-        identityPhrase: "I am successful when I'm performing.",
-        reframe: "Success is in how I live, not just what I achieve."
+        oldBelief: "I don't deserve more than survival.",
+        reframe: "I deserve to thrive, not just survive."
     },
     {
         id: 5,
-        identityPhrase: "I am what others see me as.",
-        reframe: "Who I am goes deeper than what's visible to others."
+        oldBelief: "It's selfish to want more.",
+        reframe: "Earning more allows me to give more."
     },
     {
         id: 6,
-        identityPhrase: "I am my achievements.",
-        reframe: "Achievements are important, but they're not the whole story."
+        oldBelief: "I'm not qualified for a high-paying job.",
+        reframe: "I might be surprised how many high-paying jobs fit my skills."
     },
     {
         id: 7,
-        identityPhrase: "I am my body.",
-        reframe: "My health is essential but I'm more than what I look like."
+        oldBelief: "Wanting to make more money means I've failed as an artist.",
+        reframe: "Increasing my income makes me resilient and resourceful."
     },
     {
         id: 8,
-        identityPhrase: "I am my mistakes.",
-        reframe: "Mistakes are lessons, not definitions."
+        oldBelief: "Real art doesn't pay well.",
+        reframe: "Art and abundance can absolutely go hand in hand."
     },
     {
         id: 9,
-        identityPhrase: "I am my resume.",
-        reframe: "Past roles shaped me, but they don't limit who I can become."
+        oldBelief: "I'm not good with money, so why bother?",
+        reframe: "I can learn money skills the same way I learned dance skills."
     },
     {
         id: 10,
-        identityPhrase: "I am productive.",
-        reframe: "My worth is constant, even in stillness and rest."
+        oldBelief: "I'll never be financially stable because I chose to pursue dance.",
+        reframe: "My dance background taught me so many skills I can use in other fields."
     }
 ];
 
-export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIdentityProps) {
+export default function StarvingArtist({ onComplete, onBack }: StarvingArtistProps) {
     const [currentScreen, setCurrentScreen] = useState(-1);
-    const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; pairId: number; type: 'identity' | 'reframe' }>>([]);
+    const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; pairId: number; type: 'oldBelief' | 'reframe' }>>([]);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const [currentPairIndex, setCurrentPairIndex] = useState(0);
     const [showMismatch, setShowMismatch] = useState(false);
-
-    const [identityMatchedPairs, setIdentityMatchedPairs] = useStorage<number[]>('BEYOND_IDENTITY_MATCHED_PAIRS', []);
+    const [journalEntry, setJournalEntry] = useState('');
+    const [morningJournalEntry, setMorningJournalEntry] = useState('');
+    const [endOfDayJournalEntry, setEndOfDayJournalEntry] = useState('');
+    const [selectedMorningMood, setSelectedMorningMood] = useState<string | null>(null);
+    const [selectedEndOfDayMood, setSelectedEndOfDayMood] = useState<string | null>(null);
+    const [selectedReflectionMood, setSelectedReflectionMood] = useState<string | null>(null);
+    const [animatedValues] = useState(() => new Map());
+    const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const { addJournalEntry: addMorningJournalEntry } = useJournaling('money-mindsets');
+    const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('money-mindsets');
 
-    // Ensure identityMatchedPairs is always an array
-    const matchedPairs = Array.isArray(identityMatchedPairs) ? identityMatchedPairs : [];
-
+    // Scroll to top whenever screen changes
     useEffect(() => {
         scrollToTop();
     }, [currentScreen]);
@@ -106,7 +112,7 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
         } else if (currentScreen === 1) {
             setCurrentScreen(0);
         } else if (currentScreen === 2) {
-            await setIdentityMatchedPairs([]);
+            setMatchedPairs([]); // Reset matched pairs in storage
             setSelectedItems([]);
             setCurrentPairIndex(0);
             setShowMismatch(false);
@@ -127,16 +133,16 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
 
     const setupGame = () => {
         // Start with first 3 pairs, scrambled
-        const firstThreePairs = identityPairs.slice(0, 3);
-        const identities: Array<{ id: string; text: string; pairId: number; type: 'identity' | 'reframe' }> = [];
-        const reframes: Array<{ id: string; text: string; pairId: number; type: 'identity' | 'reframe' }> = [];
+        const firstThreePairs = beliefPairs.slice(0, 3);
+        const oldBeliefs: Array<{ id: string; text: string; pairId: number; type: 'oldBelief' | 'reframe' }> = [];
+        const reframes: Array<{ id: string; text: string; pairId: number; type: 'oldBelief' | 'reframe' }> = [];
 
         firstThreePairs.forEach(pair => {
-            identities.push({
-                id: `identity_${pair.id}`,
-                text: pair.identityPhrase,
+            oldBeliefs.push({
+                id: `oldBelief_${pair.id}`,
+                text: pair.oldBelief,
                 pairId: pair.id,
-                type: 'identity'
+                type: 'oldBelief'
             });
             reframes.push({
                 id: `reframe_${pair.id}`,
@@ -146,12 +152,12 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
             });
         });
 
-        // Scramble identities and reframes separately to avoid same-row alignment
-        const scrambledIdentities = [...identities].sort(() => Math.random() - 0.5);
+        // Scramble old beliefs and reframes separately to avoid same-row alignment
+        const scrambledOldBeliefs = [...oldBeliefs].sort(() => Math.random() - 0.5);
         const scrambledReframes = [...reframes].sort(() => Math.random() - 0.5);
 
         // Combine into single array for game logic
-        const allItems = [...scrambledIdentities, ...scrambledReframes];
+        const allItems = [...scrambledOldBeliefs, ...scrambledReframes];
         setGameItems(allItems);
         setCurrentPairIndex(3); // Next pair to add
     };
@@ -174,26 +180,26 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
         if (item1 && item2 && item1.pairId === item2.pairId) {
             // Match found!
             const newMatchedPairs = [...matchedPairs, item1.pairId];
-            await setIdentityMatchedPairs(newMatchedPairs);
+            setMatchedPairs(newMatchedPairs);
 
             // Remove matched items and add new pair if available
             setTimeout(() => {
                 const remainingItems = gameItems.filter(item => !selected.includes(item.id));
 
                 // Add next pair if available
-                if (currentPairIndex < identityPairs.length) {
-                    const nextPair = identityPairs[currentPairIndex];
+                if (currentPairIndex < beliefPairs.length) {
+                    const nextPair = beliefPairs[currentPairIndex];
 
                     // Separate existing items by type
-                    const existingIdentities = remainingItems.filter(item => item.type === 'identity');
+                    const existingOldBeliefs = remainingItems.filter(item => item.type === 'oldBelief');
                     const existingReframes = remainingItems.filter(item => item.type === 'reframe');
 
-                    // Add new identity and reframe
-                    const newIdentity = {
-                        id: `identity_${nextPair.id}`,
-                        text: nextPair.identityPhrase,
+                    // Add new old belief and reframe
+                    const newOldBelief = {
+                        id: `oldBelief_${nextPair.id}`,
+                        text: nextPair.oldBelief,
                         pairId: nextPair.id,
-                        type: 'identity' as const
+                        type: 'oldBelief' as const
                     };
                     const newReframe = {
                         id: `reframe_${nextPair.id}`,
@@ -203,18 +209,18 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                     };
 
                     // Randomly insert new items to avoid predictable positioning
-                    const allIdentities = [...existingIdentities];
+                    const allOldBeliefs = [...existingOldBeliefs];
                     const allReframes = [...existingReframes];
 
-                    // Insert new identity at random position
-                    const identityInsertIndex = Math.floor(Math.random() * (allIdentities.length + 1));
-                    allIdentities.splice(identityInsertIndex, 0, newIdentity);
+                    // Insert new old belief at random position
+                    const oldBeliefInsertIndex = Math.floor(Math.random() * (allOldBeliefs.length + 1));
+                    allOldBeliefs.splice(oldBeliefInsertIndex, 0, newOldBelief);
 
                     // Insert new reframe at random position
                     const reframeInsertIndex = Math.floor(Math.random() * (allReframes.length + 1));
                     allReframes.splice(reframeInsertIndex, 0, newReframe);
 
-                    const newItems = [...allIdentities, ...allReframes];
+                    const newItems = [...allOldBeliefs, ...allReframes];
 
                     setGameItems(newItems);
                     setCurrentPairIndex(currentPairIndex + 1);
@@ -225,7 +231,7 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                 setSelectedItems([]);
 
                 // Check if game is complete
-                if (newMatchedPairs.length === identityPairs.length) {
+                if (newMatchedPairs.length === beliefPairs.length) {
                     setTimeout(() => {
                         setCurrentScreen(2);
                     }, 500);
@@ -256,7 +262,23 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
         }
     };
 
-    // Welcome Screen with Journal Section
+    const openYouTubeShort = async () => {
+        const youtubeUrl = `https://www.youtube.com/shorts/8DwWYZHsUHw`;
+
+        try {
+            const supported = await Linking.canOpenURL(youtubeUrl);
+
+            if (supported) {
+                await Linking.openURL(youtubeUrl);
+            } else {
+                console.log("YouTube app not available");
+            }
+        } catch (error) {
+            console.log("Error opening YouTube:", error);
+        }
+    };
+
+    // Welcome Screen with Morning Journal Section
     if (currentScreen === -1) {
         return (
             <View style={commonStyles.container}>
@@ -279,34 +301,32 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                                 />
                             </View>
 
-                            <Text style={commonStyles.introTitle}>Welcome to Beyond Your Identity!</Text>
-
+                            <Text style={commonStyles.introTitle}>Welcome Back!</Text>
                             <Text style={commonStyles.introDescription}>
-                                You are more than what you do and more than what you've done. Our identities can sometimes limit how we see ourselves and our potential.
+                                Today, we're diving into the money mindsets that shape our thinking as artists and dancers.
                             </Text>
-
                             <Text style={commonStyles.introDescription}>
-                                Today, we're exploring how to separate who you are from what you do, creating space for more authentic self-expression.
+                                Many of us carry beliefs about money that may actually be holding us back from building sustainable, fulfilling careers.
                             </Text>
 
                             <View style={styles.learningBox}>
-                                <Text style={styles.learningBoxTitle}>What You'll Explore:</Text>
-                                <Text style={styles.learningBoxItem}>• Common identity-based phrases we tell ourselves</Text>
-                                <Text style={styles.learningBoxItem}>• Reframes that expand your sense of self</Text>
-                                <Text style={styles.learningBoxItem}>• How to release limiting identity attachments</Text>
+                                <Text style={styles.learningBoxTitle}>What You'll Learn:</Text>
+                                <Text style={styles.learningBoxItem}>• Common money beliefs that artists carry</Text>
+                                <Text style={styles.learningBoxItem}>• How to reframe these limiting beliefs</Text>
+                                <Text style={styles.learningBoxItem}>• Whether you still hold onto any starving artist stereotypes</Text>
                             </View>
 
                             <Text style={styles.welcomeFooter}>
-                                You'll be playing a match game to help you recognize and reframe identity-limiting beliefs.
+                                You'll be playing a match game to help you identify and challenge the money mindsets you might be holding onto.
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="mindset-shifts"
+                                pathTag="money-mindsets"
                                 day="1"
-                                category="Mindset and Wellness"
-                                pathTitle="Mindset Shifts"
-                                dayTitle="Beyond Your Identity"
-                                journalInstruction="Before we begin, let's take a moment to check in with your current relationship with identity. What roles or labels do you strongly identify with? How do they make you feel?"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Starving Artist No More"
+                                journalInstruction="Before we begin, let's take a moment to check in with yourself. What are your current thoughts about money and being an artist? Is there anything you're hoping to gain today?"
                                 moodLabel=""
                                 saveButtonText="Save Entry"
                             />
@@ -342,10 +362,10 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                                 />
                             </View>
 
-                            <Text style={commonStyles.introTitle}>Beyond Your Identity</Text>
+                            <Text style={commonStyles.introTitle}>Starving Artist No More</Text>
 
                             <Text style={commonStyles.introDescription}>
-                                Match each identity-rooted phrase with a reminder that you can just be you… no identity needed.
+                                You don't have to buy into the starving artist stereotype anymore. In this game, you'll match the old belief with a reframe that frees you.
                             </Text>
 
                             <PrimaryButton title="Start the Game" onPress={() => setCurrentScreen(1)} />
@@ -382,11 +402,11 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                             <Text style={commonStyles.reflectionTitle}>Time for Reflection</Text>
 
                             <Text style={commonStyles.reflectionDescription}>
-                                How did this make you feel? Was it uncomfortable to peel back your identity?
+                                Which money belief are you not convinced is actually limiting?{"\n"}
                             </Text>
 
                             <Text style={commonStyles.reflectionDescription}>
-                                Are there some unnecessary layers that you've been holding on to?
+                                Take a moment to reflect on the money mindsets you encountered.
                             </Text>
 
                             <Text style={commonStyles.reflectionDescription}>
@@ -394,8 +414,12 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="mindset-shifts"
-                                journalInstruction="Consider what life could look like when you free yourself from an identity and just start to be you. Which identity reframes resonated most with you?"
+                                pathTag="money-mindsets"
+                                day="1"
+                                category="finance"
+                                pathTitle="Money Mindsets"
+                                dayTitle="Starving Artist No More"
+                                journalInstruction="Which money belief are you still holding onto? Why does it feel true to you?"
                                 moodLabel=""
                                 saveButtonText="Add to Journal"
                             />
@@ -408,7 +432,7 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
         );
     }
 
-    // Congratulations Screen with Completion
+    // Congratulations Screen with End of Day Journal Section
     if (currentScreen === 3) {
         return (
             <View style={commonStyles.container}>
@@ -431,18 +455,39 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                                 />
                             </View>
 
-                            <Text style={commonStyles.reflectionTitle}>You're Expanding Beyond Identity!</Text>
+                            <Text style={commonStyles.reflectionTitle}>Great Work!</Text>
 
                             <Text style={commonStyles.reflectionDescription}>
-                                Remember that you are more than any single role, achievement, or label. Your worth is inherent and doesn't depend on what you do or what others think of you.
+                                You've spent years in an industry that romanticizes struggle, where working for little or nothing is framed as paying your dues. But you don't have to keep carrying that story.
                             </Text>
 
                             <Text style={commonStyles.reflectionDescription}>
-                                Consider what life could look like when you free yourself from an identity and just start to be you.
+                                The truth is, being a dancer has already made you resourceful, disciplined, and creative. Those are the exact qualities that can help you build stability and freedom in this next chapter.
                             </Text>
+
+                            <Text style={commonStyles.reflectionDescription}>
+                                Take a detour and check out the money mindsets our founder had to unlearn. But don't forget to come back and mark this day as complete!
+                            </Text>
+
+                            <TouchableOpacity
+                                style={styles.videoThumbnailContainer}
+                                onPress={openYouTubeShort}
+                                activeOpacity={0.8}
+                            >
+                                <Image
+                                    source={{ uri: 'https://img.youtube.com/vi/8DwWYZHsUHw/maxresdefault.jpg' }}
+                                    style={styles.videoThumbnail}
+                                    resizeMode="cover"
+                                />
+                                <View style={styles.playButtonOverlay}>
+                                    <View style={styles.playButton}>
+                                        <Text style={styles.playIcon}>▶</Text>
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
 
                             <Text style={styles.reflectionClosing}>
-                                We'll see you here tomorrow for more.
+                                See you tomorrow.
                             </Text>
 
                             <PrimaryButton title="Mark As Complete" onPress={handleComplete} />
@@ -458,8 +503,8 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
         <View style={commonStyles.container}>
             <StickyHeader
                 onBack={goBack}
-                title={`${matchedPairs.length}/${identityPairs.length} pairs matched`}
-                progress={matchedPairs.length / identityPairs.length}
+                title={`${matchedPairs.length}/${beliefPairs.length} pairs matched`}
+                progress={matchedPairs.length / beliefPairs.length}
             />
 
             <ScrollView
@@ -471,16 +516,16 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
                 onLayout={() => scrollToTop()}
             >
                 <View style={commonStyles.centeredContent}>
-                    <Card style={commonStyles.baseCard}>
-                        <Text style={styles.gameTitle}>Beyond Your Identity</Text>
+                    <Card style={styles.baseCard}>
+                        <Text style={styles.gameTitle}>Starving Artist No More</Text>
                         <Text style={styles.gameInstructions}>
-                            Tap to match identity phrases with their reframes
+                            Tap to match old beliefs with their reframes
                         </Text>
 
                         <View style={styles.columnsContainer}>
                             <View style={styles.column}>
-                                <Text style={styles.columnTitle}>Identity</Text>
-                                {gameItems.filter(item => item.type === 'identity').map((item) => (
+                                <Text style={styles.columnTitle}>Old Belief</Text>
+                                {gameItems.filter(item => item.type === 'oldBelief').map((item) => (
                                     <TouchableOpacity
                                         key={item.id}
                                         style={getItemStyle(item.id)}
@@ -530,6 +575,19 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
 }
 
 const styles = StyleSheet.create({
+    baseCard: {
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 50,
+    },
     // Welcome Screen Styles
     learningBox: {
         width: '100%',
@@ -540,12 +598,20 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(146, 132, 144, 0.2)',
     },
+    resultTitle: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 18,
+        color: '#647C90',
+        fontWeight: '600',
+        textAlign: 'center',
+    },
     learningBoxTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
         marginBottom: 12,
         fontWeight: '600',
+
     },
     learningBoxItem: {
         fontFamily: 'Montserrat-Regular',
@@ -561,18 +627,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 30,
         lineHeight: 22,
-    },
-    // Icon Styles
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
     },
     // Game Styles
     gameTitle: {
@@ -614,7 +668,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 2,
         borderColor: 'transparent',
-        height: 100, // Changed from 80 to 100 to match MythBusterGame
+        height: 120,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -659,5 +713,52 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 10,
         fontWeight: '600',
+    },
+    // YouTube Thumbnail Styles
+    videoThumbnailContainer: {
+        width: '100%',
+        marginBottom: 25,
+        borderRadius: 16,
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 5,
+        position: 'relative',
+    },
+    videoThumbnail: {
+        width: '100%',
+        height: 200,
+        borderRadius: 16,
+    },
+    playButtonOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    },
+    playButton: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#FF0000',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    playIcon: {
+        color: '#FFFFFF',
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginLeft: 4,
     },
 });
