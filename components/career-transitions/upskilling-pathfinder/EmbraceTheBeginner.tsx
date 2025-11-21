@@ -72,6 +72,7 @@ export default function EmbraceTheBeginner({ onComplete, onBack }: EmbraceTheBeg
                 cardFeatures: ebookCardFeatures,
                 cardButtonText: "Get the Ebook",
             }}
+            youtubeVideoId="16JMiSPzlBE"
         />
     );
 }

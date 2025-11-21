@@ -71,6 +71,7 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
                 cardFeatures: ebookCardFeatures,
                 cardButtonText: "Get the Guide",
             }}
+            youtubeVideoId="16JMiSPzlBE"
         />
     );
 }

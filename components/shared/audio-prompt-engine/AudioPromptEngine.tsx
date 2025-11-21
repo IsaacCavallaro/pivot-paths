@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking, Image } from 'react-native';
-import { Play, Pause, ExternalLink, LucideIcon } from 'lucide-react-native';
+import { ExternalLink, LucideIcon } from 'lucide-react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
@@ -25,23 +26,11 @@ export default function AudioPromptEngine({
     journalReflectionDescription,
     journalReflectionSectionProps,
     ebookProps,
-}: AudioPromptEngineProps) {
-    const [isPlaying, setIsPlaying] = useState(false);
+    youtubeVideoId, // NEW: Add youtubeVideoId prop
+}: AudioPromptEngineProps & { youtubeVideoId?: string }) { // NEW: Add youtubeVideoId to props
     const [currentScreen, setCurrentScreen] = useState(0);
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
-
-    const handlePlayPause = () => {
-        setIsPlaying(!isPlaying);
-
-        if (!isPlaying) {
-            setTimeout(() => {
-                setIsPlaying(false);
-                setCurrentScreen(2); // Now goes to journal prompt screen
-                scrollToTop();
-            }, 3000);
-        }
-    };
 
     const handleEbookLink = () => {
         Linking.openURL(ebookProps.link);
@@ -67,8 +56,13 @@ export default function AudioPromptEngine({
         scrollToTop();
     };
 
+    const handleContinueToJournal = () => {
+        setCurrentScreen(2);
+        scrollToTop();
+    };
+
     const handleContinueToFinal = () => {
-        setCurrentScreen(3); // Go to final CTA screen
+        setCurrentScreen(3);
         scrollToTop();
     };
 
@@ -141,40 +135,32 @@ export default function AudioPromptEngine({
                 >
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
-                            <View style={styles.voiceIcon}>
-                                <TouchableOpacity
-                                    style={styles.playButton}
-                                    onPress={handlePlayPause}
-                                    activeOpacity={0.8}
-                                >
-                                    <View
-                                        style={[styles.playButtonGradient, { backgroundColor: '#928490' }]}
-                                    >
-                                        {isPlaying ? (
-                                            <Pause size={40} color="#E2DED0" />
-                                        ) : (
-                                            <Play size={40} color="#E2DED0" />
-                                        )}
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-
                             <Text style={styles.voiceTitle}>{voiceMessageTitle}</Text>
 
                             <Text style={styles.voiceDescription}>
-                                {!isPlaying && voiceMessageDescription}
+                                {voiceMessageDescription}
                             </Text>
 
-                            {isPlaying && (
-                                <View style={styles.playingIndicator}>
-                                    <View style={styles.waveform}>
-                                        {[...Array(5)].map((_, i) => (
-                                            <View key={i} style={[styles.wave, { animationDelay: `${i * 0.1}s` }]} />
-                                        ))}
+                            {/* YouTube Video Section */}
+                            {youtubeVideoId && (
+                                <View style={styles.videoSection}>
+                                    <View style={styles.videoContainer}>
+                                        <View style={styles.youtubePlayer}>
+                                            <YoutubePlayer
+                                                height={140}
+                                                play={false}
+                                                videoId={youtubeVideoId}
+                                                webViewStyle={styles.youtubeWebView}
+                                            />
+                                        </View>
                                     </View>
-                                    <Text style={styles.playingText}>Playing...</Text>
                                 </View>
                             )}
+
+                            <PrimaryButton
+                                title="Continue to Reflection"
+                                onPress={handleContinueToJournal}
+                            />
                         </Card>
                     </View>
                 </ScrollView>
@@ -335,20 +321,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     // Voice Message Styles
-    voiceIcon: {
-        marginBottom: 30,
-    },
-    playButton: {
-        borderRadius: 60,
-        overflow: 'hidden',
-    },
-    playButtonGradient: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
     voiceTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -362,27 +334,27 @@ const styles = StyleSheet.create({
         color: '#746C70',
         textAlign: 'center',
         lineHeight: 24,
+        marginBottom: 30,
     },
-    playingIndicator: {
-        alignItems: 'center',
-        marginTop: 30,
+    // NEW: Video Section Styles
+    videoSection: {
+        marginBottom: 30,
     },
-    waveform: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 10,
+    videoContainer: {
+        width: '100%',
     },
-    wave: {
-        width: 4,
-        height: 20,
-        backgroundColor: '#647C90',
-        marginHorizontal: 2,
-        borderRadius: 2,
+    youtubePlayer: {
+        borderRadius: 16,
+        overflow: 'hidden',
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 5,
     },
-    playingText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#647C90',
+    youtubeWebView: {
+        borderRadius: 16,
     },
     // Journal Prompt Styles
     journalTitle: {

@@ -49,7 +49,7 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
       }}
       preparationSection={preparationSection}
       voiceMessageTitle="Visualize Your Dream"
-      voiceMessageDescription="Tap to listen to a guided visualization"
+      voiceMessageDescription="Listen to the guided visualization below"
       journalReflectionTitle="Reflect on Your Experience"
       journalReflectionDescription="Take a moment to capture your thoughts and feelings after the visualization exercise. What insights emerged? What felt most meaningful to you?"
       journalReflectionSectionProps={{
@@ -72,6 +72,7 @@ export default function VoiceMessage({ onComplete, onBack }: VoiceMessageProps) 
         cardFeatures: mentorshipCardFeatures,
         cardButtonText: "Learn More",
       }}
+      youtubeVideoId="a_U9pZr03zI"
     />
   );
 }
