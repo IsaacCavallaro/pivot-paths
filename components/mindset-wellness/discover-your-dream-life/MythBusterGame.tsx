@@ -99,7 +99,6 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
   const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
   const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
 
-  const [day1SkillsQuizResult] = useStorage<DreamerResult | null>('DAY1_SKILLS_QUIZ_RESULT', null);
   const [mythBusterMatchedPairs, setMythBusterMatchedPairs] = useState<number[]>([]);
 
   useEffect(() => {
@@ -301,35 +300,13 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                 />
               </View>
 
-              {day1SkillsQuizResult ? (
-                <>
-                  <Text style={commonStyles.introTitle}>Welcome Back!</Text>
-                  <Text style={commonStyles.introDescription}>
-                    Yesterday, you discovered your "Dreamer Type":
-                  </Text>
-                  <View style={[styles.learningBox, { borderColor: day1SkillsQuizResult.color + '20' }]}>
-                    <Text style={[styles.resultTitle, { color: day1SkillsQuizResult.color }]}>
-                      {day1SkillsQuizResult.title}
-                    </Text>
-                  </View>
-                  <Text style={commonStyles.introDescription}>
-                    Today, we're diving into the myths that shape our thinking in the dance industry.
-                  </Text>
-                  <Text style={commonStyles.introDescription}>
-                    Many dancers carry beliefs that may actually be holding them back from building sustainable, fulfilling careers.
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Text style={commonStyles.introTitle}>Welcome Back!</Text>
-                  <Text style={commonStyles.introDescription}>
-                    Today we're diving into the myths that shape our thinking in the dance industry.
-                  </Text>
-                  <Text style={commonStyles.introDescription}>
-                    Many dancers carry beliefs that may actually be holding them back from building sustainable, fulfilling careers.
-                  </Text>
-                </>
-              )}
+              <Text style={commonStyles.introTitle}>Welcome Back!</Text>
+              <Text style={commonStyles.introDescription}>
+                Today, we're diving into the myths that shape our thinking in the dance industry.
+              </Text>
+              <Text style={commonStyles.introDescription}>
+                Many dancers carry beliefs that may actually be holding them back from building sustainable, fulfilling careers.
+              </Text>
 
               <View style={styles.learningBox}>
                 <Text style={styles.learningBoxTitle}>What You'll Learn:</Text>
