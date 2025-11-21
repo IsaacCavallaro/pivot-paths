@@ -327,6 +327,13 @@ export default function CardPromptEngine({
                                 </Text>
                             ))}
 
+                            {/* Render subtext if provided */}
+                            {introScreen.subtext && (
+                                <Text style={styles.subtext}>
+                                    {introScreen.subtext}
+                                </Text>
+                            )}
+
                             <JournalEntrySection {...introScreen.journalSectionProps} />
 
                             <PrimaryButton title={introScreen.buttonText} onPress={secondaryIntroScreen ? handleContinueToSecondaryIntro : handleStartCards} />
@@ -479,9 +486,11 @@ export default function CardPromptEngine({
                             </View>
 
                             <View style={commonStyles.reflectionIntro}>
-                                <Text style={commonStyles.reflectionDescription}>
-                                    {reflectionScreen.description}
-                                </Text>
+                                {reflectionScreen.description && (
+                                    <Text style={commonStyles.reflectionDescription}>
+                                        {reflectionScreen.description}
+                                    </Text>
+                                )}
                             </View>
 
                             {reflectionScreen.customContent}
@@ -566,7 +575,7 @@ export default function CardPromptEngine({
         );
     }
 
-    // Card Screens (Flip, Swipe, Method, or Challenge)
+    // Card Screens (Flip, Swipe, Method, Challenge, or Benefit)
     const currentCard = cards[currentIndex];
 
     const progressWidth = progressAnim.interpolate({
@@ -574,8 +583,8 @@ export default function CardPromptEngine({
         outputRange: ['0%', '100%'],
     });
 
-    const titleText = cardType === 'method' || cardType === 'challenge'
-        ? `${cardType === 'method' ? 'Method' : ''} ${currentIndex + 1} of ${cards.length}`.trim()
+    const titleText = cardType === 'method' || cardType === 'challenge' || cardType === 'benefit'
+        ? `${cardType === 'method' ? 'Method' : cardType === 'benefit' ? 'Benefit' : ''} ${currentIndex + 1} of ${cards.length}`.trim()
         : `${currentIndex + 1} of ${cards.length} ${cardType === 'swipe' ? 'activities' : 'validations'}`;
 
     return (
@@ -756,6 +765,48 @@ export default function CardPromptEngine({
                                 />
                             </Card>
                         </Animated.View>
+                    ) : cardType === "benefit" ? (
+                        <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: cardScale }] }}>
+                            <Card style={commonStyles.baseCard}>
+                                <Text style={styles.benefitTitle}>{currentCard.title}</Text>
+                                <Text style={styles.benefitDescription}>{currentCard.description}</Text>
+
+                                <View style={styles.benefitSections}>
+                                    {currentCard.whatItIs && (
+                                        <View style={styles.benefitSection}>
+                                            <Text style={styles.benefitSectionTitle}>What it is:</Text>
+                                            <Text style={styles.benefitSectionContent}>{currentCard.whatItIs}</Text>
+                                        </View>
+                                    )}
+
+                                    {currentCard.whyValuable && (
+                                        <View style={styles.benefitSection}>
+                                            <Text style={styles.benefitSectionTitle}>Why it's valuable:</Text>
+                                            <Text style={styles.benefitSectionContent}>{currentCard.whyValuable}</Text>
+                                        </View>
+                                    )}
+
+                                    {currentCard.howToAsk && (
+                                        <View style={styles.benefitSection}>
+                                            <Text style={styles.benefitSectionTitle}>How to ask for it:</Text>
+                                            <Text style={styles.benefitSectionContent}>{currentCard.howToAsk}</Text>
+                                        </View>
+                                    )}
+
+                                    {currentCard.bestFor && (
+                                        <View style={styles.benefitSection}>
+                                            <Text style={styles.benefitSectionTitle}>Best for:</Text>
+                                            <Text style={styles.benefitSectionContent}>{currentCard.bestFor}</Text>
+                                        </View>
+                                    )}
+                                </View>
+
+                                <PrimaryButton
+                                    title={currentCard.buttonText}
+                                    onPress={handleContinue}
+                                />
+                            </Card>
+                        </Animated.View>
                     ) : (
                         <Animated.View style={[styles.choiceCard, { opacity: fadeAnim, transform: [{ scale: cardScale }] }]}>
                             <View style={styles.swipeCard}>
@@ -786,6 +837,15 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 24,
         marginBottom: 30,
+    },
+    subtext: {
+        fontFamily: 'Montserrat-Italic',
+        fontSize: 15,
+        color: '#647C90',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 25,
+        paddingHorizontal: 10,
     },
     reflectionTitle: {
         fontFamily: 'Merriweather-Bold',
@@ -1037,6 +1097,41 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat-Italic',
         fontSize: 15,
         color: '#4E4F50',
+        lineHeight: 22,
+    },
+    // Benefit Card Styles
+    benefitTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 16,
+    },
+    benefitDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 18,
+        color: '#746C70',
+        textAlign: 'center',
+        marginBottom: 30,
+        lineHeight: 24,
+    },
+    benefitSections: {
+        width: '100%',
+        marginBottom: 30,
+    },
+    benefitSection: {
+        marginBottom: 25,
+    },
+    benefitSectionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#4E4F50',
+        marginBottom: 8,
+    },
+    benefitSectionContent: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#746C70',
         lineHeight: 22,
     },
     // Selection Screen Styles

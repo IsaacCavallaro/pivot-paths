@@ -17,7 +17,7 @@ export interface CardPromptEngineProps {
     onBack?: () => void;
 
     // Config for card type
-    cardType: "flip" | "swipe" | "choice" | "method" | "challenge";
+    cardType: "flip" | "swipe" | "choice" | "method" | "challenge" | "benefit";
 
     // General Props
     primaryButtonText: string;
@@ -28,6 +28,7 @@ export interface CardPromptEngineProps {
     introScreen: {
         title: string;
         descriptions: string[];
+        subtext?: string; // Optional additional text with different styling (used by TheTotalPackage)
         journalSectionProps: JournalSectionProps;
         buttonText: string;
     };
@@ -64,6 +65,10 @@ export interface CardPromptEngineProps {
         // Challenge card props
         goal?: string;
         target?: string;
+        // Benefit card props
+        whatItIs?: string;
+        whyValuable?: string;
+        howToAsk?: string;
         // Shared method/challenge props
         bestFor?: string;
         steps?: string[];
@@ -90,9 +95,9 @@ export interface CardPromptEngineProps {
     // Reflection Screen Props (Text + Button or Journal + Button)
     reflectionScreen?: {
         title: string;
-        description: string;
+        description?: string; // Optional - some screens like game plan don't have description
         journalSectionProps?: JournalSectionProps; // Optional for reflection
-        customContent?: ReactNode; // For custom content like assignment sections
+        customContent?: ReactNode; // For custom content like assignment sections or game plan steps
         buttonText: string;
     };
 
