@@ -17,6 +17,7 @@ export default function CardPromptEngine({
     cardType,
     primaryButtonText,
     imageSource,
+    iconComponent,
     introScreen,
     secondaryIntroScreen,
     cards,
@@ -25,12 +26,13 @@ export default function CardPromptEngine({
 }: CardPromptEngineProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showNewBelief, setShowNewBelief] = useState(false);
-    const [screenHistory, setScreenHistory] = useState<Array<{ index: number, showNew?: boolean }>>([]);
+    const [showSecondPhase, setShowSecondPhase] = useState(false);
+    const [screenHistory, setScreenHistory] = useState<Array<{ index: number, showNew?: boolean, showPhase2?: boolean }>>([]);
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
 
     // Animation values
-    const flipAnim = useRef(new Animated.Value(0)).current; // For 'flip' cards
+    const flipAnim = useRef(new Animated.Value(0)).current;
     const cardScale = useRef(new Animated.Value(1)).current;
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const progressAnim = useRef(new Animated.Value(0)).current;
@@ -42,18 +44,17 @@ export default function CardPromptEngine({
     }, [onBack]);
 
     const handleStartCards = () => {
-        setScreenHistory([{ index: 0, showNew: false }]);
+        setScreenHistory([{ index: 0, showNew: false, showPhase2: false }]);
         setCurrentIndex(0);
         scrollToTop();
     };
 
     const handleContinueToSecondaryIntro = () => {
-        setScreenHistory([{ index: -3, showNew: false }]); // -3 represents secondary intro screen
+        setScreenHistory([{ index: -3, showNew: false, showPhase2: false }]);
         scrollToTop();
     };
 
     const flipCard = useCallback(() => {
-        // Reset animations first
         flipAnim.setValue(0);
         cardScale.setValue(1);
         fadeAnim.setValue(1);
@@ -90,15 +91,24 @@ export default function CardPromptEngine({
             ])
         ]).start(() => {
             setShowNewBelief(true);
-            setScreenHistory(prev => [...prev, { index: currentIndex, showNew: true }]);
+            setScreenHistory(prev => [...prev, { index: currentIndex, showNew: true, showPhase2: false }]);
         });
     }, [currentIndex, flipAnim, cardScale, fadeAnim]);
 
     const handleContinue = useCallback(() => {
         const isLastCard = currentIndex === cards.length - 1;
 
+        // Handle flip card type
         if (cardType === "flip" && !showNewBelief) {
             flipCard();
+            return;
+        }
+
+        // Handle method card type (two-phase display)
+        if (cardType === "method" && !showSecondPhase) {
+            setShowSecondPhase(true);
+            setScreenHistory(prev => [...prev, { index: currentIndex, showNew: false, showPhase2: true }]);
+            scrollToTop();
             return;
         }
 
@@ -109,7 +119,7 @@ export default function CardPromptEngine({
                 duration: 400,
                 useNativeDriver: true,
             }).start(() => {
-                setScreenHistory(prev => [...prev, { index: -2, showNew: false }]); // -2 represents reflection screen
+                setScreenHistory(prev => [...prev, { index: -2, showNew: false, showPhase2: false }]);
                 fadeAnim.setValue(1);
                 scrollToTop();
             });
@@ -130,6 +140,7 @@ export default function CardPromptEngine({
                 // Update state
                 setCurrentIndex(newIndex);
                 setShowNewBelief(false);
+                setShowSecondPhase(false);
 
                 // Animate in the next card with a slight delay
                 setTimeout(() => {
@@ -148,14 +159,13 @@ export default function CardPromptEngine({
                     ]).start();
                 }, 50);
 
-                setScreenHistory(prev => [...prev, { index: newIndex, showNew: false }]);
+                setScreenHistory(prev => [...prev, { index: newIndex, showNew: false, showPhase2: false }]);
                 scrollToTop();
             });
         }
-    }, [cardType, showNewBelief, currentIndex, cards.length, flipCard, fadeAnim, flipAnim, cardScale, progressAnim, scrollToTop]);
+    }, [cardType, showNewBelief, showSecondPhase, currentIndex, cards.length, flipCard, fadeAnim, flipAnim, cardScale, progressAnim, scrollToTop]);
 
     const handleComplete = () => {
-        // Add a subtle scale animation on complete
         Animated.sequence([
             Animated.timing(cardScale, {
                 toValue: 1.02,
@@ -177,6 +187,7 @@ export default function CardPromptEngine({
             setScreenHistory([]);
             setCurrentIndex(0);
             setShowNewBelief(false);
+            setShowSecondPhase(false);
             flipAnim.setValue(0);
             fadeAnim.setValue(1);
             cardScale.setValue(1);
@@ -190,11 +201,12 @@ export default function CardPromptEngine({
 
         const prevScreen = newHistory[newHistory.length - 1];
         if (prevScreen.index === -1 || prevScreen.index === -2 || prevScreen.index === -3) {
-            // Handle special screens
             setShowNewBelief(false);
+            setShowSecondPhase(false);
         } else {
             setCurrentIndex(prevScreen.index);
             setShowNewBelief(prevScreen.showNew || false);
+            setShowSecondPhase(prevScreen.showPhase2 || false);
             if (cardType === "flip") {
                 flipAnim.setValue(prevScreen.showNew ? 1 : 0);
             }
@@ -275,12 +287,12 @@ export default function CardPromptEngine({
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                {imageSource && (
+                                {iconComponent || (imageSource && (
                                     <Image
                                         source={{ uri: imageSource }}
                                         style={commonStyles.heroImage}
                                     />
-                                )}
+                                ))}
                             </View>
 
                             <Text style={commonStyles.introTitle}>{introScreen.title}</Text>
@@ -317,12 +329,12 @@ export default function CardPromptEngine({
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                {imageSource && (
+                                {iconComponent || (imageSource && (
                                     <Image
                                         source={{ uri: imageSource }}
                                         style={commonStyles.heroImage}
                                     />
-                                )}
+                                ))}
                             </View>
 
                             <Text style={styles.introTitle}>{secondaryIntroScreen.title}</Text>
@@ -366,6 +378,8 @@ export default function CardPromptEngine({
                                 </Text>
                             </View>
 
+                            {reflectionScreen.customContent}
+
                             {reflectionScreen.journalSectionProps && (
                                 <JournalEntrySection {...reflectionScreen.journalSectionProps} />
                             )}
@@ -373,7 +387,7 @@ export default function CardPromptEngine({
                             <PrimaryButton
                                 title={reflectionScreen.buttonText}
                                 onPress={() => {
-                                    setScreenHistory(prev => [...prev, { index: -1 }]); // -1 represents final screen
+                                    setScreenHistory(prev => [...prev, { index: -1 }]);
                                     scrollToTop();
                                 }}
                             />
@@ -401,12 +415,12 @@ export default function CardPromptEngine({
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
                             <View style={commonStyles.introIconContainer}>
-                                {imageSource && (
+                                {iconComponent || (imageSource && (
                                     <Image
                                         source={{ uri: imageSource }}
                                         style={commonStyles.heroImage}
                                     />
-                                )}
+                                ))}
                             </View>
 
                             <View style={commonStyles.finalHeader}>
@@ -442,7 +456,7 @@ export default function CardPromptEngine({
         );
     }
 
-    // Card Screens (Flip or Swipe)
+    // Card Screens (Flip, Swipe, or Method)
     const currentCard = cards[currentIndex];
 
     const progressWidth = progressAnim.interpolate({
@@ -450,11 +464,15 @@ export default function CardPromptEngine({
         outputRange: ['0%', '100%'],
     });
 
+    const titleText = cardType === 'method'
+        ? `${currentIndex + 1} of ${cards.length}`
+        : `${currentIndex + 1} of ${cards.length} ${cardType === 'swipe' ? 'activities' : 'validations'}`;
+
     return (
         <View style={commonStyles.container}>
             <StickyHeader
                 onBack={goBack}
-                title={`${currentIndex + 1} of ${cards.length} ${cardType === 'swipe' ? 'activities' : 'validations'}`}
+                title={titleText}
                 progress={progressWidth}
             />
 
@@ -522,7 +540,75 @@ export default function CardPromptEngine({
                                 />
                             </Animated.View>
                         </View>
+                    ) : cardType === "method" ? (
+                        <Animated.View
+                            style={[
+                                styles.methodContainer,
+                                {
+                                    opacity: fadeAnim,
+                                    transform: [{ scale: cardScale }]
+                                }
+                            ]}
+                        >
+                            <Card style={commonStyles.baseCard}>
+                                {!showSecondPhase ? (
+                                    // Phase 1: Method Overview
+                                    <>
+                                        <Text style={styles.methodTitle}>{currentCard.title}</Text>
+                                        <Text style={styles.methodDescription}>{currentCard.description}</Text>
+
+                                        {currentCard.breakdown && (
+                                            <View style={styles.section}>
+                                                <Text style={styles.sectionTitle}>The Breakdown:</Text>
+                                                <Text style={styles.sectionContent}>{currentCard.breakdown}</Text>
+                                            </View>
+                                        )}
+
+                                        {currentCard.bestFor && (
+                                            <View style={styles.section}>
+                                                <Text style={styles.sectionTitle}>Best for:</Text>
+                                                <Text style={styles.sectionContent}>{currentCard.bestFor}</Text>
+                                            </View>
+                                        )}
+
+                                        <PrimaryButton
+                                            title="How to start"
+                                            onPress={handleContinue}
+                                        />
+                                    </>
+                                ) : (
+                                    // Phase 2: How to Start
+                                    <>
+                                        <Text style={styles.howToTitle}>How to Start {currentCard.title}</Text>
+
+                                        {currentCard.steps && (
+                                            <View style={styles.section}>
+                                                <Text style={styles.sectionTitle}>Do this:</Text>
+                                                {currentCard.steps.map((step, index) => (
+                                                    <Text key={index} style={styles.stepText}>
+                                                        {index + 1}. {step}
+                                                    </Text>
+                                                ))}
+                                            </View>
+                                        )}
+
+                                        {currentCard.proTip && (
+                                            <View style={styles.section}>
+                                                <Text style={styles.sectionTitle}>Pro Tip:</Text>
+                                                <Text style={styles.proTipText}>{currentCard.proTip}</Text>
+                                            </View>
+                                        )}
+
+                                        <PrimaryButton
+                                            title={currentIndex < cards.length - 1 ? 'Next Method' : 'See All Methods'}
+                                            onPress={handleContinue}
+                                        />
+                                    </>
+                                )}
+                            </Card>
+                        </Animated.View>
                     ) : (
+                        // Swipe card
                         <Animated.View
                             style={[
                                 styles.choiceCard,
@@ -551,7 +637,6 @@ export default function CardPromptEngine({
 }
 
 const styles = StyleSheet.create({
-    // General Intro screen styles (reused from commonStyles, but defined here for specificity if needed)
     introTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -584,7 +669,7 @@ const styles = StyleSheet.create({
         marginTop: 0,
         fontWeight: '600',
     },
-    // Card styles for both flip and swipe
+    // Card styles
     choiceCard: {
         width: width * 0.85,
         borderRadius: 24,
@@ -597,10 +682,10 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 5,
     },
-    // Flip Card Specific Styles
+    // Flip Card Styles
     flipContainer: {
         width: width * 0.85,
-        height: 400, // Fixed height to prevent layout shift during flip
+        height: 400,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -665,7 +750,7 @@ const styles = StyleSheet.create({
         lineHeight: 26,
         fontStyle: 'italic',
     },
-    // Swipe Card Specific Styles
+    // Swipe Card Styles
     swipeCard: {
         backgroundColor: 'rgba(146,132,144,0.15)',
         borderRadius: 16,
@@ -683,5 +768,60 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 26,
+    },
+    // Method Card Styles
+    methodContainer: {
+        width: width * 0.85,
+    },
+    methodTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 16,
+    },
+    howToTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 30,
+    },
+    methodDescription: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#746C70',
+        textAlign: 'center',
+        marginBottom: 30,
+        lineHeight: 22,
+    },
+    section: {
+        marginBottom: 24,
+        alignSelf: 'stretch',
+    },
+    sectionTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 18,
+        color: '#4E4F50',
+        marginBottom: 12,
+    },
+    sectionContent: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#746C70',
+        lineHeight: 20,
+    },
+    stepText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 14,
+        color: '#746C70',
+        lineHeight: 20,
+        marginBottom: 8,
+    },
+    proTipText: {
+        fontFamily: 'Montserrat-Italic',
+        fontSize: 14,
+        color: '#647C90',
+        lineHeight: 20,
     },
 });

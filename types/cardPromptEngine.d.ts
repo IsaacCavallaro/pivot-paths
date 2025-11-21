@@ -1,4 +1,5 @@
 import { LucideIcon } from 'lucide-react-native';
+import { ReactNode } from 'react';
 
 export interface JournalSectionProps {
     pathTag: string;
@@ -16,11 +17,12 @@ export interface CardPromptEngineProps {
     onBack?: () => void;
 
     // Config for card type
-    cardType: "flip" | "swipe" | "choice";
+    cardType: "flip" | "swipe" | "choice" | "method";
 
     // General Props
     primaryButtonText: string;
     imageSource?: string;
+    iconComponent?: ReactNode; // For custom icons like Calculator
 
     // Intro Screen Props (Journal + Button)
     introScreen: {
@@ -40,13 +42,24 @@ export interface CardPromptEngineProps {
     // Card Content Props
     cards: Array<{
         id: number;
+        // Flip card props
         oldBelief?: string;
         newBelief?: string;
+        // Swipe card props
         prompt?: string;
+        // Choice card props
         question?: string;
         option1?: string;
         option2?: string;
         resultKey?: string;
+        // Method card props
+        title?: string;
+        description?: string;
+        breakdown?: string;
+        bestFor?: string;
+        steps?: string[];
+        proTip?: string;
+        // Common
         buttonText: string;
     }>;
 
@@ -55,6 +68,7 @@ export interface CardPromptEngineProps {
         title: string;
         description: string;
         journalSectionProps?: JournalSectionProps; // Optional for reflection
+        customContent?: ReactNode; // For custom content like assignment sections
         buttonText: string;
     };
 
