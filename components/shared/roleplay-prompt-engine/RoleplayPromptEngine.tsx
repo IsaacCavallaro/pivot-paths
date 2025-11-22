@@ -296,6 +296,7 @@ export default function RoleplayPromptEngine({
         }
         scrollToTop();
     };
+
     const handleNextResult = () => {
         if (currentResultIndex < getPersonalizedResults().length - 1) {
             setCurrentResultIndex(currentResultIndex + 1);

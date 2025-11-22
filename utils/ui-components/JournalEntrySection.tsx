@@ -5,16 +5,17 @@ import { MOOD_OPTIONS } from '../constants';
 import { useJournaling } from '../hooks/useJournaling';
 
 interface JournalEntrySectionProps {
-    pathTag: string;
-    day: string;
-    journalInstruction: string;
-    moodLabel: string;
-    saveButtonText: string;
-    category?: string; // Add category
-    pathTitle?: string; // Add path title
-    dayTitle?: string; // Add day title for better organization
-    placeholder?: string; // Add placeholder prop
+    pathTag?: string;
+    day?: string;
+    journalInstruction?: string;
+    moodLabel?: string;
+    saveButtonText?: string;
+    category?: string;
+    pathTitle?: string;
+    dayTitle?: string;
+    placeholder?: string;
 }
+
 export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
     pathTag,
     day,
@@ -32,7 +33,8 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
         selectedMood,
         setSelectedMood,
         addJournalEntry,
-    } = useJournaling(pathTag, day, category, pathTitle, dayTitle); // Pass new props
+    } = useJournaling(pathTag || 'default-path',
+        day || 'default-day', category, pathTitle, dayTitle); // Pass new props
 
     const handleSave = () => {
         addJournalEntry(journalEntry, selectedMood);
