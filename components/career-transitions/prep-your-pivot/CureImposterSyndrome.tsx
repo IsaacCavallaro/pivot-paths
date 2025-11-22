@@ -66,7 +66,7 @@ export default function CureImposterSyndrome({ onComplete, onBack }: CureImposte
                 title: "Ready for More Guidance?",
                 descriptions: ebookDescriptions,
                 callout: "Your dream career is within reach. Let's make it happen together.",
-                link: "https://pivotfordancers.com/how-to-pivot-ebook/",
+                link: "https://pivotfordancers.com/products/how-to-pivot/",
                 cardTitle: "How to Pivot Ebook",
                 cardIcon: Target,
                 cardFeatures: ebookCardFeatures,

@@ -66,7 +66,7 @@ export default function CelebrateTheWins({ onComplete, onBack }: CelebrateTheWin
                 title: "Ready for More Financial Confidence?",
                 descriptions: ebookDescriptions,
                 callout: "Your financial future is yours to design. Will you take the next step?",
-                link: "https://pivotfordancers.com/how-to-pivot-ebook/",
+                link: "https://pivotfordancers.com/products/how-to-pivot/",
                 cardTitle: "How to Pivot Ebook",
                 cardIcon: Target,
                 cardFeatures: ebookCardFeatures,

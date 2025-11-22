@@ -66,7 +66,7 @@ export default function GoalSetting({ onComplete, onBack }: GoalSettingProps) {
                 title: "Ready for More?",
                 descriptions: ebookDescriptions,
                 callout: "Life is yours for the taking. Will you reach out and grab it?",
-                link: "https://pivotfordancers.com/how-to-pivot-ebook/",
+                link: "https://pivotfordancers.com/products/how-to-pivot/",
                 cardTitle: "How to Pivot Ebook",
                 cardIcon: Star,
                 cardFeatures: ebookCardFeatures,

@@ -66,12 +66,13 @@ export default function Grief({ onComplete, onBack }: GriefProps) {
                 title: "Ready for More Guidance?",
                 descriptions: ebookDescriptions,
                 callout: "Your future is waiting to be built. Let's create it together.",
-                link: "https://pivotfordancers.com/how-to-pivot-ebook/",
+                link: "https://pivotfordancers.com/products/how-to-pivot/",
                 cardTitle: "How to Pivot Ebook",
                 cardIcon: Target,
                 cardFeatures: ebookCardFeatures,
                 cardButtonText: "Get the Ebook",
             }}
+            youtubeVideoId="a_U9pZr03zI"
         />
     );
 }
