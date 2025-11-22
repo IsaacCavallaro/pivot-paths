@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, Image, Animated, ScrollView, TouchableOpacity } from 'react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
@@ -24,13 +25,14 @@ export default function CardPromptEngine({
     selectionScreen,
     reflectionScreen,
     finalScreen,
+    youtubeVideoId,
 }: CardPromptEngineProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showNewBelief, setShowNewBelief] = useState(false);
     const [showSecondPhase, setShowSecondPhase] = useState(false);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [screenHistory, setScreenHistory] = useState<Array<{ index: number, showNew?: boolean, showPhase2?: boolean }>>([]);
-    const [choices, setChoices] = useState<{ [key: string]: string }>({}); // NEW: For choice card type
+    const [choices, setChoices] = useState<{ [key: string]: string }>({});
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
 
@@ -57,7 +59,6 @@ export default function CardPromptEngine({
         scrollToTop();
     };
 
-    // NEW: Handle choice selection for choice card type
     const handleChoice = useCallback((choiceKey: string, selectedOption: string) => {
         const newChoices = { ...choices, [choiceKey]: selectedOption };
         setChoices(newChoices);
@@ -65,7 +66,6 @@ export default function CardPromptEngine({
         const isLastCard = currentIndex === cards.length - 1;
 
         if (isLastCard) {
-            // Smooth transition to reflection screen
             Animated.timing(fadeAnim, {
                 toValue: 0,
                 duration: 400,
@@ -76,21 +76,16 @@ export default function CardPromptEngine({
                 scrollToTop();
             });
         } else {
-            // Fade out current card
             Animated.timing(fadeAnim, {
                 toValue: 0,
                 duration: 300,
                 useNativeDriver: true,
             }).start(() => {
                 const newIndex = currentIndex + 1;
-
-                // Reset animations BEFORE updating state
                 fadeAnim.setValue(0);
 
-                // Update state
                 setCurrentIndex(newIndex);
 
-                // Animate in the next card with a slight delay
                 setTimeout(() => {
                     Animated.parallel([
                         Animated.timing(fadeAnim, {
@@ -157,13 +152,11 @@ export default function CardPromptEngine({
     const handleContinue = useCallback(() => {
         const isLastCard = currentIndex === cards.length - 1;
 
-        // Handle flip card type
         if (cardType === "flip" && !showNewBelief) {
             flipCard();
             return;
         }
 
-        // Handle method card type (two-phase display)
         if (cardType === "method" && !showSecondPhase) {
             setShowSecondPhase(true);
             setScreenHistory(prev => [...prev, { index: currentIndex, showNew: false, showPhase2: true }]);
@@ -172,8 +165,7 @@ export default function CardPromptEngine({
         }
 
         if (isLastCard) {
-            // Smooth transition to selection or reflection screen
-            const nextScreen = selectionScreen ? -4 : -2; // -4 for selection, -2 for reflection
+            const nextScreen = selectionScreen ? -4 : -2;
             Animated.timing(fadeAnim, {
                 toValue: 0,
                 duration: 400,
@@ -184,7 +176,6 @@ export default function CardPromptEngine({
                 scrollToTop();
             });
         } else {
-            // Fade out current card
             Animated.timing(fadeAnim, {
                 toValue: 0,
                 duration: 300,
@@ -192,17 +183,14 @@ export default function CardPromptEngine({
             }).start(() => {
                 const newIndex = currentIndex + 1;
 
-                // Reset all animations BEFORE updating state
                 flipAnim.setValue(0);
                 fadeAnim.setValue(0);
                 cardScale.setValue(1);
 
-                // Update state
                 setCurrentIndex(newIndex);
                 setShowNewBelief(false);
                 setShowSecondPhase(false);
 
-                // Animate in the next card with a slight delay
                 setTimeout(() => {
                     Animated.parallel([
                         Animated.timing(fadeAnim, {
@@ -247,20 +235,7 @@ export default function CardPromptEngine({
     };
 
     const handleComplete = () => {
-        Animated.sequence([
-            Animated.timing(cardScale, {
-                toValue: 1.02,
-                duration: 200,
-                useNativeDriver: true,
-            }),
-            Animated.timing(cardScale, {
-                toValue: 1,
-                duration: 200,
-                useNativeDriver: true,
-            })
-        ]).start(() => {
-            onComplete();
-        });
+        onComplete();
     };
 
     const goBack = () => {
@@ -270,7 +245,7 @@ export default function CardPromptEngine({
             setShowNewBelief(false);
             setShowSecondPhase(false);
             setSelectedOption(null);
-            setChoices({}); // NEW: Reset choices
+            setChoices({});
             flipAnim.setValue(0);
             fadeAnim.setValue(1);
             cardScale.setValue(1);
@@ -295,7 +270,6 @@ export default function CardPromptEngine({
             }
         }
 
-        // Animate the transition back
         Animated.timing(fadeAnim, {
             toValue: 0,
             duration: 300,
@@ -310,7 +284,6 @@ export default function CardPromptEngine({
         });
     };
 
-    // Enhanced flip animation interpolations with perspective
     const frontInterpolate = flipAnim.interpolate({
         inputRange: [0, 1],
         outputRange: ['0deg', '180deg'],
@@ -339,7 +312,6 @@ export default function CardPromptEngine({
         opacity: fadeAnim
     };
 
-    // Update progress when currentIndex changes
     useEffect(() => {
         Animated.spring(progressAnim, {
             toValue: (currentIndex + 1) / cards.length,
@@ -349,15 +321,10 @@ export default function CardPromptEngine({
         }).start();
     }, [currentIndex, cards.length, progressAnim]);
 
-    // Current screen determination
     const currentHistoryScreen = screenHistory[screenHistory.length - 1];
     const screenIdentifier = currentHistoryScreen ? currentHistoryScreen.index : null;
 
-    const renderCustomReflectionContent = () => {
-        return reflectionScreen?.customContent;
-    };
-
-    // Intro Screen (with Journal)
+    // Intro Screen
     if (screenHistory.length === 0) {
         return (
             <View style={commonStyles.container}>
@@ -389,7 +356,6 @@ export default function CardPromptEngine({
                                 </Text>
                             ))}
 
-                            {/* Render subtext if provided */}
                             {introScreen.subtext && (
                                 <Text style={styles.subtext}>
                                     {introScreen.subtext}
@@ -406,7 +372,7 @@ export default function CardPromptEngine({
         );
     }
 
-    // Secondary Intro Screen (if provided)
+    // Secondary Intro Screen
     if (screenIdentifier === -3 && secondaryIntroScreen) {
         return (
             <View style={commonStyles.container}>
@@ -446,7 +412,7 @@ export default function CardPromptEngine({
         );
     }
 
-    // Selection Screen (for challenge selection flow)
+    // Selection Screen
     if (screenIdentifier === -4 && selectionScreen) {
         return (
             <View style={commonStyles.container}>
@@ -471,7 +437,6 @@ export default function CardPromptEngine({
                                 </Text>
 
                                 {selectionScreen.useButtons ? (
-                                    // Button-based selection (for debt methods)
                                     <View style={styles.methodButtonsContainer}>
                                         {selectionScreen.options.map((option) => (
                                             <PrimaryButton
@@ -482,7 +447,6 @@ export default function CardPromptEngine({
                                         ))}
                                     </View>
                                 ) : (
-                                    // Card-based selection (for savings challenges)
                                     <>
                                         {selectionScreen.options.map((option) => (
                                             <TouchableOpacity
@@ -527,7 +491,7 @@ export default function CardPromptEngine({
         );
     }
 
-    // Reflection Screen
+    // Reflection Screen - FIXED: Now properly renders YouTube video
     if (screenIdentifier === -2 && reflectionScreen) {
         return (
             <View style={commonStyles.container}>
@@ -555,7 +519,31 @@ export default function CardPromptEngine({
                                 )}
                             </View>
 
-                            {renderCustomReflectionContent()}
+                            {/* FIXED: YouTube Video Section - now properly checks for youtubeVideoId */}
+                            {youtubeVideoId && (
+                                <View style={styles.videoSection}>
+                                    <View style={styles.videoContainer}>
+                                        <View style={styles.youtubePlayer}>
+                                            <YoutubePlayer
+                                                height={200}
+                                                play={false}
+                                                videoId={youtubeVideoId}
+                                                webViewStyle={styles.youtubeWebView}
+                                            />
+                                        </View>
+                                    </View>
+                                </View>
+                            )}
+
+                            {/* Custom content rendering with choices support */}
+                            {reflectionScreen.customContent && (
+                                <>
+                                    {typeof reflectionScreen.customContent === 'function'
+                                        ? (reflectionScreen.customContent as (choices: { [key: string]: string }) => React.ReactNode)(choices)
+                                        : reflectionScreen.customContent
+                                    }
+                                </>
+                            )}
 
                             {reflectionScreen.journalSectionProps && (
                                 <JournalEntrySection {...reflectionScreen.journalSectionProps} />
@@ -575,7 +563,7 @@ export default function CardPromptEngine({
         );
     }
 
-    // Final Screen (with Journal)
+    // Final Screen
     if (screenIdentifier === -1) {
         return (
             <View style={commonStyles.container}>
@@ -637,7 +625,7 @@ export default function CardPromptEngine({
         );
     }
 
-    // Card Screens (Flip, Swipe, Method, Challenge, Benefit, or Choice)
+    // Card Screens
     const currentCard = cards[currentIndex];
 
     const progressWidth = progressAnim.interpolate({
@@ -677,7 +665,7 @@ export default function CardPromptEngine({
                                         <Text style={styles.oldBeliefText}>"{currentCard.oldBelief}"</Text>
                                     </View>
                                 </View>
-                                <PrimaryButton title="See the alternative" onPress={handleContinue} />
+                                <PrimaryButton title={currentCard.buttonText || "Flip the script"} onPress={handleContinue} />
                             </Animated.View>
 
                             <Animated.View style={[styles.choiceCard, styles.cardFace, styles.cardBack, backAnimatedStyle]}>
@@ -687,7 +675,7 @@ export default function CardPromptEngine({
                                         <Text style={styles.newBeliefText}>"{currentCard.newBelief}"</Text>
                                     </View>
                                 </View>
-                                <PrimaryButton title={currentCard.buttonText} onPress={handleContinue} />
+                                <PrimaryButton title={currentCard.flipButtonText || "Continue"} onPress={handleContinue} />
                             </Animated.View>
                         </View>
                     ) : cardType === "method" ? (
@@ -872,7 +860,6 @@ export default function CardPromptEngine({
                             </Card>
                         </Animated.View>
                     ) : cardType === "choice" ? (
-                        // NEW: Choice card type
                         <Animated.View
                             style={[
                                 styles.choiceCard,
@@ -954,7 +941,26 @@ const styles = StyleSheet.create({
         marginTop: 0,
         fontWeight: '600',
     },
-    // Card styles
+    videoSection: {
+        marginBottom: 30,
+        width: '100%',
+    },
+    videoContainer: {
+        width: '100%',
+    },
+    youtubePlayer: {
+        borderRadius: 16,
+        overflow: 'hidden',
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    youtubeWebView: {
+        borderRadius: 16,
+    },
     choiceCard: {
         width: width * 0.85,
         borderRadius: 24,
@@ -967,7 +973,6 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 5,
     },
-    // NEW: Choice card specific styles
     choiceQuestion: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -984,7 +989,6 @@ const styles = StyleSheet.create({
     choiceButton: {
         minHeight: 60,
     },
-    // Flip Card Styles
     flipContainer: {
         width: width * 0.85,
         height: 400,
@@ -1027,7 +1031,7 @@ const styles = StyleSheet.create({
     },
     oldBeliefText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 12,
+        fontSize: 14,
         color: '#746C70',
         textAlign: 'center',
         lineHeight: 26,
@@ -1046,13 +1050,12 @@ const styles = StyleSheet.create({
     },
     newBeliefText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 12,
+        fontSize: 14,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 26,
         fontStyle: 'italic',
     },
-    // Swipe Card Styles
     swipeCard: {
         backgroundColor: 'rgba(146,132,144,0.15)',
         borderRadius: 16,
@@ -1071,7 +1074,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 26,
     },
-    // Method Card Styles
     methodContainer: {
         width: width * 0.85,
     },
@@ -1126,7 +1128,6 @@ const styles = StyleSheet.create({
         color: '#647C90',
         lineHeight: 22,
     },
-    // Challenge Card Styles
     challengeTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -1207,7 +1208,6 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         lineHeight: 22,
     },
-    // Benefit Card Styles
     benefitTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -1242,7 +1242,6 @@ const styles = StyleSheet.create({
         color: '#746C70',
         lineHeight: 22,
     },
-    // Selection Screen Styles
     selectionTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,

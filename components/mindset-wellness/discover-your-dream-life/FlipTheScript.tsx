@@ -144,6 +144,7 @@ export default function FlipTheScript({ onComplete, onBack }: FlipTheScriptProps
       cards={cards}
       reflectionScreen={reflectionScreen}
       finalScreen={finalScreen}
+      youtubeVideoId="w9Tzx-sZhTg"
     />
   );
 }

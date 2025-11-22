@@ -23,6 +23,7 @@ export interface CardPromptEngineProps {
     primaryButtonText: string;
     imageSource?: string;
     iconComponent?: ReactNode; // For custom icons like Calculator, PiggyBank, TrendingDown
+    youtubeVideoId?: string; // NEW: Optional YouTube video ID for reflection screen
 
     // Intro Screen Props (Journal + Button)
     introScreen: {
@@ -46,6 +47,7 @@ export interface CardPromptEngineProps {
         // Flip card props
         oldBelief?: string;
         newBelief?: string;
+        flipButtonText?: string; // ADD THIS LINE - for flip card type
         // Swipe card props
         prompt?: string;
         // Choice card props
@@ -95,9 +97,9 @@ export interface CardPromptEngineProps {
     // Reflection Screen Props (Text + Button or Journal + Button)
     reflectionScreen?: {
         title: string;
-        description?: string; // Optional - some screens like game plan don't have description
-        journalSectionProps?: JournalSectionProps; // Optional for reflection
-        customContent?: ReactNode
+        description?: string;
+        customContent?: ReactNode | ((choices: { [key: string]: string }) => ReactNode); // UPDATED: Support function
+        journalSectionProps?: JournalSectionProps;
         buttonText: string;
     };
 

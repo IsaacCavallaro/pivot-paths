@@ -51,7 +51,7 @@ export default function MoreThanWork({ onComplete, onBack }: MoreThanWorkProps) 
         },
         {
             id: 4,
-            prompt: "Dance let you tell stories. How else can you share your perspective?",
+            prompt: "Dance lets you tell stories. How else can you share your perspective?",
             buttonText: "Write down 5 ideas"
         },
         {

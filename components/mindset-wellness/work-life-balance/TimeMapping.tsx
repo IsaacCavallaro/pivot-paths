@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import CardPromptEngine from '@/components/shared/card-prompt-engine/CardPromptEngine';
 
@@ -54,7 +54,7 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
     ];
 
     // Custom content function for reflection screen
-    const renderScheduleContent = (choices: { [key: string]: string }) => {
+    const renderScheduleContent = (choices: { [key: string]: string }): ReactNode => {
         const getResultText = () => {
             const focusTime = choices.focusTime;
             const movement = choices.movement;
@@ -98,46 +98,52 @@ export default function TimeMapping({ onComplete, onBack }: TimeMappingProps) {
 
         return (
             <View style={styles.scheduleContent}>
+                {/* Add the title and divider from your requirements */}
+                <Text style={styles.resultsTitle}>Your Ideal Weekly Rhythm</Text>
+                <View style={styles.titleDivider} />
+
                 <View style={styles.scheduleSection}>
                     <Text style={styles.scheduleHeading}>Monday–Friday</Text>
                     <View style={styles.scheduleItem}>
-                        <Text style={styles.scheduleTime}>Morning:</Text>
+                        <Text style={styles.scheduleTime}>Based on Screen 2 → Morning:</Text>
                         <Text style={styles.scheduleActivity}>{results.weekdayMorning}</Text>
                     </View>
                     <View style={styles.scheduleItem}>
-                        <Text style={styles.scheduleTime}>Midday:</Text>
+                        <Text style={styles.scheduleTime}>Based on Screen 3 ⇒ Midday:</Text>
                         <Text style={styles.scheduleActivity}>{results.weekdayMidday}</Text>
                     </View>
                     <View style={styles.scheduleItem}>
-                        <Text style={styles.scheduleTime}>Afternoon:</Text>
+                        <Text style={styles.scheduleTime}>Based on Screen 2 → Afternoon:</Text>
                         <Text style={styles.scheduleActivity}>{results.weekdayAfternoon}</Text>
                     </View>
                     <View style={styles.scheduleItem}>
-                        <Text style={styles.scheduleTime}>Evening:</Text>
+                        <Text style={styles.scheduleTime}>Based on Screen 4 → Evening:</Text>
                         <Text style={styles.scheduleActivity}>{results.weekdayEvening}</Text>
                     </View>
                     <View style={styles.scheduleItem}>
-                        <Text style={styles.scheduleTime}>Before Bed:</Text>
+                        <Text style={styles.scheduleTime}>Based on Screen 7 → Before Bed:</Text>
                         <Text style={styles.scheduleActivity}>{results.weekdayBed}</Text>
                     </View>
                 </View>
 
+                <View style={styles.divider} />
+
                 <View style={styles.scheduleSection}>
                     <Text style={styles.scheduleHeading}>Saturday–Sunday</Text>
                     <View style={styles.scheduleItem}>
-                        <Text style={styles.scheduleTime}>Morning:</Text>
+                        <Text style={styles.scheduleTime}>Based on Screen 2 → Morning:</Text>
                         <Text style={styles.scheduleActivity}>{results.weekendMorning}</Text>
                     </View>
                     <View style={styles.scheduleItem}>
-                        <Text style={styles.scheduleTime}>Daytime:</Text>
+                        <Text style={styles.scheduleTime}>Based on Screen 6 → Daytime:</Text>
                         <Text style={styles.scheduleActivity}>{results.weekendDaytime}</Text>
                     </View>
                     <View style={styles.scheduleItem}>
-                        <Text style={styles.scheduleTime}>Evening:</Text>
+                        <Text style={styles.scheduleTime}>Based on Screen 5 → Evening:</Text>
                         <Text style={styles.scheduleActivity}>{results.weekendEvening}</Text>
                     </View>
                     <View style={styles.scheduleItem}>
-                        <Text style={styles.scheduleTime}>Night:</Text>
+                        <Text style={styles.scheduleTime}>Based on Screen 2 → Night:</Text>
                         <Text style={styles.scheduleActivity}>{results.weekendNight}</Text>
                     </View>
                 </View>
@@ -213,6 +219,19 @@ const styles = StyleSheet.create({
     scheduleContent: {
         width: '100%',
     },
+    resultsTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 16,
+    },
+    titleDivider: {
+        height: 1,
+        backgroundColor: '#E2DED0',
+        marginVertical: 20,
+        width: '100%',
+    },
     scheduleSection: {
         marginBottom: 30,
         width: '100%',
@@ -237,5 +256,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#4E4F50',
         lineHeight: 22,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: '#E2DED0',
+        marginVertical: 20,
+        width: '100%',
     },
 });
