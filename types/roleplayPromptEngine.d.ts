@@ -1,3 +1,4 @@
+// roleplayPromptEngine.d.ts
 import { LucideIcon } from 'lucide-react-native';
 
 export interface JournalSectionProps {
@@ -11,45 +12,55 @@ export interface JournalSectionProps {
     saveButtonText: string;
 }
 
-// Interface for the specific steps of a formula, used in FormulaScreenProps
 export interface FormulaStep {
     number: number;
     title: string;
     text: string;
 }
 
-// New interface for a structured prompt-like scenario, combining elements from AskForMore and Generosity
+// Extended interface to support TryItOn's two-question structure
 export interface RoleplayScenarioContent {
-    id: number; // Unique ID for the scenario
+    id: number;
     scenarioTitle: string;
     scenarioText: string;
-    scenarioQuestion?: string; // Optional, like in AskForMore
+    scenarioQuestion?: string;
 
-    // Choices for the user
-    choices: {
-        id: string; // Unique ID for the choice, e.g., 'choice1'
+    // For backward compatibility - single question structure
+    choices?: {
+        id: string;
         text: string;
     }[];
+    responses?: string[];
+    followUpTexts?: string[];
 
-    // Responses corresponding to user choices (index-based)
-    responses: string[];
+    // For TryItOn's two-question structure
+    question1?: {
+        text: string;
+        choice1: string;
+        choice2: string;
+        response1: string;
+        response2: string;
+    };
+    question2?: {
+        text: string;
+        choice1: string;
+        choice2: string;
+        response1: string;
+        response2: string;
+    };
+    reflection?: string;
 
-    // Optional follow-up text for the "Here's your situation" screen
-    followUpTexts?: string[]; // Array of texts, matching responses length
-
-    // Content for the alternative/conclusion screen
     alternativeTitle?: string;
-    alternativeText: string; // Can be a single string or an array of paragraphs
-    alternativeIcon?: LucideIcon; // For custom icons, like Gift or Users
+    alternativeText: string;
+    alternativeIcon?: LucideIcon;
 
-    // Optional content for a formula screen (like in AskForMore)
     formula?: {
         title: string;
         text: string;
         steps: FormulaStep[];
         note?: string;
     };
-    reflectionPrompt: string; // Prompt for the reflection section after the scenario
+    reflectionPrompt: string;
 }
 
 export interface LearningBoxItem {
@@ -61,19 +72,16 @@ export interface RoleplayPromptEngineProps {
     onComplete: () => void;
     onBack?: () => void;
 
-    // General Props
     imageSource?: string;
     engineTitle: string;
     engineInstructions: string;
 
-    // Array of structured scenarios
     scenarios: RoleplayScenarioContent[];
 
-    // Welcome Screen
     welcomeScreen: {
         title: string;
         descriptions: string[];
-        learningBox?: { // Renamed from LearningBox to be more generic, but keeping original fields for now
+        learningBox?: {
             title: string;
             items: LearningBoxItem[];
         };
@@ -82,29 +90,29 @@ export interface RoleplayPromptEngineProps {
         buttonText: string;
     };
 
-    // Engine Intro Screen (optional, if different from welcome, like in AskForMore)
     engineIntroScreen?: {
         title: string;
         descriptions: string[];
         buttonText: string;
     };
 
-    // Reflection Screen (after all scenarios are complete, or per scenario if needed)
     reflectionScreen: {
         title: string;
-        descriptions: string[]; // Can be multiple paragraphs
+        descriptions: string[];
         reflectionEmphasis?: string;
         journalSectionProps: JournalSectionProps;
         buttonText: string;
     };
 
-    // Final Screen (after reflection)
     finalScreen: {
         title: string;
-        descriptions: string[]; // Can be multiple paragraphs
-        videoLink?: string; // Optional YouTube link
-        alternativeClosing?: string; // e.g., "See you tomorrow."
-        journalSectionProps?: JournalSectionProps; // Optional for final screen
+        descriptions: string[];
+        videoLink?: string;
+        alternativeClosing?: string;
+        journalSectionProps?: JournalSectionProps;
         buttonText: string;
     };
+
+    // New prop to handle TryItOn specific flow
+    flowType?: 'standard' | 'tryItOn';
 }

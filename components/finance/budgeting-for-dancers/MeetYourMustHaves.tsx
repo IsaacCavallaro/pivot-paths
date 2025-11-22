@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { ChevronRight, Target, ArrowLeft, Check } from 'lucide-react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
-import { useStorage } from '@/hooks/useStorage';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { Card } from '@/utils/ui-components/Card';
@@ -39,7 +38,7 @@ interface MeetYourMustHavesProps {
 
 export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHavesProps) {
     const [currentScreen, setCurrentScreen] = useState(-1);
-    const [userChoices, setUserChoices] = useStorage<UserChoices>('MUST_HAVES_CHOICES', {});
+    const [userChoices, setUserChoices] = useState<UserChoices>({});
     const [currentResultIndex, setCurrentResultIndex] = useState(0);
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
@@ -68,9 +67,9 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
         scrollToTop();
     };
 
-    const handleChoiceSelect = async (choiceNumber: number) => {
+    const handleChoiceSelect = (choiceNumber: number) => {
         const newChoices = { ...userChoices, [currentScreen + 1]: choiceNumber };
-        await setUserChoices(newChoices);
+        setUserChoices(newChoices);
         scrollToTop();
     };
 

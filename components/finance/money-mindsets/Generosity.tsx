@@ -4,8 +4,6 @@ import { ChevronRight, Heart, Gift, ArrowLeft, ChevronLeft, X, Check } from 'luc
 import YoutubePlayer from 'react-native-youtube-iframe';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
-import { useStorage } from '@/hooks/useStorage';
-import { STORAGE_KEYS } from '@/utils/storageKeys';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { Card } from '@/utils/ui-components/Card';
@@ -24,9 +22,9 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
     const [currentScenario, setCurrentScenario] = useState(1); // 1 = sibling, 2 = dance studio, 3 = friend
     const [isPlaying, setIsPlaying] = useState(false);
     const [showVideoModal, setShowVideoModal] = useState(false);
+    const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
-    const [selectedChoice, setSelectedChoice] = useStorage<number | null>('GENEROSITY_SCENARIO_CHOICE', null);
 
     const handleStartRoleplay = () => {
         setCurrentScreen(0);
@@ -52,8 +50,8 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
         scrollToTop();
     };
 
-    const handleChoiceSelect = async (choiceNumber: number) => {
-        await setSelectedChoice(choiceNumber);
+    const handleChoiceSelect = (choiceNumber: number) => {
+        setSelectedChoice(choiceNumber);
         scrollToTop();
     };
 
