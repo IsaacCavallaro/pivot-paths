@@ -107,7 +107,7 @@ export default function BeyondYourIdentity({ onComplete, onBack }: BeyondYourIde
             "Embrace the freedom of being more than any single role. Your true self is vast, resilient, and always evolving."
         ],
         videoLink: "https://www.youtube.com/shorts/YOUR_VIDEO_ID_HERE", // Replace with actual YouTube video ID
-        alternativeClosing: "See you tomorrow for your next mindset shift.",
+        alternativeClosing: "See you tomorrow.",
         journalSectionProps: {
             pathTag: "mindset-shifts",
             day: "3",
