@@ -97,7 +97,7 @@ export interface CardPromptEngineProps {
         title: string;
         description?: string; // Optional - some screens like game plan don't have description
         journalSectionProps?: JournalSectionProps; // Optional for reflection
-        customContent?: ReactNode | ((choices: { [key: string]: string }) => ReactNode); // Updated to support function with choices
+        customContent?: ReactNode
         buttonText: string;
     };
 

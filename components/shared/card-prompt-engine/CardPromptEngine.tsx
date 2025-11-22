@@ -353,11 +353,7 @@ export default function CardPromptEngine({
     const currentHistoryScreen = screenHistory[screenHistory.length - 1];
     const screenIdentifier = currentHistoryScreen ? currentHistoryScreen.index : null;
 
-    // NEW: Custom content for reflection screen with choices data
     const renderCustomReflectionContent = () => {
-        if (reflectionScreen?.customContent && typeof reflectionScreen.customContent === 'function') {
-            return reflectionScreen.customContent(choices);
-        }
         return reflectionScreen?.customContent;
     };
 
@@ -892,14 +888,12 @@ export default function CardPromptEngine({
                                 <PrimaryButton
                                     title={currentCard.option1 || ''}
                                     onPress={() => handleChoice(currentCard.resultKey || '', currentCard.option1 || '')}
-                                    variant="secondary"
                                     style={styles.choiceButton}
                                 />
 
                                 <PrimaryButton
                                     title={currentCard.option2 || ''}
                                     onPress={() => handleChoice(currentCard.resultKey || '', currentCard.option2 || '')}
-                                    variant="secondary"
                                     style={styles.choiceButton}
                                 />
                             </View>
@@ -1033,7 +1027,7 @@ const styles = StyleSheet.create({
     },
     oldBeliefText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
+        fontSize: 12,
         color: '#746C70',
         textAlign: 'center',
         lineHeight: 26,
@@ -1052,7 +1046,7 @@ const styles = StyleSheet.create({
     },
     newBeliefText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
+        fontSize: 12,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 26,
