@@ -81,7 +81,7 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
     ];
 
     const welcomeScreen = {
-        title: "Welcome Back!",
+        title: "Welcome!",
         descriptions: [
             "Today, we're diving into the money mindsets that shape our thinking as artists and dancers.",
             "Many of us carry beliefs about money that may actually be holding us back from building sustainable, fulfilling careers."

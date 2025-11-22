@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 2,
         borderColor: 'transparent',
-        height: 120, // Adjusted height for better fit
+        height: 140, // Adjusted height for better fit
         justifyContent: 'center',
         alignItems: 'center',
     },
