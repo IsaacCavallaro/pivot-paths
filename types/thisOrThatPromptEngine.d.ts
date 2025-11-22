@@ -7,6 +7,11 @@ export interface ChoiceOption {
     storyKey: string;
 }
 
+export interface CustomFinalHeader {
+    icon: LucideIcon;
+    title: string;
+}
+
 export interface ThisOrThatEngineProps {
     onComplete: () => void;
     onBack?: () => void;
@@ -26,13 +31,13 @@ export interface ThisOrThatEngineProps {
 
     // Content Configuration
     morningJournalPrompt: string;
-    introButtonText?: string; // Optional: defaults to "Start dreaming"
-    introScreenDescription?: string; // Optional: defaults to generic description
-    morningIntroText?: string; // Optional: defaults to "Expansive Dreamer" text
+    introButtonText?: string;
+    introScreenDescription?: string;
+    morningIntroText?: string;
     reflectionTitle: string;
-    reflectionDescription: string | string[]; // Can be single string or array of paragraphs
-    finalReflectionPrompt: string | string[]; // Can be single string or array of paragraphs
-    finalJournalPrompt?: string; // Optional: defaults to generic prompt
+    reflectionDescription: string | string[];
+    finalReflectionPrompt: string | string[];
+    finalJournalPrompt?: string;
 
     // Story Configuration
     getStoryText: (screenNumber: number, choices: { [key: string]: string }) => string;
@@ -40,8 +45,14 @@ export interface ThisOrThatEngineProps {
     storyEndScreen: number;
 
     // Ebook Configuration
-    ebookTitle: string;
-    ebookDescription: string;
-    ebookLink: string;
+    ebookTitle?: string;
+    ebookDescription?: string;
+    ebookLink?: string;
     alternativeClosing: string;
+
+    // Customization Options
+    customFinalHeader?: CustomFinalHeader;
+    customFinalContent?: string | string[];
+    skipStoryScreens?: boolean;
+    showEbookCallout?: boolean;
 }

@@ -85,39 +85,39 @@ const networkQuestions: NetworkQuestion[] = [
 const storyScreens = [
     {
         id: 1,
-        text: "You start your pivot by reaching out to {CHOICE_1}. They share stories that open your eyes to paths you hadn't considered before."
+        text: "You start your pivot by reaching out to someone in your network. They share stories that open your eyes to paths you hadn't considered before."
     },
     {
         id: 2,
-        text: "When you hit a wall, you look back to {CHOICE_2}. Their guidance reminds you that you're not starting from scratch — you're building on everything you already know."
+        text: "When you hit a wall, you look back to your connections. Their guidance reminds you that you're not starting from scratch — you're building on everything you already know."
     },
     {
         id: 3,
-        text: "Support also shows up in surprising places: Advice from {CHOICE_3} gives you confidence to test new ideas and trust your instincts."
+        text: "Support also shows up in surprising places: Advice from unexpected sources gives you confidence to test new ideas and trust your instincts."
     },
     {
         id: 4,
-        text: "You practice reaching out by inviting others to {CHOICE_4}. Each conversation feels like a classroom and you're feeling more and more excited about the future."
+        text: "You practice reaching out by inviting others to connect. Each conversation feels like a classroom and you're feeling more and more excited about the future."
     },
     {
         id: 5,
-        text: "Even in everyday life, learning happens. {CHOICE_5} shows you how transferable skills can open surprising doors."
+        text: "Even in everyday life, learning happens. People around you show how transferable skills can open surprising doors."
     },
     {
         id: 6,
-        text: "Mentorship comes in many forms when {CHOICE_6} appears out of nowhere and gives you honest advice that shapes your next steps."
+        text: "Mentorship comes in many forms when helpful people appear out of nowhere and give you honest advice that shapes your next steps."
     },
     {
         id: 7,
-        text: "You put yourself out there by {CHOICE_7}. These moments become your most practical learning experiences."
+        text: "You put yourself out there by exploring new opportunities. These moments become your most practical learning experiences."
     },
     {
         id: 8,
-        text: "You lean on {CHOICE_8} to help you stay accountable and reminds you that growth is easier when shared."
+        text: "You lean on your support system to help you stay accountable and reminds you that growth is easier when shared."
     },
     {
         id: 9,
-        text: "And when you zoom out, your network expands through {CHOICE_9}, giving you a bigger picture of what's possible."
+        text: "And when you zoom out, your network expands through various channels, giving you a bigger picture of what's possible."
     }
 ];
 
@@ -130,7 +130,6 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
     const { scrollViewRef, scrollToTop } = useScrollToTop();
     const { addJournalEntry: addMorningJournalEntry } = useJournaling('upskilling-pathfinder');
     const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('upskilling-pathfinder');
-    const [networkChoices, setNetworkChoices] = useStorage<{ [key: string]: string }>('HIDDEN_NETWORK_CHOICES', {});
 
     useEffect(() => {
         const shuffled = [...networkQuestions].sort(() => Math.random() - 0.5);
@@ -167,14 +166,6 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
         setIsTransitioning(true);
         await new Promise(resolve => setTimeout(resolve, 150));
 
-        const questionIndex = currentScreen - 1;
-        const currentQuestion = randomizedQuestions[questionIndex];
-
-        if (currentQuestion) {
-            const newChoices = { ...networkChoices, [currentQuestion.storyKey]: selectedOption };
-            await setNetworkChoices(newChoices);
-        }
-
         if (currentScreen < 9) {
             setCurrentScreen(currentScreen + 1);
             setSelectedOption(null);
@@ -202,10 +193,7 @@ export default function YourHiddenNetwork({ onComplete, onBack }: YourHiddenNetw
         const storyIndex = screenNumber - 11;
         const story = storyScreens[storyIndex];
         if (!story) return "";
-
-        const questionId = randomizedQuestions[storyIndex]?.id;
-        const choice = networkChoices[`choice${storyIndex + 1}`] || "";
-        return story.text.replace(`{CHOICE_${storyIndex + 1}}`, choice.toLowerCase());
+        return story.text;
     };
 
     // NEW: Intro Screen with Morning Journal

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, Image, Linking, ScrollView, TouchableOpacity } from 'react-native';
-import { Check } from 'lucide-react-native';
+import { Check, Sparkles, Target, TrendingUp, Users } from 'lucide-react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
 import { useJournaling } from '@/utils/hooks/useJournaling';
@@ -26,16 +26,24 @@ export default function ThisOrThatEngine({
     pathTitle,
     dayTitle,
     morningJournalPrompt,
+    introButtonText = "Start dreaming",
+    introScreenDescription,
+    morningIntroText,
     reflectionTitle,
     reflectionDescription,
     finalReflectionPrompt,
+    finalJournalPrompt,
     getStoryText,
     storyStartScreen,
     storyEndScreen,
     ebookTitle,
     ebookDescription,
     ebookLink,
-    alternativeClosing
+    alternativeClosing,
+    customFinalHeader,
+    customFinalContent,
+    skipStoryScreens = false,
+    showEbookCallout = true
 }: ThisOrThatEngineProps) {
     const [currentScreen, setCurrentScreen] = useState(-1);
     const [randomizedChoices, setRandomizedChoices] = useState<any[]>([]);
@@ -48,9 +56,11 @@ export default function ThisOrThatEngine({
     const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling(pathTag);
 
     useEffect(() => {
-        const shuffled = [...choices].sort(() => Math.random() - 0.5);
-        setRandomizedChoices(shuffled);
-    }, []);
+        if (choices && choices.length > 0) {
+            const shuffled = [...choices].sort(() => Math.random() - 0.5);
+            setRandomizedChoices(shuffled);
+        }
+    }, [choices]);
 
     const handleStartGame = () => {
         setCurrentScreen(0);
@@ -70,7 +80,9 @@ export default function ThisOrThatEngine({
             setCurrentScreen(-1);
         } else if (currentScreen === 1) {
             setCurrentScreen(0);
-        } else if (currentScreen > 1 && currentScreen <= 19) {
+        } else if (currentScreen > 1 && currentScreen <= totalChoices) {
+            setCurrentScreen(currentScreen - 1);
+        } else if (currentScreen > totalChoices) {
             setCurrentScreen(currentScreen - 1);
         }
         scrollToTop();
@@ -94,16 +106,25 @@ export default function ThisOrThatEngine({
             setCurrentScreen(currentScreen + 1);
             setSelectedOption(null);
         } else {
-            setCurrentScreen(storyStartScreen);
+            // Handle different flow patterns based on component needs
+            if (skipStoryScreens) {
+                // For components like DecisionMaking that go directly to final screen
+                setCurrentScreen(storyEndScreen + 1);
+            } else {
+                setCurrentScreen(storyStartScreen);
+            }
         }
         scrollToTop();
         setIsTransitioning(false);
     };
 
     const handleContinueStory = () => {
-        console.log('handleContinueStory called, currentScreen:', currentScreen, 'storyEndScreen:', storyEndScreen);
-        if (currentScreen < storyEndScreen + 2) {
+        if (currentScreen < storyEndScreen) {
             setCurrentScreen(currentScreen + 1);
+        } else if (currentScreen === storyEndScreen) {
+            setCurrentScreen(storyEndScreen + 1);
+        } else if (currentScreen === storyEndScreen + 1) {
+            setCurrentScreen(storyEndScreen + 2);
         } else {
             onComplete();
         }
@@ -126,6 +147,20 @@ export default function ThisOrThatEngine({
             ));
         }
         return <Text style={textStyle}>{content}</Text>;
+    };
+
+    // Helper to render custom final header with icons
+    const renderCustomFinalHeader = () => {
+        if (!customFinalHeader) return null;
+
+        const { icon: IconComponent, title } = customFinalHeader;
+        return (
+            <View style={styles.finalHeader}>
+                <IconComponent size={24} color="#928490" />
+                <Text style={styles.finalHeading}>{title}</Text>
+                <IconComponent size={24} color="#928490" />
+            </View>
+        );
     };
 
     // Morning Journal Screen (screen -1)
@@ -151,10 +186,10 @@ export default function ThisOrThatEngine({
                                 />
                             </View>
 
-                            <Text style={commonStyles.introTitle}>You're back for more!</Text>
+                            <Text style={commonStyles.introTitle}>{gameTitle}</Text>
 
                             <Text style={commonStyles.introDescription}>
-                                This is where we're diving deeper into becoming the Expansive Dreamer we talked about on Day 1.
+                                {morningIntroText || "You're back for more! This is where we're diving deeper into becoming the Expansive Dreamer we talked about on Day 1."}
                             </Text>
 
                             <Text style={commonStyles.introDescription}>
@@ -206,10 +241,10 @@ export default function ThisOrThatEngine({
                             <Text style={commonStyles.introTitle}>{gameTitle}</Text>
 
                             <Text style={commonStyles.introDescription}>
-                                This is a game of instincts. Choose the answer that you resonate with the most to help you dream bigger about what life after dance can be. Don't think too much! There's no right or wrong. Let's see what you can dream up.
+                                {introScreenDescription || "This is a game of instincts. Choose the answer that you resonate with the most to help you dream bigger about what life after dance can be. Don't think too much! There's no right or wrong. Let's see what you can dream up."}
                             </Text>
 
-                            <PrimaryButton title="Start dreaming" onPress={() => setCurrentScreen(1)} />
+                            <PrimaryButton title={introButtonText} onPress={() => setCurrentScreen(1)} />
                         </Card>
                     </View>
                 </ScrollView>
@@ -304,18 +339,11 @@ export default function ThisOrThatEngine({
         );
     }
 
-    // Story Screens (including screen 11 which is blank/transition)
-    if (currentScreen >= 11 && currentScreen <= storyEndScreen) {
-        // Screen 11 is skipped - go directly to 12
-        if (currentScreen === 11) {
-            setCurrentScreen(12);
-            scrollToTop();
-            return null;
-        }
-
+    // Story Screens (including transition screens)
+    if (currentScreen >= storyStartScreen && currentScreen <= storyEndScreen) {
         const storyText = getStoryText(currentScreen, gameChoices);
         const isTitle = currentScreen === storyStartScreen;
-        const isFinal = currentScreen === storyEndScreen;
+        const isFinalStory = currentScreen === storyEndScreen;
 
         return (
             <View style={commonStyles.container}>
@@ -338,12 +366,13 @@ export default function ThisOrThatEngine({
                                 </View>
                             ) : (
                                 <View style={styles.storyTextContainer}>
+                                    {isFinalStory && customFinalHeader && renderCustomFinalHeader()}
                                     <Text style={styles.storyText}>{storyText}</Text>
                                 </View>
                             )}
 
                             <PrimaryButton
-                                title={isFinal ? 'Own It' : 'Continue'}
+                                title={isFinalStory ? 'Continue' : 'Continue'}
                                 onPress={handleContinueStory}
                             />
                         </Card>
@@ -411,26 +440,35 @@ export default function ThisOrThatEngine({
                                 />
                             </View>
 
-                            <View style={styles.storyTextContainer}>
-                                {renderTextContent(finalReflectionPrompt, 'story')}
-                            </View>
+                            {customFinalContent ? (
+                                <View style={styles.storyTextContainer}>
+                                    {renderCustomFinalHeader()}
+                                    {renderTextContent(customFinalContent, 'story')}
+                                </View>
+                            ) : (
+                                <View style={styles.storyTextContainer}>
+                                    {renderTextContent(finalReflectionPrompt, 'story')}
+                                </View>
+                            )}
 
                             {/* Ebook Callout */}
-                            <View style={styles.ebookCard}>
-                                <Text style={styles.ebookTitle}>{ebookTitle}</Text>
-                                <Text style={styles.ebookDescription}>
-                                    {ebookDescription}
-                                </Text>
-                                <PrimaryButton
-                                    title="Learn More"
-                                    onPress={handleOpenEbook}
-                                    style={styles.ebookButton}
-                                />
-                            </View>
+                            {showEbookCallout && ebookTitle && ebookDescription && (
+                                <View style={styles.ebookCard}>
+                                    <Text style={styles.ebookTitle}>{ebookTitle}</Text>
+                                    <Text style={styles.ebookDescription}>
+                                        {ebookDescription}
+                                    </Text>
+                                    <PrimaryButton
+                                        title="Learn More"
+                                        onPress={handleOpenEbook}
+                                        style={styles.ebookButton}
+                                    />
+                                </View>
+                            )}
 
                             <JournalEntrySection
                                 pathTag={pathTag}
-                                journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?"
+                                journalInstruction={finalJournalPrompt || "Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?"}
                                 moodLabel=""
                                 saveButtonText="Save Entry"
                             />
@@ -527,6 +565,20 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 28,
         marginTop: 10,
+    },
+    finalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 30,
+        gap: 12,
+    },
+    finalHeading: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        fontWeight: '700',
     },
     ebookCard: {
         backgroundColor: 'rgba(146, 132, 144, 0.1)',

@@ -13,76 +13,18 @@ import { commonStyles } from '@/utils/styles/commonStyles';
 
 const { width, height } = Dimensions.get('window');
 
-interface SideHustleChoice {
-    id: number;
-    option1: string;
-    option2: string;
-    storyKey: string;
-}
-
 interface SideHustleScoreCardProps {
     onComplete: () => void;
     onBack?: () => void;
 }
 
-const sideHustleOptions: SideHustleChoice[] = [
-    {
-        id: 1,
-        option1: 'Dog Walking',
-        option2: 'Delivery Driving',
-        storyKey: 'hustle1'
-    },
-    {
-        id: 2,
-        option1: 'Virtual Assistant',
-        option2: 'Social Media Manager',
-        storyKey: 'hustle2'
-    },
-    {
-        id: 3,
-        option1: 'Tutoring',
-        option2: 'Video Editing',
-        storyKey: 'hustle3'
-    },
-    {
-        id: 4,
-        option1: 'Graphic Design',
-        option2: 'Web Design',
-        storyKey: 'hustle4'
-    },
-    {
-        id: 5,
-        option1: 'Sell Crafts Online',
-        option2: 'Start a Youtube channel',
-        storyKey: 'hustle5'
-    }
-];
-
-// Mapping function to convert specific choices to their story representations
-const getStoryMapping = (choice: string): string => {
-    const mappings: { [key: string]: string } = {
-        'Sell Crafts Online': 'selling your crafts online',
-        'Start a Youtube channel': 'a YouTube channel'
-    };
-
-    return mappings[choice] || choice;
-};
-
 export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleScoreCardProps) {
     const [currentScreen, setCurrentScreen] = useState(-1);
-    const [randomizedChoices, setRandomizedChoices] = useState<SideHustleChoice[]>([]);
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
     const { addJournalEntry: addMorningJournalEntry } = useJournaling('financial-futureproofing');
     const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('financial-futureproofing');
-    const [userChoices, setUserChoices] = useStorage<{ [key: string]: string }>('SIDE_HUSTLE_CHOICES', {});
-
-    useEffect(() => {
-        const shuffled = [...sideHustleOptions].sort(() => Math.random() - 0.5);
-        setRandomizedChoices(shuffled);
-    }, []);
 
     const handleStartGame = () => {
         setCurrentScreen(0);
@@ -109,22 +51,13 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
     };
 
     const handleContinue = async () => {
-        if (selectedOption === null || isTransitioning) return;
+        if (isTransitioning) return;
 
         setIsTransitioning(true);
         await new Promise(resolve => setTimeout(resolve, 150));
 
-        const choiceIndex = currentScreen - 1;
-        const currentChoice = randomizedChoices[choiceIndex];
-
-        if (currentChoice) {
-            const newChoices = { ...userChoices, [currentChoice.storyKey]: selectedOption };
-            await setUserChoices(newChoices);
-        }
-
         if (currentScreen < 5) {
             setCurrentScreen(currentScreen + 1);
-            setSelectedOption(null);
         } else {
             setCurrentScreen(7);
         }
@@ -146,15 +79,15 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
             case 7:
                 return "Your Hustle, Your Rules";
             case 8:
-                return `You decided to bring in extra cash through ${userChoices.hustle1?.toLowerCase()}. The flexible hours let you work around your dance schedule, and you love the variety.`;
+                return "You decided to bring in extra cash through various side hustles. The flexible hours let you work around your dance schedule, and you love the variety.";
             case 9:
-                return `You decided to build your skills as a ${userChoices.hustle2?.toLowerCase()}. You love the creative challenge and the ability to work from anywhere on your own schedule. But it isn't quite enough.`;
+                return "You decided to build your skills through side hustles. You love the creative challenge and the ability to work from anywhere on your own schedule. But it isn't quite enough.";
             case 10:
-                return `You dabble in ${userChoices.hustle3?.toLowerCase()} and start learning more about ${userChoices.hustle4?.toLowerCase()}. You're not only making extra money that you put into savings but you're learning valuable skills for the future.`;
+                return "You dabble in different side hustles and start learning valuable skills. You're not only making extra money that you put into savings but you're learning valuable skills for the future.";
             case 11:
-                return `In the meantime, you take one of your other passions and start ${getStoryMapping(userChoices.hustle5 || '').toLowerCase()}. It feels amazing to finally have some agency in your life and build other income streams while you're still dancing.`;
+                return "In the meantime, you take one of your other passions and start exploring side hustle opportunities. It feels amazing to finally have some agency in your life and build other income streams while you're still dancing.";
             case 12:
-                return "How does that feel? This isn't a far-off fantasy. This is what's possible when you direct your famous dancer discipline toward other goals.\n\nYour first step is simple: pick one side hustle from your choices and research how to get started this week. You don't have to commit forever, just try it.\n\nCome back tomorrow for more.";
+                return "How does that feel? This isn't a far-off fantasy. This is what's possible when you direct your famous dancer discipline toward other goals.\n\nYour first step is simple: pick one side hustle and research how to get started this week. You don't have to commit forever, just try it.\n\nCome back tomorrow for more.";
             default:
                 return "";
         }
@@ -253,93 +186,6 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
         );
     }
 
-    // Choice Screens (1-5) - UPDATED WITH HIGHLIGHT AND CONTINUE BUTTON
-    if (currentScreen >= 1 && currentScreen <= 5) {
-        const choiceIndex = currentScreen - 1;
-        const currentChoice = randomizedChoices[choiceIndex];
-
-        if (!currentChoice) return null;
-
-        return (
-            <View style={commonStyles.container}>
-                <StickyHeader
-                    onBack={goBack}
-                    title={`${currentScreen} of 5`}
-                    progress={currentScreen / 5}
-                />
-
-                <ScrollView
-                    ref={scrollViewRef}
-                    style={commonStyles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ flexGrow: 1 }}
-                    onContentSizeChange={() => scrollToTop()}
-                    onLayout={() => scrollToTop()}
-                >
-                    <View style={commonStyles.centeredContent}>
-                        <Card style={commonStyles.baseCard}>
-                            <View style={styles.choiceButtons}>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.choiceButton,
-                                        selectedOption === currentChoice.option1 && styles.choiceButtonSelected
-                                    ]}
-                                    onPress={() => setSelectedOption(currentChoice.option1)}
-                                    activeOpacity={0.8}
-                                    disabled={isTransitioning}
-                                >
-                                    <View style={styles.optionContent}>
-                                        {selectedOption === currentChoice.option1 && (
-                                            <View style={styles.selectedIndicator}>
-                                                <Check size={16} color="#E2DED0" />
-                                            </View>
-                                        )}
-                                        <Text style={[
-                                            styles.choiceButtonText,
-                                            selectedOption === currentChoice.option1 && styles.choiceButtonTextSelected
-                                        ]}>
-                                            {currentChoice.option1}
-                                        </Text>
-                                    </View>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    style={[
-                                        styles.choiceButton,
-                                        selectedOption === currentChoice.option2 && styles.choiceButtonSelected
-                                    ]}
-                                    onPress={() => setSelectedOption(currentChoice.option2)}
-                                    activeOpacity={0.8}
-                                    disabled={isTransitioning}
-                                >
-                                    <View style={styles.optionContent}>
-                                        {selectedOption === currentChoice.option2 && (
-                                            <View style={styles.selectedIndicator}>
-                                                <Check size={16} color="#E2DED0" />
-                                            </View>
-                                        )}
-                                        <Text style={[
-                                            styles.choiceButtonText,
-                                            selectedOption === currentChoice.option2 && styles.choiceButtonTextSelected
-                                        ]}>
-                                            {currentChoice.option2}
-                                        </Text>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-
-                            <PrimaryButton
-                                title="Continue"
-                                onPress={handleContinue}
-                                disabled={selectedOption === null || isTransitioning}
-                            />
-                        </Card>
-                    </View>
-                </ScrollView>
-            </View>
-        );
-    }
-
     // Story Screens (7-12)
     if (currentScreen >= 7 && currentScreen <= 12) {
         const storyText = getStoryText(currentScreen);
@@ -410,48 +256,6 @@ export default function SideHustleScoreCard({ onComplete, onBack }: SideHustleSc
 }
 
 const styles = StyleSheet.create({
-    choiceButtons: {
-        gap: 20,
-    },
-    choiceButton: {
-        backgroundColor: 'rgba(146, 132, 144, 0.1)',
-        borderRadius: 16,
-        padding: 24,
-        borderWidth: 2,
-        borderColor: 'transparent',
-        minHeight: 80,
-        justifyContent: 'center',
-    },
-    choiceButtonSelected: {
-        backgroundColor: 'rgba(146, 132, 144, 0.3)',
-        borderColor: '#928490',
-        borderWidth: 2,
-    },
-    choiceButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#4E4F50',
-        textAlign: 'center',
-    },
-    choiceButtonTextSelected: {
-        color: '#4E4F50',
-        fontWeight: '600',
-    },
-    optionContent: {
-        paddingRight: 40,
-    },
-    selectedIndicator: {
-        position: 'absolute',
-        top: '50%',
-        right: 12,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: '#928490',
-        justifyContent: 'center',
-        alignItems: 'center',
-        transform: [{ translateY: -12 }],
-    },
     storyTitleContainer: {
         alignItems: 'center',
         marginBottom: 40,
