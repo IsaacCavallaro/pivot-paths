@@ -887,7 +887,7 @@ export default function CardPromptEngine({
                         </Animated.View>
                     ) : cardType === "experiment" ? (
                         <Animated.View style={[styles.experimentCard, { opacity: fadeAnim, transform: [{ scale: cardScale }] }]}>
-                            <Card style={commonStyles.baseCard}>
+                            <Card style={styles.experimentBaseCard}>
                                 <Text style={styles.experimentTitle}>{currentCard.title}</Text>
                                 <View style={styles.experimentPromptContainer}>
                                     <Text style={styles.experimentPrompt}>{currentCard.prompt}</Text>
@@ -1329,5 +1329,19 @@ const styles = StyleSheet.create({
         color: '#4E4F50',
         textAlign: 'left',
         lineHeight: 24,
+    },
+    experimentBaseCard: {
+        width: width * 0.85,
+        borderRadius: 24,
+        backgroundColor: '#F5F5F5',
+        padding: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+        marginVertical: 20,
+        marginTop: 50,
     },
 });
