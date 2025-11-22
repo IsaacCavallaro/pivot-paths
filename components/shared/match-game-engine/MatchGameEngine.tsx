@@ -437,7 +437,7 @@ export default function MatchGameEngine({
                 onContentSizeChange={() => scrollToTop()}
                 onLayout={() => scrollToTop()}
             >
-                <View style={commonStyles.centeredContent}>
+                <View style={styles.centeredContent}>
                     <Card style={commonStyles.baseCard}>
                         <Text style={styles.gameTitle}>{gameTitle}</Text>
                         <Text style={styles.gameInstructions}>
@@ -497,6 +497,13 @@ export default function MatchGameEngine({
 }
 
 const styles = StyleSheet.create({
+    centeredContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 50,
+        paddingBottom: 30,
+    },
     baseCard: { // Overrides commonStyles.baseCard to fit the game layout better
         borderRadius: 24,
         backgroundColor: '#F5F5F5',
@@ -603,7 +610,7 @@ const styles = StyleSheet.create({
     },
     gameButtonText: {
         fontFamily: 'Montserrat-Regular',
-        fontSize: 14,
+        fontSize: 10,
         color: '#4E4F50',
         textAlign: 'center',
         lineHeight: 18,
