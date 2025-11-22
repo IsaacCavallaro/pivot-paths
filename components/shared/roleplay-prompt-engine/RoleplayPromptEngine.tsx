@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Linking, TouchableOpacity, Dimensions, Modal } from 'react-native';
-import { X, Check, Users, Award, Gift, ChevronRight } from 'lucide-react-native';
+import { X, Check, Users, Award, Gift, ChevronRight, Target } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
@@ -31,6 +31,7 @@ export default function RoleplayPromptEngine({
     const [selectedChoiceIndex, setSelectedChoiceIndex] = useState<number | null>(null);
     const [roleplayStep, setRoleplayStep] = useState(0);
     const [selectedChoices, setSelectedChoices] = useState<{ [key: number]: number }>({});
+    const [currentResultIndex, setCurrentResultIndex] = useState(0);
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [showVideoModal, setShowVideoModal] = useState(false);
@@ -50,6 +51,8 @@ export default function RoleplayPromptEngine({
     const goBack = () => {
         if (flowType === 'tryItOn') {
             handleTryItOnBack();
+        } else if (flowType === 'mustHaves') {
+            handleMustHavesBack();
         } else {
             handleStandardBack();
         }
@@ -97,6 +100,30 @@ export default function RoleplayPromptEngine({
         scrollToTop();
     };
 
+    const handleMustHavesBack = () => {
+        if (currentScreen === -1) {
+            handleBackPress();
+        } else if (currentScreen === 0) {
+            setCurrentScreen(-1);
+        } else if (currentScreen >= 1 && currentScreen <= 8) {
+            if (currentScenarioIndex > 0) {
+                setCurrentScenarioIndex(prev => prev - 1);
+                setCurrentScreen(currentScreen - 1);
+            } else {
+                setCurrentScreen(0);
+            }
+        } else if (currentScreen === 9) {
+            setCurrentScreen(8);
+            setCurrentScenarioIndex(scenarios.length - 1);
+        } else if (currentScreen === 10) {
+            setCurrentScreen(9);
+            setCurrentResultIndex(0);
+        } else if (currentScreen === 11) {
+            setCurrentScreen(10);
+        }
+        scrollToTop();
+    };
+
     const startRoleplay = () => {
         setCurrentScreen(1);
         setCurrentScenarioIndex(0);
@@ -118,9 +145,17 @@ export default function RoleplayPromptEngine({
         scrollToTop();
     };
 
+    const handleMustHavesChoiceSelect = (choiceNumber: number) => {
+        const newChoices = { ...selectedChoices, [currentScenarioIndex + 1]: choiceNumber };
+        setSelectedChoices(newChoices);
+        scrollToTop();
+    };
+
     const handleContinueRoleplay = () => {
         if (flowType === 'tryItOn') {
             handleTryItOnContinue();
+        } else if (flowType === 'mustHaves') {
+            handleMustHavesContinue();
         } else {
             handleStandardContinue();
         }
@@ -174,9 +209,9 @@ export default function RoleplayPromptEngine({
             setCurrentScreen(5);
         } else if (currentScreen === 5) {
             if (currentScenarioIndex < scenarios.length - 1) {
-                setCurrentScenarioIndex(prev => prev + 1);
-                setCurrentScreen(0);
+                setCurrentScenarioIndex(currentScenarioIndex + 1);
                 setSelectedChoices({});
+                setCurrentScreen(1);
             } else {
                 setCurrentScreen(6);
             }
@@ -184,6 +219,86 @@ export default function RoleplayPromptEngine({
             onComplete();
         }
         scrollToTop();
+    };
+
+    const handleMustHavesContinue = () => {
+        if (currentScreen === -1) {
+            setCurrentScreen(0); // Welcome → Choice screens
+        } else if (currentScreen >= 0 && currentScreen <= 8) {
+            // Choice screens
+            if (currentScenarioIndex < scenarios.length - 1) {
+                setCurrentScenarioIndex(prev => prev + 1);
+                setCurrentScreen(currentScreen + 1);
+            } else {
+                setCurrentScreen(9); // All choices complete → Results overview
+            }
+        } else if (currentScreen === 9) {
+            setCurrentScreen(10); // Results overview → Results screens
+        } else if (currentScreen === 10) {
+            // Results screens
+            if (currentResultIndex < getPersonalizedResults().length - 1) {
+                setCurrentResultIndex(prev => prev + 1);
+            } else {
+                setCurrentScreen(11); // All results shown → Final summary
+                setCurrentResultIndex(0);
+            }
+        } else if (currentScreen === 11) {
+            onComplete();
+        }
+        scrollToTop();
+    };
+
+    const handleNextResult = () => {
+        if (currentResultIndex < getPersonalizedResults().length - 1) {
+            setCurrentResultIndex(currentResultIndex + 1);
+        } else {
+            setCurrentScreen(11);
+            setCurrentResultIndex(0);
+        }
+        scrollToTop();
+    };
+
+    // Generate personalized results based on user choices - same as original
+    const getPersonalizedResults = () => {
+        const results = [];
+
+        // Spotify vs Gym
+        if (selectedChoices[1] === 1) {
+            results.push("Spotify Premium is non-negotiable for you, allowing you to stream with no ads.");
+        } else {
+            results.push("staying fit and healthy with a gym membership is essential for you.");
+        }
+
+        // Coffee vs Streaming
+        if (selectedChoices[2] === 1) {
+            results.push("Your daily joy comes from small treats like your coffee habit, a ritual you protect.");
+        } else {
+            results.push("You value entertainment and relaxation, choosing a full suite of streaming subscriptions over daily coffees. You'd rather create a cozy night in than a cafe trip.");
+        }
+
+        // Groceries vs Dining & Dance vs Massage
+        const foodChoice = selectedChoices[3] === 1 ? "cooking at home with your organic groceries" : "dining out at quality restaurants";
+        const wellnessChoice = selectedChoices[4] === 1 ? "dance classes" : "massages";
+        results.push(`You love ${foodChoice}. And you invest in your body through regular ${wellnessChoice}, knowing it's essential for your well-being.`);
+
+        // Clothes vs Travel
+        if (selectedChoices[5] === 1) {
+            results.push("You believe in looking the part and presenting yourself well, investing in new clothes over a distant travel fund.");
+        } else {
+            results.push("You clearly value experiences, choosing to put money toward your travel fund over updating your wardrobe.");
+        }
+
+        // Savings vs Investments & Charity vs Gifts
+        const financeChoice = selectedChoices[6] === 1 ? "consistently contributing to your savings account" : "putting money into investments for potential future gains";
+        const givingChoice = selectedChoices[8] === 1 ? "charity donations" : "thoughtful gifts";
+        results.push(`You're building a foundation for the future, ${financeChoice}. You also believe in supporting your community and loved ones, setting aside money for ${givingChoice}.`);
+
+        // Phone vs Concerts & Beauty vs Home
+        const splurgeChoice = selectedChoices[7] === 1 ? "a phone upgrade" : "concert tickets";
+        const selfCareChoice = selectedChoices[9] === 1 ? "hair and nail appointments" : "home decor";
+        results.push(`And you haven't forgotten how to live in the moment. You splurge on ${splurgeChoice} and treat yourself to ${selfCareChoice} to create a space that feels like you.`);
+
+        return results;
     };
 
     const getVideoId = (url: string) => {
@@ -218,6 +333,262 @@ export default function RoleplayPromptEngine({
             openVideoModal();
         }
     }, [openVideoModal]);
+
+    // MustHaves Flow Screens
+    if (flowType === 'mustHaves') {
+        // Day 5 Welcome Screen
+        if (currentScreen === -1) {
+            return (
+                <View style={commonStyles.container}>
+                    <StickyHeader onBack={handleBackPress} />
+
+                    <ScrollView
+                        ref={scrollViewRef}
+                        style={commonStyles.scrollView}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ flexGrow: 1 }}
+                        onContentSizeChange={() => scrollToTop()}
+                        onLayout={() => scrollToTop()}
+                    >
+                        <View style={commonStyles.centeredContent}>
+                            <Card style={commonStyles.baseCard}>
+                                <View style={commonStyles.introIconContainer}>
+                                    <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
+                                        <Target size={32} color="#E2DED0" />
+                                    </View>
+                                </View>
+
+                                <Text style={commonStyles.introTitle}>Meet Your Must-Haves</Text>
+
+                                <Text style={commonStyles.introDescription}>
+                                    This is a game of instincts. We're going to uncover what you truly value by having you choose between common spending categories. Your choices will help us build a personalized snapshot of your financial priorities. Don't overthink it!
+                                </Text>
+
+                                <Text style={commonStyles.introDescription}>
+                                    There's no right or wrong. Let's see what you build.
+                                </Text>
+
+                                <PrimaryButton title="Begin Choosing" onPress={handleContinueRoleplay} />
+                            </Card>
+                        </View>
+                    </ScrollView>
+                </View>
+            );
+        }
+
+        // Choice Screens (0-8)
+        if (currentScreen >= 0 && currentScreen <= 8) {
+            const currentPair = scenarios[currentScenarioIndex];
+            const choiceProgress = ((currentScreen + 1) / scenarios.length) * 100;
+
+            return (
+                <View style={commonStyles.container}>
+                    <StickyHeader onBack={goBack} />
+
+                    <ScrollView
+                        ref={scrollViewRef}
+                        style={commonStyles.scrollView}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ flexGrow: 1 }}
+                        onContentSizeChange={() => scrollToTop()}
+                        onLayout={() => scrollToTop()}
+                    >
+                        <View style={commonStyles.centeredContent}>
+                            <Card style={commonStyles.baseCard}>
+                                <View style={styles.progressContainer}>
+                                    <Text style={styles.progressText}>
+                                        {currentScreen + 1} of {scenarios.length} choices
+                                    </Text>
+                                    <View style={styles.progressBar}>
+                                        <View style={[styles.progressFill, { width: `${choiceProgress}%` }]} />
+                                    </View>
+                                </View>
+
+                                <Text style={styles.choiceTitle}>Which would you choose?</Text>
+
+                                <View style={styles.choicesContainer}>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.choiceButton,
+                                            selectedChoices[currentScenarioIndex + 1] === 1 && styles.choiceButtonSelected
+                                        ]}
+                                        onPress={() => handleMustHavesChoiceSelect(1)}
+                                        activeOpacity={0.8}
+                                    >
+                                        <View style={styles.choiceContent}>
+                                            {selectedChoices[currentScenarioIndex + 1] === 1 && (
+                                                <View style={styles.selectedIndicator}>
+                                                    <Check size={16} color="#E2DED0" />
+                                                </View>
+                                            )}
+                                            <Text style={[
+                                                styles.choiceText,
+                                                selectedChoices[currentScenarioIndex + 1] === 1 && styles.choiceTextSelected
+                                            ]}>
+                                                {currentPair.question1?.choice1}
+                                            </Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.choiceButton,
+                                            selectedChoices[currentScenarioIndex + 1] === 2 && styles.choiceButtonSelected
+                                        ]}
+                                        onPress={() => handleMustHavesChoiceSelect(2)}
+                                        activeOpacity={0.8}
+                                    >
+                                        <View style={styles.choiceContent}>
+                                            {selectedChoices[currentScenarioIndex + 1] === 2 && (
+                                                <View style={styles.selectedIndicator}>
+                                                    <Check size={16} color="#E2DED0" />
+                                                </View>
+                                            )}
+                                            <Text style={[
+                                                styles.choiceText,
+                                                selectedChoices[currentScenarioIndex + 1] === 2 && styles.choiceTextSelected
+                                            ]}>
+                                                {currentPair.question1?.choice2}
+                                            </Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+
+                                <PrimaryButton
+                                    title="Continue"
+                                    onPress={handleContinueRoleplay}
+                                    disabled={!selectedChoices[currentScenarioIndex + 1]}
+                                />
+                            </Card>
+                        </View>
+                    </ScrollView>
+                </View>
+            );
+        }
+
+        // Results Overview Screen
+        if (currentScreen === 9) {
+            return (
+                <View style={commonStyles.container}>
+                    <StickyHeader onBack={goBack} />
+
+                    <ScrollView
+                        ref={scrollViewRef}
+                        style={commonStyles.scrollView}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ flexGrow: 1 }}
+                        onContentSizeChange={() => scrollToTop()}
+                        onLayout={() => scrollToTop()}
+                    >
+                        <View style={commonStyles.centeredContent}>
+                            <Card style={commonStyles.baseCard}>
+                                <View style={styles.overviewIconContainer}>
+                                    <View style={[styles.overviewIconGradient, { backgroundColor: '#928490' }]}>
+                                        <Target size={40} color="#E2DED0" />
+                                    </View>
+                                </View>
+
+                                <Text style={styles.overviewTitle}>Explore Your Spending Values</Text>
+
+                                <PrimaryButton title="See Your Results" onPress={handleContinueRoleplay} />
+                            </Card>
+                        </View>
+                    </ScrollView>
+                </View>
+            );
+        }
+
+        // Results Screens
+        if (currentScreen === 10) {
+            const personalizedResults = getPersonalizedResults();
+
+            return (
+                <View style={commonStyles.container}>
+                    <StickyHeader onBack={goBack} />
+
+                    <ScrollView
+                        ref={scrollViewRef}
+                        style={commonStyles.scrollView}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ flexGrow: 1 }}
+                        onContentSizeChange={() => scrollToTop()}
+                        onLayout={() => scrollToTop()}
+                    >
+                        <View style={commonStyles.centeredContent}>
+                            <Card style={commonStyles.baseCard}>
+                                <Text style={styles.resultTitle}>Here's what your choices reveal</Text>
+
+                                <Text style={styles.resultText}>{personalizedResults[currentResultIndex]}</Text>
+
+                                <PrimaryButton
+                                    title={currentResultIndex < personalizedResults.length - 1 ? 'Continue' : 'See Summary'}
+                                    onPress={handleNextResult}
+                                />
+                            </Card>
+                        </View>
+                    </ScrollView>
+                </View>
+            );
+        }
+
+        // Final Summary Screen with Journal
+        if (currentScreen === 11) {
+            return (
+                <View style={commonStyles.container}>
+                    <StickyHeader onBack={goBack} />
+
+                    <ScrollView
+                        ref={scrollViewRef}
+                        style={commonStyles.scrollView}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ flexGrow: 1 }}
+                        onContentSizeChange={() => scrollToTop()}
+                        onLayout={() => scrollToTop()}
+                    >
+                        <View style={commonStyles.centeredContent}>
+                            <Card style={commonStyles.baseCard}>
+                                <View style={styles.finalIconContainer}>
+                                    <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
+                                        <Target size={40} color="#E2DED0" />
+                                    </View>
+                                </View>
+
+                                <Text style={styles.finalTitle}>Your Budget Shows Your Values</Text>
+
+                                <Text style={styles.finalText}>
+                                    How does this financial portrait feel? Use this as a starting point to craft a budget that truly reflects your values. A budget that fuels what you love and cuts what you don't.
+                                    {"\n\n"}
+                                    The goal isn't restriction, it's alignment.
+                                    {"\n\n"}
+                                    Let's keep going tomorrow.
+                                </Text>
+
+                                <JournalEntrySection
+                                    pathTag="budgeting-for-dancers"
+                                    day="5"
+                                    category="finance"
+                                    pathTitle="Money Mindsets"
+                                    dayTitle="Meet Your Must Haves"
+                                    journalInstruction="How do your spending choices reflect your core values? What surprised you about your must-haves?"
+                                    moodLabel=""
+                                    saveButtonText="Save Entry"
+                                />
+
+                                <View style={styles.journalCallout}>
+                                    <Text style={styles.journalCalloutTitle}>Your Personal Space</Text>
+                                    <Text style={styles.journalCalloutText}>
+                                        Remember, feel free to use the journal tab at any time to jot down your thoughts. This app is for you! Use it how you'd like to!
+                                    </Text>
+                                </View>
+
+                                <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+                            </Card>
+                        </View>
+                    </ScrollView>
+                </View>
+            );
+        }
+    }
 
     // Welcome Screen
     if (currentScreen === -1) {
@@ -279,7 +650,7 @@ export default function RoleplayPromptEngine({
     }
 
     // Engine Intro Screen
-    if (currentScreen === 0 && engineIntroScreen) {
+    if (currentScreen === 0 && engineIntroScreen && flowType !== 'tryItOn') {
         return (
             <View style={commonStyles.container}>
                 <StickyHeader onBack={goBack} />
@@ -819,7 +1190,7 @@ export default function RoleplayPromptEngine({
                                         webViewProps={{
                                             allowsFullscreenVideo: true,
                                         }}
-                                        onChangeState={(state) => {
+                                        onChangeState={(state: string) => {
                                             console.log('Video state:', state);
                                         }}
                                     />
@@ -1423,5 +1794,118 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 32,
         fontWeight: '600',
+    },
+    // MustHaves Specific Styles
+    progressContainer: {
+        alignItems: 'center',
+        marginBottom: 30,
+    },
+    progressText: {
+        fontFamily: 'Montserrat-Medium',
+        fontSize: 14,
+        color: '#928490',
+        marginBottom: 10,
+    },
+    progressBar: {
+        width: '100%',
+        height: 6,
+        backgroundColor: 'rgba(146, 132, 144, 0.3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#928490',
+        borderRadius: 3,
+    },
+    choiceTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 30,
+        fontWeight: '700',
+    },
+    overviewIconContainer: {
+        marginBottom: 24,
+    },
+    overviewIconGradient: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    overviewTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 32,
+        fontWeight: '700',
+    },
+    resultTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 25,
+        fontWeight: '700',
+    },
+    resultText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 18,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 26,
+        marginBottom: 32,
+    },
+    finalIconContainer: {
+        marginBottom: 24,
+    },
+    finalIconGradient: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    finalTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 28,
+        color: '#647C90',
+        textAlign: 'center',
+        marginBottom: 20,
+        fontWeight: '700',
+    },
+    finalText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#4E4F50',
+        textAlign: 'center',
+        lineHeight: 24,
+        marginBottom: 32,
+    },
+    introIconGradient: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 5,
     },
 });

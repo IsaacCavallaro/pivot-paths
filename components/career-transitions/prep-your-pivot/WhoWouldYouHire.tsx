@@ -1,9 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { ChevronRight, Users, Award, ArrowLeft, ChevronLeft, Check } from 'lucide-react-native';
+import { Users, Award, Check } from 'lucide-react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
-import { useStorage } from '@/hooks/useStorage';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { Card } from '@/utils/ui-components/Card';
@@ -18,8 +17,8 @@ interface WhoWouldYouHireProps {
 export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireProps) {
     const [currentScreen, setCurrentScreen] = useState(-1);
     const { scrollViewRef, scrollToTop } = useScrollToTop();
-    const [selectedChoice, setSelectedChoice] = useStorage<number | null>('WHOWOULDYOUHIRE_CHOICE', null);
-    const [currentScenario, setCurrentScenario] = useStorage<number>('WHOWOULDYOUHIRE_SCENARIO', 0);
+    const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
+    const [currentScenario, setCurrentScenario] = useState(0);
 
     const scenarios = [
         {
@@ -82,8 +81,8 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
         scrollToTop();
     };
 
-    const handleChoiceSelect = async (choiceNumber: number) => {
-        await setSelectedChoice(choiceNumber);
+    const handleChoiceSelect = (choiceNumber: number) => {
+        setSelectedChoice(choiceNumber);
         scrollToTop();
     };
 

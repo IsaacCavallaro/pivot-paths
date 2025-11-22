@@ -1,4 +1,3 @@
-// roleplayPromptEngine.d.ts
 import { LucideIcon } from 'lucide-react-native';
 
 export interface JournalSectionProps {
@@ -18,14 +17,23 @@ export interface FormulaStep {
     text: string;
 }
 
-// Extended interface to support TryItOn's two-question structure
+// Question structure for TryItOn flow
+export interface TryItOnQuestion {
+    text: string;
+    choice1: string;
+    choice2: string;
+    response1: string;
+    response2: string;
+}
+
+// Extended interface to support both standard and TryItOn flows
 export interface RoleplayScenarioContent {
     id: number;
     scenarioTitle: string;
     scenarioText: string;
     scenarioQuestion?: string;
 
-    // For backward compatibility - single question structure
+    // For standard flow - single question structure
     choices?: {
         id: string;
         text: string;
@@ -33,21 +41,9 @@ export interface RoleplayScenarioContent {
     responses?: string[];
     followUpTexts?: string[];
 
-    // For TryItOn's two-question structure
-    question1?: {
-        text: string;
-        choice1: string;
-        choice2: string;
-        response1: string;
-        response2: string;
-    };
-    question2?: {
-        text: string;
-        choice1: string;
-        choice2: string;
-        response1: string;
-        response2: string;
-    };
+    // For TryItOn flow - two-question structure
+    question1?: TryItOnQuestion;
+    question2?: TryItOnQuestion;
     reflection?: string;
 
     alternativeTitle?: string;
@@ -68,51 +64,65 @@ export interface LearningBoxItem {
     text: string;
 }
 
+export interface WelcomeScreenProps {
+    title: string;
+    descriptions: string[];
+    learningBox?: {
+        title: string;
+        items: LearningBoxItem[];
+    };
+    welcomeFooter?: string;
+    journalSectionProps: JournalSectionProps;
+    buttonText: string;
+}
+
+export interface EngineIntroScreenProps {
+    title: string;
+    descriptions: string[];
+    buttonText: string;
+}
+
+export interface ReflectionScreenProps {
+    title: string;
+    descriptions: string[];
+    reflectionEmphasis?: string;
+    journalSectionProps: JournalSectionProps;
+    buttonText: string;
+}
+
+export interface FinalScreenProps {
+    title: string;
+    descriptions: string[];
+    videoLink?: string;
+    alternativeClosing?: string;
+    journalSectionProps?: JournalSectionProps;
+    buttonText: string;
+}
+
 export interface RoleplayPromptEngineProps {
     onComplete: () => void;
     onBack?: () => void;
 
+    // General Props
     imageSource?: string;
     engineTitle: string;
     engineInstructions: string;
 
+    // Array of structured scenarios
     scenarios: RoleplayScenarioContent[];
 
-    welcomeScreen: {
-        title: string;
-        descriptions: string[];
-        learningBox?: {
-            title: string;
-            items: LearningBoxItem[];
-        };
-        welcomeFooter?: string;
-        journalSectionProps: JournalSectionProps;
-        buttonText: string;
-    };
+    // Welcome Screen
+    welcomeScreen: WelcomeScreenProps;
 
-    engineIntroScreen?: {
-        title: string;
-        descriptions: string[];
-        buttonText: string;
-    };
+    // Engine Intro Screen (optional, if different from welcome)
+    engineIntroScreen?: EngineIntroScreenProps;
 
-    reflectionScreen: {
-        title: string;
-        descriptions: string[];
-        reflectionEmphasis?: string;
-        journalSectionProps: JournalSectionProps;
-        buttonText: string;
-    };
+    // Reflection Screen (after all scenarios are complete, or per scenario if needed)
+    reflectionScreen: ReflectionScreenProps;
 
-    finalScreen: {
-        title: string;
-        descriptions: string[];
-        videoLink?: string;
-        alternativeClosing?: string;
-        journalSectionProps?: JournalSectionProps;
-        buttonText: string;
-    };
+    // Final Screen (after reflection)
+    finalScreen: FinalScreenProps;
 
-    // New prop to handle TryItOn specific flow
-    flowType?: 'standard' | 'tryItOn';
+    // New prop to handle different flow types
+    flowType?: 'standard' | 'tryItOn' | 'mustHaves';
 }
