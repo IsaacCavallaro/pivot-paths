@@ -21,7 +21,6 @@ const hanndleMockInterviewOpen = () => {
 
 export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     const [currentScreen, setCurrentScreen] = useState(-1);
-    const [currentScenario, setCurrentScenario] = useStorage<number>('TRY_IT_ON_CURRENT_SCENARIO', 0);
     const [selectedChoices, setSelectedChoices] = useState<{ [key: number]: number }>({});
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
@@ -129,21 +128,11 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
     };
 
     const handleNextScenario = () => {
-        if (currentScenario < scenarios.length - 1) {
-            setCurrentScenario(currentScenario + 1);
-            setSelectedChoices({});
-            setCurrentScreen(1);
-        } else {
-            setCurrentScreen(6); // Changed from 7 to 6 to match the final screen
-        }
+        setCurrentScreen(6); // Go to final screen
         scrollToTop();
     };
 
     const getCurrentScenarioData = () => {
-        // Add bounds checking to prevent undefined errors
-        if (currentScenario >= 0 && currentScenario < scenarios.length) {
-            return scenarios[currentScenario];
-        }
         // Return first scenario as fallback
         return scenarios[0];
     };
@@ -178,7 +167,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                             <Text style={commonStyles.introTitle}>Try It On</Text>
 
                             <Text style={commonStyles.introDescription}>
-                                Let's try on some new careers to see how they might feel in the real world. We'll show you a few scenarios and you'll choose what you'd do in each situation.
+                                Let's try on some new careers to see how they might feel in the real world. We'll show you a few scenarios and you'll choose what you'd do in each situations.
                             </Text>
 
                             <PrimaryButton title="Begin" onPress={handleStartTryItOn} />
@@ -214,7 +203,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                             </Text>
 
                             <PrimaryButton
-                                title={currentScenario === 1 ? "What will you say?" : currentScenario === 2 ? "How do you respond?" : "What will you do?"}
+                                title="What will you do?"
                                 onPress={handleContinue}
                             />
                         </Card>
@@ -472,7 +461,7 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
                             <Text style={styles.responseText}>{scenario.reflection}</Text>
 
                             <PrimaryButton
-                                title={currentScenario < scenarios.length - 1 ? "Next Scenario" : "Continue"}
+                                title="Continue"
                                 onPress={handleNextScenario}
                             />
                         </Card>

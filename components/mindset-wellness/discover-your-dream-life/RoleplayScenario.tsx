@@ -1,6 +1,6 @@
 import React from 'react';
 import RoleplayPromptEngine from '@/components/shared/roleplay-prompt-engine/RoleplayPromptEngine';
-import { RoleplayScenarioContent } from '@/types/roleplayPromptEngine'; // Updated import to RoleplayScenarioContent
+import { RoleplayScenarioContent } from '@/types/roleplayPromptEngine';
 
 interface RoleplayScenarioProps {
   onComplete: () => void;
