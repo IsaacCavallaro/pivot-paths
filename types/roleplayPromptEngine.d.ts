@@ -124,5 +124,5 @@ export interface RoleplayPromptEngineProps {
     finalScreen: FinalScreenProps;
 
     // New prop to handle different flow types
-    flowType?: 'standard' | 'tryItOn' | 'mustHaves';
+    flowType?: 'standard' | 'tryItOn' | 'mustHaves' | 'simpleChoice';
 }
