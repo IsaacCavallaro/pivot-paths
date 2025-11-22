@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, Image, Linking, ScrollView, TouchableOpacity } from 'react-native';
-import { Check, Sparkles, Target, TrendingUp, Users } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
-import { useJournaling } from '@/utils/hooks/useJournaling';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
@@ -52,8 +51,6 @@ export default function ThisOrThatEngine({
     const [gameChoices, setGameChoices] = useState<{ [key: string]: string }>({});
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
-    const { addJournalEntry: addMorningJournalEntry } = useJournaling(pathTag);
-    const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling(pathTag);
 
     useEffect(() => {
         if (choices && choices.length > 0) {
@@ -132,7 +129,9 @@ export default function ThisOrThatEngine({
     };
 
     const handleOpenEbook = () => {
-        Linking.openURL(ebookLink);
+        if (ebookLink) {
+            Linking.openURL(ebookLink);
+        }
     };
 
     // Helper to render text as array or string
