@@ -36,51 +36,61 @@ export default function JustStart({ onComplete, onBack }: JustStartProps) {
     const cards = [
         {
             id: 1,
+            title: "Just Start",
             prompt: "Send one LinkedIn connection request to someone you admire",
             buttonText: "Sent!"
         },
         {
             id: 2,
+            title: "Just Start",
             prompt: "Research one course, workshop, or webinar in a field that interests you",
             buttonText: "Done!"
         },
         {
             id: 3,
+            title: "Just Start",
             prompt: "Write a 3-line elevator pitch about your skills and experience",
             buttonText: "Nailed it!"
         },
         {
             id: 4,
+            title: "Just Start",
             prompt: "Reach out to a friend or former colleague to ask about their career path",
             buttonText: "Sent!"
         },
         {
             id: 5,
+            title: "Just Start",
             prompt: "Ask someone for a small feedback or advice session",
             buttonText: "Asked!"
         },
         {
             id: 6,
+            title: "Just Start",
             prompt: "Volunteer for a project in your community",
             buttonText: "Done!"
         },
         {
             id: 7,
+            title: "Just Start",
             prompt: "Make a list of 3 potential roles or industries you'd like to explore",
             buttonText: "Got it!"
         },
         {
             id: 8,
+            title: "Just Start",
             prompt: "Comment on a LinkedIn post or join a discussion in an online community",
             buttonText: "Posted!"
         },
         {
             id: 9,
+            title: "Just Start",
             prompt: "Spend 15 minutes practicing or trying a new skill",
             buttonText: "Yes!"
         },
         {
             id: 10,
+            title: "Just Start",
             prompt: "Reflect for 5 minutes: what's one small step you can take right now?",
             buttonText: "Start now"
         }
@@ -125,7 +135,7 @@ export default function JustStart({ onComplete, onBack }: JustStartProps) {
         <CardPromptEngine
             onComplete={onComplete}
             onBack={onBack}
-            cardType="swipe"
+            cardType="experiment"
             primaryButtonText="Let's begin"
             imageSource="https://pivotfordancers.com/assets/logo.png"
             introScreen={introScreen}
