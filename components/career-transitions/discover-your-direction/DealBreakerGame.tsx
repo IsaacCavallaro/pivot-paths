@@ -13,56 +13,56 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
             leftText: "No creative freedom",
             rightText: "Rigid, highly structured corporate roles",
             leftType: "dealBreaker",
-            rightType: "environment"
+            rightType: "role"
         },
         {
             id: 2,
             leftText: "Low flexibility",
             rightText: "Jobs with strict 9–5 schedules and no hybrid options",
             leftType: "dealBreaker",
-            rightType: "environment"
+            rightType: "role"
         },
         {
             id: 3,
             leftText: "Constant public scrutiny",
             rightText: "Front-facing client roles or media positions",
             leftType: "dealBreaker",
-            rightType: "environment"
+            rightType: "role"
         },
         {
             id: 4,
             leftText: "Minimal social interaction",
             rightText: "Remote or solitary work without collaboration",
             leftType: "dealBreaker",
-            rightType: "environment"
+            rightType: "role"
         },
         {
             id: 5,
             leftText: "Unclear expectations",
             rightText: "Roles with no defined processes or guidance",
             leftType: "dealBreaker",
-            rightType: "environment"
+            rightType: "role"
         },
         {
             id: 6,
             leftText: "Repetitive tasks",
             rightText: "Roles with limited variety or creativity like data entry or admin",
             leftType: "dealBreaker",
-            rightType: "environment"
+            rightType: "role"
         },
         {
             id: 7,
             leftText: "Lack of growth opportunities",
             rightText: "Positions with little training or promotion potential",
             leftType: "dealBreaker",
-            rightType: "environment"
+            rightType: "role"
         },
         {
             id: 8,
             leftText: "Low autonomy",
             rightText: "Jobs requiring constant supervision",
             leftType: "dealBreaker",
-            rightType: "environment"
+            rightType: "role"
         }
     ];
 
@@ -139,7 +139,7 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
             gameTitle="Deal Breakers"
             gameInstructions="Tap to match deal breakers with their environments"
             leftColumnTitle="Deal Breaker"
-            rightColumnTitle="Environment"
+            rightColumnTitle="Role"
             pairs={pairs}
             welcomeScreen={welcomeScreen}
             gameIntroScreen={gameIntroScreen}
