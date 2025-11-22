@@ -154,7 +154,6 @@ export default function RoleplayPromptEngine({
 
     const handleChoiceSelect = (choiceIndex: number) => {
         setSelectedChoiceIndex(choiceIndex);
-        scrollToTop();
     };
 
     const handleTryItOnChoiceSelect = (questionNumber: number, choiceNumber: number) => {
@@ -162,18 +161,15 @@ export default function RoleplayPromptEngine({
             ...prev,
             [questionNumber]: choiceNumber
         }));
-        scrollToTop();
     };
 
     const handleMustHavesChoiceSelect = (choiceNumber: number) => {
         const newChoices = { ...selectedChoices, [currentScenarioIndex + 1]: choiceNumber };
         setSelectedChoices(newChoices);
-        scrollToTop();
     };
 
     const handleSimpleChoiceSelect = (choiceIndex: number) => {
         setSelectedChoiceIndex(choiceIndex);
-        scrollToTop();
     };
 
     const handleContinueRoleplay = () => {
@@ -1502,7 +1498,7 @@ export default function RoleplayPromptEngine({
                 onContentSizeChange={() => scrollToTop()}
                 onLayout={() => scrollToTop()}
             >
-                <View style={commonStyles.centeredContent}>
+                <View style={styles.centeredContent}>
                     <Card style={commonStyles.baseCard}>
                         {/* Scenario Intro / Initial Choices */}
                         {roleplayStep === 0 && (
@@ -1626,6 +1622,13 @@ export default function RoleplayPromptEngine({
 }
 
 const styles = StyleSheet.create({
+    centeredContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 50,
+        paddingBottom: 30,
+    },
     // Welcome Screen Styles
     celebrationBox: {
         width: '100%',
