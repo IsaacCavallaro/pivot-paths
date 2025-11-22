@@ -282,9 +282,8 @@ export default function RoleplayPromptEngine({
             setCurrentScreen(1); // Scenario Intro → Choices
         } else if (currentScreen === 1) {
             setCurrentScreen(2); // Choices → Response
-        } else if (currentScreen === 2 && selectedChoiceIndex !== null) {
-            setCurrentScreen(3); // Response → Next scenario or final
-        } else if (currentScreen === 3) {
+        } else if (currentScreen === 2) {
+            // Response → Next scenario or final
             if (currentScenarioIndex < scenarios.length - 1) {
                 setCurrentScenarioIndex(currentScenarioIndex + 1);
                 setSelectedChoiceIndex(null);
@@ -297,7 +296,6 @@ export default function RoleplayPromptEngine({
         }
         scrollToTop();
     };
-
     const handleNextResult = () => {
         if (currentResultIndex < getPersonalizedResults().length - 1) {
             setCurrentResultIndex(currentResultIndex + 1);
