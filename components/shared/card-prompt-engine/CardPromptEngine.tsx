@@ -633,8 +633,8 @@ export default function CardPromptEngine({
         outputRange: ['0%', '100%'],
     });
 
-    const titleText = cardType === 'method' || cardType === 'challenge' || cardType === 'benefit'
-        ? `${cardType === 'method' ? 'Method' : cardType === 'benefit' ? 'Benefit' : ''} ${currentIndex + 1} of ${cards.length}`.trim()
+    const titleText = cardType === 'method' || cardType === 'challenge' || cardType === 'benefit' || cardType === 'experiment'
+        ? `${cardType === 'method' ? 'Method' : cardType === 'benefit' ? 'Benefit' : cardType === 'experiment' ? 'Step' : ''} ${currentIndex + 1} of ${cards.length}`.trim()
         : cardType === 'choice'
             ? `${currentIndex + 1} of ${cards.length} choices`
             : `${currentIndex + 1} of ${cards.length} ${cardType === 'swipe' ? 'activities' : 'validations'}`;
@@ -884,6 +884,16 @@ export default function CardPromptEngine({
                                     style={styles.choiceButton}
                                 />
                             </View>
+                        </Animated.View>
+                    ) : cardType === "experiment" ? (
+                        <Animated.View style={[styles.experimentCard, { opacity: fadeAnim, transform: [{ scale: cardScale }] }]}>
+                            <Card style={commonStyles.baseCard}>
+                                <Text style={styles.experimentTitle}>{currentCard.title}</Text>
+                                <View style={styles.experimentPromptContainer}>
+                                    <Text style={styles.experimentPrompt}>{currentCard.prompt}</Text>
+                                </View>
+                                <PrimaryButton title={currentCard.buttonText} onPress={handleContinue} />
+                            </Card>
                         </Animated.View>
                     ) : (
                         <Animated.View style={[styles.choiceCard, { opacity: fadeAnim, transform: [{ scale: cardScale }] }]}>
@@ -1292,5 +1302,32 @@ const styles = StyleSheet.create({
         gap: 20,
         marginBottom: 40,
         width: '100%',
+    },
+    experimentCard: {
+        width: width * 0.85,
+    },
+    experimentTitle: {
+        fontFamily: 'Merriweather-Bold',
+        fontSize: 24,
+        color: '#4E4F50',
+        textAlign: 'center',
+        marginBottom: 20,
+        lineHeight: 30,
+    },
+    experimentPromptContainer: {
+        backgroundColor: 'rgba(146,132,144,0.15)',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 40,
+        borderLeftWidth: 4,
+        borderLeftColor: '#928490',
+        width: '100%',
+    },
+    experimentPrompt: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 16,
+        color: '#4E4F50',
+        textAlign: 'left',
+        lineHeight: 24,
     },
 });

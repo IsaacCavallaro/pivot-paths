@@ -17,7 +17,7 @@ export interface CardPromptEngineProps {
     onBack?: () => void;
 
     // Config for card type
-    cardType: "flip" | "swipe" | "choice" | "method" | "challenge" | "benefit";
+    cardType: "flip" | "swipe" | "choice" | "method" | "challenge" | "benefit" | "experiment";
 
     // General Props
     primaryButtonText: string;

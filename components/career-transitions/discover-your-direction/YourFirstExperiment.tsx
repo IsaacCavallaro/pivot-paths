@@ -36,32 +36,38 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
     const cards = [
         {
             id: 1,
-            prompt: "Step 1: Choose Your Focus\n\nPick one career idea from your exploration so far. Don't overthink it. Choose the one that excites you most right now.",
+            title: "Step 1: Choose Your Focus",
+            prompt: "Pick one career idea from your exploration so far. Don't overthink it. Choose the one that excites you most right now.",
             buttonText: "I've chosen my focus"
         },
         {
             id: 2,
-            prompt: "Step 2: Find a Resource\n\nFind one free way to step into that world:\n\n• Go down a rabbit hole on YouTube for 30 minutes\n• Read 10 blogs or articles on the role\n• Listen to a podcast by someone in that field",
+            title: "Step 2: Find a Resource",
+            prompt: "Find one free way to step into that world:\n\n• Go down a rabbit hole on YouTube for 30 minutes\n• Read 10 blogs or articles on the role\n• Listen to a podcast by someone in that field",
             buttonText: "I found my resource"
         },
         {
             id: 3,
-            prompt: "Step 3: Set a Small Goal\n\nDecide on one tangible thing you will do today:\n\n• Write down 3 job titles in that industry\n• List 3 questions you want answered by an expert\n• Identify one skill you want to try",
+            title: "Step 3: Set a Small Goal",
+            prompt: "Decide on one tangible thing you will do today:\n\n• Write down 3 job titles in that industry\n• List 3 questions you want answered by an expert\n• Identify one skill you want to try",
             buttonText: "Goal set!"
         },
         {
             id: 4,
-            prompt: "Step 4: Connect With Someone\n\nReach out to one person connected to that career:\n\n• Send a short message to a friend, mentor, or LinkedIn contact\n• Ask about their experience or for a tip to get started",
+            title: "Step 4: Connect With Someone",
+            prompt: "Reach out to one person connected to that career:\n\n• Send a short message to a friend, mentor, or LinkedIn contact\n• Ask about their experience or for a tip to get started",
             buttonText: "Connection made"
         },
         {
             id: 5,
-            prompt: "Step 5: Reflect\n\nAfter completing your experiment, ask yourself:\n\n• What surprised me?\n• What felt exciting or energizing?\n• What felt challenging or uncomfortable?\n\nTake a few minutes to write your observations.",
+            title: "Step 5: Reflect",
+            prompt: "After completing your experiment, ask yourself:\n\n• What surprised me?\n• What felt exciting or energizing?\n• What felt challenging or uncomfortable?\n\nTake a few minutes to write your observations.",
             buttonText: "I've reflected"
         },
         {
             id: 6,
-            prompt: "Step 6: Decide Next Move\n\nBased on what you learned, pick your next small step:\n\n• Repeat a similar experiment (we're building on momentum here!)\n• This time, try a different career idea\n• Or reach deeper into this field with a workshop, class, or volunteer opportunity",
+            title: "Step 6: Decide Next Move",
+            prompt: "Based on what you learned, pick your next small step:\n\n• Repeat a similar experiment (we're building on momentum here!)\n• This time, try a different career idea\n• Or reach deeper into this field with a workshop, class, or volunteer opportunity",
             buttonText: "Next move decided"
         }
     ];
@@ -105,7 +111,7 @@ export default function YourFirstExperiment({ onComplete, onBack }: YourFirstExp
         <CardPromptEngine
             onComplete={onComplete}
             onBack={onBack}
-            cardType="swipe"
+            cardType="experiment"
             primaryButtonText="Let's experiment"
             imageSource="https://pivotfordancers.com/assets/logo.png"
             introScreen={introScreen}
