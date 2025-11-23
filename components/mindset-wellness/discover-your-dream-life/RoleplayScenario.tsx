@@ -79,6 +79,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
       "Every choice you make opens up new possibilities. The wedding scenario shows how financial stability and work-life balance can transform your ability to show up for the people and experiences that matter most."
     ],
     reflectionEmphasis: "Take a detour to see how our founder has done it, but don't forget to come back and mark this day as complete!",
+    videoLink: "https://www.youtube.com/shorts/s-hpQ9XBGP4",
     journalSectionProps: {
       pathTag: "discover-dream-life",
       day: "3",
@@ -89,16 +90,16 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
       moodLabel: "",
       saveButtonText: "Save Entry",
     },
-    buttonText: "Mark As Complete",
+    buttonText: "Continue",
   };
 
   const finalScreen = {
     title: "Roleplay Complete!",
     descriptions: [
-      "Congratulations on completing the roleplay scenarios! You've taken a significant step in practicing important life skills.",
+      "You've taken a significant step in practicing important life skills.",
       "Remember, practice makes progress. The more you visualize and rehearse these situations, the more confident you'll become in real life."
     ],
-    videoLink: "https://www.youtube.com/shorts/s-hpQ9XBGP4",
+    videoLink: "",
     alternativeClosing: "Keep practicing and evolving!",
     journalSectionProps: {
       pathTag: "discover-dream-life",

@@ -346,18 +346,35 @@ export default function RoleplayPromptEngine({
         return results;
     };
 
-    const getVideoId = (url: string) => {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const getVideoId = (url: string): string | null => {
+        if (!url) return null;
+
+        // Comprehensive regex that handles:
+        // - https://www.youtube.com/shorts/VIDEO_ID
+        // - https://youtu.be/VIDEO_ID
+        // - https://www.youtube.com/watch?v=VIDEO_ID
+        // - https://www.youtube.com/embed/VIDEO_ID
+        // - Shortened formats, etc.
+        const regExp =
+            /^.*(youtu\.be\/|youtube\.com\/(watch\?.*v=|embed\/|shorts\/|v\/))([^#&?]*).*/;
+
         const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
+        const candidate = match && match[3] ? match[3] : null;
+
+        // YouTube video IDs are always 11 characters
+        if (candidate && candidate.length === 11) {
+            return candidate;
+        }
+
+        return null;
     };
 
     const openVideoModal = useCallback(() => {
-        if (finalScreen.videoLink) {
+        if (finalScreen.videoLink || reflectionScreen.videoLink) {
             setShowVideoModal(true);
             setIsPlaying(true);
         }
-    }, [finalScreen.videoLink]);
+    }, [finalScreen.videoLink, reflectionScreen.videoLink]);
 
     const closeVideoModal = useCallback(() => {
         setIsPlaying(false);
@@ -1314,6 +1331,10 @@ export default function RoleplayPromptEngine({
     // Reflection Screen (per scenario reflection)
     if (currentScreen === 2) {
         const currentScenarioData = scenarios[currentScenarioIndex];
+        const youtubeVideoId = reflectionScreen.videoLink ? getVideoId(reflectionScreen.videoLink) : null;
+
+        console.log('Reflection Screen - Video Link:', reflectionScreen.videoLink);
+        console.log('Reflection Screen - Video ID:', youtubeVideoId);
 
         return (
             <View style={commonStyles.container}>
@@ -1345,11 +1366,32 @@ export default function RoleplayPromptEngine({
                                 </Text>
                             ))}
 
+                            {/* FIXED: Proper text wrapping */}
                             {reflectionScreen.reflectionEmphasis && (
-                                <Text style={commonStyles.reflectionDescription}>
-                                    <Text style={styles.reflectionEmphasis}>({reflectionScreen.reflectionEmphasis})</Text>
+                                <Text style={[commonStyles.reflectionDescription, styles.reflectionEmphasis]}>
+                                    ({reflectionScreen.reflectionEmphasis})
                                 </Text>
                             )}
+
+                            {/* YouTube Short */}
+                            {youtubeVideoId ? (
+                                <TouchableOpacity
+                                    style={styles.videoThumbnailContainer}
+                                    onPress={() => openYouTubeShort(reflectionScreen.videoLink!)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Image
+                                        source={{ uri: `https://img.youtube.com/vi/${youtubeVideoId}/maxresdefault.jpg` }}
+                                        style={styles.videoThumbnail}
+                                        resizeMode="cover"
+                                    />
+                                    <View style={styles.playButtonOverlay}>
+                                        <View style={styles.playButton}>
+                                            <Text style={styles.playIcon}>▶</Text>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            ) : null}
 
                             {/* Journal section for scenario reflection */}
                             <Text style={styles.reflectionPromptText}>{currentScenarioData.reflectionPrompt}</Text>
@@ -1359,10 +1401,45 @@ export default function RoleplayPromptEngine({
                         </Card>
                     </View>
                 </ScrollView>
+
+                {/* Modal for YouTube video */}
+                {youtubeVideoId && (
+                    <Modal
+                        visible={showVideoModal}
+                        transparent={true}
+                        animationType="fade"
+                        onRequestClose={closeVideoModal}
+                    >
+                        <View style={styles.modalOverlay}>
+                            <View style={styles.modalContent}>
+                                <TouchableOpacity
+                                    style={styles.closeButton}
+                                    onPress={closeVideoModal}
+                                    activeOpacity={0.8}
+                                >
+                                    <X size={28} color="#FFFFFF" />
+                                </TouchableOpacity>
+
+                                <View style={styles.videoPlayerContainer}>
+                                    <YoutubePlayer
+                                        height={height * 0.75}
+                                        play={isPlaying}
+                                        videoId={youtubeVideoId}
+                                        webViewProps={{
+                                            allowsFullscreenVideo: true,
+                                        }}
+                                        onChangeState={(state: string) => {
+                                            console.log('Video state:', state);
+                                        }}
+                                    />
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
+                )}
             </View>
         );
     }
-
     // Final Screen
     if (currentScreen === 3) {
         const youtubeVideoId = finalScreen.videoLink ? getVideoId(finalScreen.videoLink) : null;
@@ -1418,10 +1495,18 @@ export default function RoleplayPromptEngine({
                             )}
 
                             {finalScreen.journalSectionProps && (
-                                <View style={styles.journalCallout}>
-                                    <Text style={styles.journalCalloutTitle}>{finalScreen.journalSectionProps.dayTitle}</Text>
-                                    <Text style={styles.journalCalloutText}>{finalScreen.journalSectionProps.journalInstruction}</Text>
-                                </View>
+                                <>
+                                    <JournalEntrySection {...finalScreen.journalSectionProps} />
+
+                                    <View style={styles.journalCallout}>
+                                        <Text style={styles.journalCalloutTitle}>
+                                            {finalScreen.journalSectionProps.dayTitle || "Your Personal Space"}
+                                        </Text>
+                                        <Text style={styles.journalCalloutText}>
+                                            {finalScreen.journalSectionProps.journalInstruction || "Remember, feel free to use the journal tab at any time to jot down your thoughts. This app is for you! Use it how you'd like to!"}
+                                        </Text>
+                                    </View>
+                                </>
                             )}
 
                             {finalScreen.alternativeClosing && (

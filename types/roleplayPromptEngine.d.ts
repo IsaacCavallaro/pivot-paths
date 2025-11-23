@@ -99,6 +99,15 @@ export interface FinalScreenProps {
     buttonText: string;
 }
 
+export interface ReflectionScreenProps {
+    title: string;
+    descriptions: string[];
+    reflectionEmphasis?: string;
+    videoLink?: string;
+    journalSectionProps: JournalSectionProps;
+    buttonText: string;
+}
+
 export interface RoleplayPromptEngineProps {
     onComplete: () => void;
     onBack?: () => void;
