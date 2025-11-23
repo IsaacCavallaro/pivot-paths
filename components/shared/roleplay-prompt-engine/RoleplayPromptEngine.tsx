@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Linking, TouchableOpacity, Dimensions, Modal } from 'react-native';
-import { X, Check, Users, Award, Gift, ChevronRight, Target } from 'lucide-react-native';
+import { X, Check, ChevronRight } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
@@ -13,12 +13,17 @@ import { RoleplayPromptEngineProps, RoleplayScenarioContent } from '@/types/role
 
 const { width, height } = Dimensions.get('window');
 
+// Screen flow constants
+const SCREEN_WELCOME = 'welcome';
+const SCREEN_INTRO = 'intro';
+const SCREEN_SCENARIO = 'scenario';
+const SCREEN_REFLECTION = 'reflection';
+const SCREEN_FINAL = 'final';
+
 export default function RoleplayPromptEngine({
     onComplete,
     onBack,
     imageSource,
-    engineTitle,
-    engineInstructions,
     scenarios,
     welcomeScreen,
     engineIntroScreen,
@@ -26,12 +31,11 @@ export default function RoleplayPromptEngine({
     finalScreen,
     flowType = 'standard',
 }: RoleplayPromptEngineProps) {
-    const [currentScreen, setCurrentScreen] = useState(-1);
+    const [currentScreen, setCurrentScreen] = useState<string>(SCREEN_WELCOME);
     const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
+    const [scenarioStep, setScenarioStep] = useState(0);
     const [selectedChoiceIndex, setSelectedChoiceIndex] = useState<number | null>(null);
-    const [roleplayStep, setRoleplayStep] = useState(0);
-    const [selectedChoices, setSelectedChoices] = useState<{ [key: number]: number }>({});
-    const [currentResultIndex, setCurrentResultIndex] = useState(0);
+    const [selectedChoices, setSelectedChoices] = useState<{ [key: string]: number }>({});
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [showVideoModal, setShowVideoModal] = useState(false);
@@ -40,396 +44,109 @@ export default function RoleplayPromptEngine({
 
     useEffect(() => {
         scrollToTop();
-    }, [currentScreen, roleplayStep, currentScenarioIndex]);
+    }, [currentScreen, scenarioStep, currentScenarioIndex]);
 
-    const handleBackPress = useCallback(() => {
-        if (onBack) {
-            onBack();
+    // Navigation helpers
+    const goToNextScreen = () => {
+        if (currentScreen === SCREEN_WELCOME) {
+            setCurrentScreen(engineIntroScreen ? SCREEN_INTRO : SCREEN_SCENARIO);
+        } else if (currentScreen === SCREEN_INTRO) {
+            setCurrentScreen(SCREEN_SCENARIO);
+        } else if (currentScreen === SCREEN_SCENARIO) {
+            handleScenarioProgression();
+        } else if (currentScreen === SCREEN_REFLECTION) {
+            setCurrentScreen(SCREEN_FINAL);
+        } else if (currentScreen === SCREEN_FINAL) {
+            onComplete();
         }
-    }, [onBack]);
+        scrollToTop();
+    };
 
     const goBack = () => {
+        if (currentScreen === SCREEN_WELCOME) {
+            onBack?.();
+        } else if (currentScreen === SCREEN_INTRO) {
+            setCurrentScreen(SCREEN_WELCOME);
+        } else if (currentScreen === SCREEN_SCENARIO) {
+            handleScenarioBack();
+        } else if (currentScreen === SCREEN_REFLECTION) {
+            // Go back to last scenario
+            setCurrentScenarioIndex(scenarios.length - 1);
+            setScenarioStep(getMaxScenarioSteps(scenarios[scenarios.length - 1]) - 1);
+            setCurrentScreen(SCREEN_SCENARIO);
+        } else if (currentScreen === SCREEN_FINAL) {
+            setCurrentScreen(SCREEN_REFLECTION);
+        }
+        scrollToTop();
+    };
+
+    // Scenario-specific logic
+    const getMaxScenarioSteps = (scenario: RoleplayScenarioContent): number => {
         if (flowType === 'tryItOn') {
-            handleTryItOnBack();
-        } else if (flowType === 'mustHaves') {
-            handleMustHavesBack();
+            return 7; // scenario intro, choice1, response1, question2, choice2, response2, scenario reflection
         } else if (flowType === 'simpleChoice') {
-            handleSimpleChoiceBack();
+            return 3; // scenario intro, choice, response
+        }
+        return 4; // standard: scenario intro, choice, response, alternative
+    };
+
+    const handleScenarioProgression = () => {
+        const currentScenario = scenarios[currentScenarioIndex];
+        const maxSteps = getMaxScenarioSteps(currentScenario);
+
+        if (scenarioStep < maxSteps - 1) {
+            setScenarioStep(prev => prev + 1);
         } else {
-            handleStandardBack();
-        }
-    };
-
-    const handleStandardBack = () => {
-        if (currentScreen === 0 && welcomeScreen) {
-            setCurrentScreen(-1);
-        } else if (currentScreen === 1) {
-            if (roleplayStep > 0) {
-                setRoleplayStep(prev => prev - 1);
-                if (roleplayStep === 1) {
-                    setSelectedChoiceIndex(null);
-                }
-            } else if (currentScenarioIndex > 0) {
-                setCurrentScenarioIndex(prev => prev - 1);
-                setRoleplayStep(3);
+            // Scenario complete, move to next scenario or reflection
+            if (currentScenarioIndex < scenarios.length - 1) {
+                setCurrentScenarioIndex(prev => prev + 1);
+                setScenarioStep(0);
                 setSelectedChoiceIndex(null);
-            } else if (engineIntroScreen) {
-                setCurrentScreen(0);
+                setSelectedChoices({});
             } else {
-                setCurrentScreen(-1);
+                // All scenarios complete
+                setCurrentScreen(SCREEN_REFLECTION);
             }
-        } else if (currentScreen === 2) {
-            setCurrentScreen(1);
-            setRoleplayStep(3);
-        } else if (currentScreen === 3) {
-            setCurrentScreen(2);
-        } else if (currentScreen === -1) {
-            handleBackPress();
         }
-        scrollToTop();
     };
 
-    const handleTryItOnBack = () => {
-        if (currentScreen === -1) {
-            handleBackPress();
-        } else if (currentScreen === 0) {
-            // Engine intro → Welcome
-            setCurrentScreen(-1);
-        } else if (currentScreen === 1) {
-            // First scenario → Engine intro
-            setCurrentScreen(0);
-        } else if (currentScreen === 2) {
-            // First choice → First scenario
-            setCurrentScreen(1);
-            setSelectedChoices(prev => {
-                const newChoices = { ...prev };
-                delete newChoices[1];
-                return newChoices;
-            });
-        } else if (currentScreen === 3) {
-            // First response → First choice
-            setCurrentScreen(2);
-        } else if (currentScreen === 4) {
-            // Second question → First response
-            setCurrentScreen(3);
-        } else if (currentScreen === 5) {
-            // Second choice → Second question
-            setCurrentScreen(4);
-            setSelectedChoices(prev => {
-                const newChoices = { ...prev };
-                delete newChoices[2];
-                return newChoices;
-            });
-        } else if (currentScreen === 6) {
-            // Second response → Second choice
-            setCurrentScreen(5);
-        } else if (currentScreen === 7) {
-            // Reflection → Second response
-            if (currentScenarioIndex > 0) {
-                setCurrentScenarioIndex(prev => prev - 1);
-                setCurrentScreen(6);
-            } else {
-                setCurrentScreen(6);
+    const handleScenarioBack = () => {
+        if (scenarioStep > 0) {
+            setScenarioStep(prev => prev - 1);
+            if (scenarioStep === 1) {
+                setSelectedChoiceIndex(null);
             }
-        } else if (currentScreen === 8) {
-            // Final reflection → Last scenario reflection
-            setCurrentScreen(7);
-            setCurrentScenarioIndex(scenarios.length - 1);
-        }
-        scrollToTop();
-    };
-
-    const handleMustHavesBack = () => {
-        if (currentScreen === -1) {
-            handleBackPress();
-        } else if (currentScreen === 0) {
-            setCurrentScreen(-1);
-        } else if (currentScreen >= 1 && currentScreen <= 8) {
-            if (currentScenarioIndex > 0) {
-                setCurrentScenarioIndex(prev => prev - 1);
-                setCurrentScreen(currentScreen - 1);
-            } else {
-                setCurrentScreen(0);
-            }
-        } else if (currentScreen === 9) {
-            setCurrentScreen(8);
-            setCurrentScenarioIndex(scenarios.length - 1);
-        } else if (currentScreen === 10) {
-            setCurrentScreen(9);
-            setCurrentResultIndex(0);
-        } else if (currentScreen === 11) {
-            setCurrentScreen(10);
-        }
-        scrollToTop();
-    };
-
-    const handleSimpleChoiceBack = () => {
-        if (currentScreen === -1) {
-            handleBackPress();
-        } else if (currentScreen === 0) {
-            setCurrentScreen(-1);
-        } else if (currentScreen === 1) {
-            setCurrentScreen(0);
-        } else if (currentScreen === 2) {
-            setCurrentScreen(1);
-        } else if (currentScreen === 3) {
-            setCurrentScreen(2);
+        } else if (currentScenarioIndex > 0) {
+            setCurrentScenarioIndex(prev => prev - 1);
+            const prevScenario = scenarios[currentScenarioIndex - 1];
+            setScenarioStep(getMaxScenarioSteps(prevScenario) - 1);
             setSelectedChoiceIndex(null);
-        } else if (currentScreen === 4) {
-            setCurrentScreen(3);
+        } else {
+            setCurrentScreen(engineIntroScreen ? SCREEN_INTRO : SCREEN_WELCOME);
         }
-        scrollToTop();
-    };
-
-    const startRoleplay = () => {
-        setCurrentScreen(1);
-        setCurrentScenarioIndex(0);
-        setRoleplayStep(0);
-        setSelectedChoiceIndex(null);
-        setSelectedChoices({});
     };
 
     const handleChoiceSelect = (choiceIndex: number) => {
         setSelectedChoiceIndex(choiceIndex);
-    };
-
-    const handleTryItOnChoiceSelect = (questionNumber: number, choiceNumber: number) => {
         setSelectedChoices(prev => ({
             ...prev,
-            [questionNumber]: choiceNumber
+            [`scenario_${currentScenarioIndex}_step_${scenarioStep}`]: choiceIndex
         }));
     };
 
-    const handleMustHavesChoiceSelect = (choiceNumber: number) => {
-        const newChoices = { ...selectedChoices, [currentScenarioIndex + 1]: choiceNumber };
-        setSelectedChoices(newChoices);
-    };
-
-    const handleSimpleChoiceSelect = (choiceIndex: number) => {
-        setSelectedChoiceIndex(choiceIndex);
-    };
-
-    const handleContinueRoleplay = () => {
-        if (flowType === 'tryItOn') {
-            handleTryItOnContinue();
-        } else if (flowType === 'mustHaves') {
-            handleMustHavesContinue();
-        } else if (flowType === 'simpleChoice') {
-            handleSimpleChoiceContinue();
-        } else {
-            handleStandardContinue();
-        }
-    };
-
-    const handleStandardContinue = () => {
-        if (currentScreen === 1) {
-            if (roleplayStep === 0) {
-                if (selectedChoiceIndex !== null) {
-                    setRoleplayStep(1);
-                }
-            } else if (roleplayStep === 1) {
-                setRoleplayStep(2);
-            } else if (roleplayStep === 2) {
-                setRoleplayStep(3);
-            } else if (roleplayStep === 3) {
-                if (currentScenarioIndex < scenarios.length - 1) {
-                    setCurrentScenarioIndex(prev => prev + 1);
-                    setRoleplayStep(0);
-                    setSelectedChoiceIndex(null);
-                } else {
-                    setCurrentScreen(2);
-                }
-            }
-        } else {
-            if (currentScreen === -1 && (engineIntroScreen || currentScenarioIndex >= 0)) {
-                setCurrentScreen(engineIntroScreen ? 0 : 1);
-            } else if (currentScreen === 0 && engineIntroScreen) {
-                startRoleplay();
-            } else if (currentScreen === 2) {
-                setCurrentScreen(3);
-            } else if (currentScreen === 3) {
-                onComplete();
-            }
-        }
-        scrollToTop();
-    };
-
-    const handleTryItOnContinue = () => {
-        if (currentScreen === -1) {
-            // Welcome → Engine Intro
-            setCurrentScreen(0);
-        } else if (currentScreen === 0) {
-            // Engine Intro → First Scenario
-            startRoleplay();
-        } else if (currentScreen === 1) {
-            // Scenario Intro → First Choice
-            setCurrentScreen(2);
-        } else if (currentScreen === 2) {
-            // First Choice → First Response
-            if (selectedChoices[1] !== undefined) {
-                setCurrentScreen(3);
-            }
-        } else if (currentScreen === 3) {
-            // First Response → Second Question
-            setCurrentScreen(4);
-        } else if (currentScreen === 4) {
-            // Second Question → Second Choice
-            setCurrentScreen(5);
-        } else if (currentScreen === 5) {
-            // Second Choice → Second Response
-            if (selectedChoices[2] !== undefined) {
-                setCurrentScreen(6);
-            }
-        } else if (currentScreen === 6) {
-            // Second Response → Scenario Reflection
-            setCurrentScreen(7);
-        } else if (currentScreen === 7) {
-            // Scenario Reflection → Next Scenario or Final Reflection
-            if (currentScenarioIndex < scenarios.length - 1) {
-                setCurrentScenarioIndex(prev => prev + 1);
-                setSelectedChoices({});
-                setCurrentScreen(1); // Back to scenario intro for next scenario
-            } else {
-                setCurrentScreen(8); // All scenarios complete → Final reflection
-            }
-        } else if (currentScreen === 8) {
-            // Final Reflection → Complete
-            onComplete();
-        }
-        scrollToTop();
-    };
-
-    const handleMustHavesContinue = () => {
-        if (currentScreen === -1) {
-            setCurrentScreen(0); // Welcome → Choice screens
-        } else if (currentScreen >= 0 && currentScreen <= 8) {
-            // Choice screens
-            if (currentScenarioIndex < scenarios.length - 1) {
-                setCurrentScenarioIndex(prev => prev + 1);
-                setCurrentScreen(currentScreen + 1);
-            } else {
-                setCurrentScreen(9); // All choices complete → Results overview
-            }
-        } else if (currentScreen === 9) {
-            setCurrentScreen(10); // Results overview → Results screens
-        } else if (currentScreen === 10) {
-            // Results screens
-            if (currentResultIndex < getPersonalizedResults().length - 1) {
-                setCurrentResultIndex(prev => prev + 1);
-            } else {
-                setCurrentScreen(11); // All results shown → Final summary
-                setCurrentResultIndex(0);
-            }
-        } else if (currentScreen === 11) {
-            onComplete();
-        }
-        scrollToTop();
-    };
-
-    const handleSimpleChoiceContinue = () => {
-        if (currentScreen === -1) {
-            setCurrentScreen(0); // Welcome → Scenario Intro
-        } else if (currentScreen === 0) {
-            setCurrentScreen(1); // Scenario Intro → Choices
-        } else if (currentScreen === 1) {
-            setCurrentScreen(2); // Choices → Response
-        } else if (currentScreen === 2) {
-            // Response → Next scenario or final
-            if (currentScenarioIndex < scenarios.length - 1) {
-                setCurrentScenarioIndex(currentScenarioIndex + 1);
-                setSelectedChoiceIndex(null);
-                setCurrentScreen(1); // Back to scenario intro for next scenario
-            } else {
-                setCurrentScreen(4); // All scenarios complete → Final screen
-            }
-        } else if (currentScreen === 4) {
-            onComplete();
-        }
-        scrollToTop();
-    };
-
-    const handleNextResult = () => {
-        if (currentResultIndex < getPersonalizedResults().length - 1) {
-            setCurrentResultIndex(currentResultIndex + 1);
-        } else {
-            setCurrentScreen(11);
-            setCurrentResultIndex(0);
-        }
-        scrollToTop();
-    };
-
-    // Generate personalized results based on user choices - same as original
-    const getPersonalizedResults = () => {
-        const results = [];
-
-        // Spotify vs Gym
-        if (selectedChoices[1] === 1) {
-            results.push("Spotify Premium is non-negotiable for you, allowing you to stream with no ads.");
-        } else {
-            results.push("staying fit and healthy with a gym membership is essential for you.");
-        }
-
-        // Coffee vs Streaming
-        if (selectedChoices[2] === 1) {
-            results.push("Your daily joy comes from small treats like your coffee habit, a ritual you protect.");
-        } else {
-            results.push("You value entertainment and relaxation, choosing a full suite of streaming subscriptions over daily coffees. You'd rather create a cozy night in than a cafe trip.");
-        }
-
-        // Groceries vs Dining & Dance vs Massage
-        const foodChoice = selectedChoices[3] === 1 ? "cooking at home with your organic groceries" : "dining out at quality restaurants";
-        const wellnessChoice = selectedChoices[4] === 1 ? "dance classes" : "massages";
-        results.push(`You love ${foodChoice}. And you invest in your body through regular ${wellnessChoice}, knowing it's essential for your well-being.`);
-
-        // Clothes vs Travel
-        if (selectedChoices[5] === 1) {
-            results.push("You believe in looking the part and presenting yourself well, investing in new clothes over a distant travel fund.");
-        } else {
-            results.push("You clearly value experiences, choosing to put money toward your travel fund over updating your wardrobe.");
-        }
-
-        // Savings vs Investments & Charity vs Gifts
-        const financeChoice = selectedChoices[6] === 1 ? "consistently contributing to your savings account" : "putting money into investments for potential future gains";
-        const givingChoice = selectedChoices[8] === 1 ? "charity donations" : "thoughtful gifts";
-        results.push(`You're building a foundation for the future, ${financeChoice}. You also believe in supporting your community and loved ones, setting aside money for ${givingChoice}.`);
-
-        // Phone vs Concerts & Beauty vs Home
-        const splurgeChoice = selectedChoices[7] === 1 ? "a phone upgrade" : "concert tickets";
-        const selfCareChoice = selectedChoices[9] === 1 ? "hair and nail appointments" : "home decor";
-        results.push(`And you haven't forgotten how to live in the moment. You splurge on ${splurgeChoice} and treat yourself to ${selfCareChoice} to create a space that feels like you.`);
-
-        return results;
-    };
-
+    // Video helpers
     const getVideoId = (url: string): string | null => {
         if (!url) return null;
-
-        // Comprehensive regex that handles:
-        // - https://www.youtube.com/shorts/VIDEO_ID
-        // - https://youtu.be/VIDEO_ID
-        // - https://www.youtube.com/watch?v=VIDEO_ID
-        // - https://www.youtube.com/embed/VIDEO_ID
-        // - Shortened formats, etc.
-        const regExp =
-            /^.*(youtu\.be\/|youtube\.com\/(watch\?.*v=|embed\/|shorts\/|v\/))([^#&?]*).*/;
-
+        const regExp = /^.*(youtu\.be\/|youtube\.com\/(watch\?.*v=|embed\/|shorts\/|v\/))([^#&?]*).*/;
         const match = url.match(regExp);
         const candidate = match && match[3] ? match[3] : null;
-
-        // YouTube video IDs are always 11 characters
-        if (candidate && candidate.length === 11) {
-            return candidate;
-        }
-
-        return null;
+        return candidate && candidate.length === 11 ? candidate : null;
     };
 
     const openVideoModal = useCallback(() => {
-        if (finalScreen.videoLink || reflectionScreen.videoLink) {
-            setShowVideoModal(true);
-            setIsPlaying(true);
-        }
-    }, [finalScreen.videoLink, reflectionScreen.videoLink]);
+        setShowVideoModal(true);
+        setIsPlaying(true);
+    }, []);
 
     const closeVideoModal = useCallback(() => {
         setIsPlaying(false);
@@ -451,1400 +168,740 @@ export default function RoleplayPromptEngine({
         }
     }, [openVideoModal]);
 
-    // Mock interview handler for TryItOn flow
-    const handleMockInterviewOpen = () => {
-        Linking.openURL('https://pivotfordancers.com/services/mock-interviews/');
+    // Render helpers
+    const renderVideoThumbnail = (videoLink: string) => {
+        const videoId = getVideoId(videoLink);
+        if (!videoId) return null;
+
+        return (
+            <>
+                <TouchableOpacity
+                    style={styles.videoThumbnailContainer}
+                    onPress={() => openYouTubeShort(videoLink)}
+                    activeOpacity={0.8}
+                >
+                    <Image
+                        source={{ uri: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` }}
+                        style={styles.videoThumbnail}
+                        resizeMode="cover"
+                    />
+                    <View style={styles.playButtonOverlay}>
+                        <View style={styles.playButton}>
+                            <Text style={styles.playIcon}>▶</Text>
+                        </View>
+                    </View>
+                </TouchableOpacity>
+
+                <Modal
+                    visible={showVideoModal}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={closeVideoModal}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <TouchableOpacity
+                                style={styles.closeButton}
+                                onPress={closeVideoModal}
+                                activeOpacity={0.8}
+                            >
+                                <X size={28} color="#FFFFFF" />
+                            </TouchableOpacity>
+                            <View style={styles.videoPlayerContainer}>
+                                <YoutubePlayer
+                                    height={height * 0.75}
+                                    play={isPlaying}
+                                    videoId={videoId}
+                                    webViewProps={{ allowsFullscreenVideo: true }}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            </>
+        );
     };
 
-    // SimpleChoice Flow Screens
-    if (flowType === 'simpleChoice') {
-        const currentScenario = scenarios[currentScenarioIndex];
-
-        // Welcome Screen
-        if (currentScreen === -1) {
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={handleBackPress} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <View style={commonStyles.introIconContainer}>
-                                    {imageSource && (
-                                        <Image
-                                            source={{ uri: imageSource }}
-                                            style={commonStyles.heroImage}
-                                        />
-                                    )}
-                                </View>
-
-                                <Text style={commonStyles.introTitle}>{welcomeScreen.title}</Text>
-                                {welcomeScreen.descriptions.map((desc, index) => (
-                                    <Text key={index} style={commonStyles.introDescription}>
-                                        {desc}
-                                    </Text>
-                                ))}
-
-                                <PrimaryButton title={welcomeScreen.buttonText} onPress={handleContinueRoleplay} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Scenario Intro Screen
-        if (currentScreen === 0) {
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <Text style={styles.scenarioTitle}>Scenario {currentScenarioIndex + 1} of {scenarios.length}</Text>
-
-                                <Text style={styles.scenarioText}>
-                                    {currentScenario.scenarioText}
-                                </Text>
-
-                                <PrimaryButton title="See Their Answers" onPress={handleContinueRoleplay} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Choices Screen
-        if (currentScreen === 1) {
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <Text style={styles.choicesTitle}>Who would you hire?</Text>
-
-                                <View style={styles.choicesContainer}>
-                                    {currentScenario.choices?.map((option, index) => (
-                                        <TouchableOpacity
-                                            key={option.id || index}
-                                            style={[
-                                                styles.choiceButton,
-                                                selectedChoiceIndex === index && styles.choiceButtonSelected
-                                            ]}
-                                            onPress={() => handleSimpleChoiceSelect(index)}
-                                            activeOpacity={0.8}
-                                        >
-                                            <View style={styles.choiceContent}>
-                                                {selectedChoiceIndex === index && (
-                                                    <View style={styles.selectedIndicator}>
-                                                        <Check size={16} color="#E2DED0" />
-                                                    </View>
-                                                )}
-                                                <Text style={[
-                                                    styles.choiceText,
-                                                    selectedChoiceIndex === index && styles.choiceTextSelected
-                                                ]}>
-                                                    {option.text}
-                                                </Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-
-                                <PrimaryButton
-                                    title="Continue"
-                                    onPress={handleContinueRoleplay}
-                                    disabled={selectedChoiceIndex === null}
-                                />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Response Screen
-        if (currentScreen === 2) {
-            const responseText = selectedChoiceIndex !== null ? currentScenario.responses?.[selectedChoiceIndex] : "";
-
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <Text style={styles.responseTitle}>Here's our take</Text>
-
-                                <Text style={styles.responseText}>{responseText}</Text>
-
-                                <Text style={styles.continuePrompt}>
-                                    {currentScenarioIndex < scenarios.length - 1 ? "Let's try another one." : "Ready for the final thoughts?"}
-                                </Text>
-
-                                <PrimaryButton title="Continue" onPress={handleContinueRoleplay} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Final Screen
-        if (currentScreen === 4) {
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <View style={commonStyles.introIconContainer}>
-                                    {imageSource && (
-                                        <Image
-                                            source={{ uri: imageSource }}
-                                            style={commonStyles.heroImage}
-                                        />
-                                    )}
-                                </View>
-
-                                <Text style={commonStyles.reflectionTitle}>{finalScreen.title}</Text>
-
-                                {finalScreen.descriptions.map((desc, index) => (
-                                    <Text key={index} style={commonStyles.reflectionDescription}>
-                                        {desc}
-                                    </Text>
-                                ))}
-
-                                {finalScreen.alternativeClosing && (
-                                    <Text style={styles.conclusionClosing}>
-                                        {finalScreen.alternativeClosing}
-                                    </Text>
-                                )}
-
-                                <JournalEntrySection {...finalScreen.journalSectionProps} />
-
-                                {finalScreen.journalSectionProps && (
-                                    <View style={styles.journalCallout}>
-                                        <Text style={styles.journalCalloutTitle}>Your Interview Prep Space</Text>
-                                        <Text style={styles.journalCalloutText}>
-                                            Use the journal tab anytime to practice framing your dance experience for different roles. The more you practice, the more natural it will feel!
-                                        </Text>
-                                    </View>
-                                )}
-
-                                <PrimaryButton title={finalScreen.buttonText} onPress={onComplete} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-    }
-
-    // MustHaves Flow Screens
-    if (flowType === 'mustHaves') {
-        // Day 5 Welcome Screen
-        if (currentScreen === -1) {
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={handleBackPress} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <View style={commonStyles.introIconContainer}>
-                                    <View style={[styles.introIconGradient, { backgroundColor: '#928490' }]}>
-                                        <Target size={32} color="#E2DED0" />
-                                    </View>
-                                </View>
-
-                                <Text style={commonStyles.introTitle}>Meet Your Must-Haves</Text>
-
-                                <Text style={commonStyles.introDescription}>
-                                    This is a game of instincts. We're going to uncover what you truly value by having you choose between common spending categories. Your choices will help us build a personalized snapshot of your financial priorities. Don't overthink it!
-                                </Text>
-
-                                <Text style={commonStyles.introDescription}>
-                                    There's no right or wrong. Let's see what you build.
-                                </Text>
-
-                                <PrimaryButton title="Begin Choosing" onPress={handleContinueRoleplay} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Choice Screens (0-8)
-        if (currentScreen >= 0 && currentScreen <= 8) {
-            const currentPair = scenarios[currentScenarioIndex];
-            const choiceProgress = ((currentScreen + 1) / scenarios.length) * 100;
-
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <View style={styles.progressContainer}>
-                                    <Text style={styles.progressText}>
-                                        {currentScreen + 1} of {scenarios.length} choices
-                                    </Text>
-                                    <View style={styles.progressBar}>
-                                        <View style={[styles.progressFill, { width: `${choiceProgress}%` }]} />
-                                    </View>
-                                </View>
-
-                                <Text style={styles.choiceTitle}>Which would you choose?</Text>
-
-                                <View style={styles.choicesContainer}>
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.choiceButton,
-                                            selectedChoices[currentScenarioIndex + 1] === 1 && styles.choiceButtonSelected
-                                        ]}
-                                        onPress={() => handleMustHavesChoiceSelect(1)}
-                                        activeOpacity={0.8}
-                                    >
-                                        <View style={styles.choiceContent}>
-                                            {selectedChoices[currentScenarioIndex + 1] === 1 && (
-                                                <View style={styles.selectedIndicator}>
-                                                    <Check size={16} color="#E2DED0" />
-                                                </View>
-                                            )}
-                                            <Text style={[
-                                                styles.choiceText,
-                                                selectedChoices[currentScenarioIndex + 1] === 1 && styles.choiceTextSelected
-                                            ]}>
-                                                {currentPair.question1?.choice1}
-                                            </Text>
-                                        </View>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.choiceButton,
-                                            selectedChoices[currentScenarioIndex + 1] === 2 && styles.choiceButtonSelected
-                                        ]}
-                                        onPress={() => handleMustHavesChoiceSelect(2)}
-                                        activeOpacity={0.8}
-                                    >
-                                        <View style={styles.choiceContent}>
-                                            {selectedChoices[currentScenarioIndex + 1] === 2 && (
-                                                <View style={styles.selectedIndicator}>
-                                                    <Check size={16} color="#E2DED0" />
-                                                </View>
-                                            )}
-                                            <Text style={[
-                                                styles.choiceText,
-                                                selectedChoices[currentScenarioIndex + 1] === 2 && styles.choiceTextSelected
-                                            ]}>
-                                                {currentPair.question1?.choice2}
-                                            </Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
-
-                                <PrimaryButton
-                                    title="Continue"
-                                    onPress={handleContinueRoleplay}
-                                    disabled={!selectedChoices[currentScenarioIndex + 1]}
-                                />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Results Overview Screen
-        if (currentScreen === 9) {
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <View style={styles.overviewIconContainer}>
-                                    <View style={[styles.overviewIconGradient, { backgroundColor: '#928490' }]}>
-                                        <Target size={40} color="#E2DED0" />
-                                    </View>
-                                </View>
-
-                                <Text style={styles.overviewTitle}>Explore Your Spending Values</Text>
-
-                                <PrimaryButton title="See Your Results" onPress={handleContinueRoleplay} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Results Screens
-        if (currentScreen === 10) {
-            const personalizedResults = getPersonalizedResults();
-
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <Text style={styles.resultTitle}>Here's what your choices reveal</Text>
-
-                                <Text style={styles.resultText}>{personalizedResults[currentResultIndex]}</Text>
-
-                                <PrimaryButton
-                                    title={currentResultIndex < personalizedResults.length - 1 ? 'Continue' : 'See Summary'}
-                                    onPress={handleNextResult}
-                                />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Final Summary Screen with Journal
-        if (currentScreen === 11) {
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <View style={styles.finalIconContainer}>
-                                    <View style={[styles.finalIconGradient, { backgroundColor: '#928490' }]}>
-                                        <Target size={40} color="#E2DED0" />
-                                    </View>
-                                </View>
-
-                                <Text style={styles.finalTitle}>Your Budget Shows Your Values</Text>
-
-                                <Text style={styles.finalText}>
-                                    How does this financial portrait feel? Use this as a starting point to craft a budget that truly reflects your values. A budget that fuels what you love and cuts what you don't.
-                                    {"\n\n"}
-                                    The goal isn't restriction, it's alignment.
-                                    {"\n\n"}
-                                    Let's keep going tomorrow.
-                                </Text>
-
-                                <JournalEntrySection
-                                    pathTag="budgeting-for-dancers"
-                                    day="5"
-                                    category="finance"
-                                    pathTitle="Money Mindsets"
-                                    dayTitle="Meet Your Must Haves"
-                                    journalInstruction="How do your spending choices reflect your core values? What surprised you about your must-haves?"
-                                    moodLabel=""
-                                    saveButtonText="Save Entry"
-                                />
-
-                                <View style={styles.journalCallout}>
-                                    <Text style={styles.journalCalloutTitle}>Your Personal Space</Text>
-                                    <Text style={styles.journalCalloutText}>
-                                        Remember, feel free to use the journal tab at any time to jot down your thoughts. This app is for you! Use it how you'd like to!
-                                    </Text>
-                                </View>
-
-                                <PrimaryButton title="Mark As Complete" onPress={onComplete} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-    }
-
-    // Welcome Screen
-    if (currentScreen === -1) {
-        return (
-            <View style={commonStyles.container}>
-                <StickyHeader onBack={handleBackPress} />
-
-                <ScrollView
-                    ref={scrollViewRef}
-                    style={commonStyles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ flexGrow: 1 }}
-                    onContentSizeChange={() => scrollToTop()}
-                    onLayout={() => scrollToTop()}
-                >
-                    <View style={commonStyles.centeredContent}>
-                        <Card style={commonStyles.baseCard}>
+    // Screen Renderers
+    const renderWelcomeScreen = () => (
+        <View style={commonStyles.container}>
+            <StickyHeader onBack={goBack} />
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={commonStyles.baseCard}>
+                        {imageSource && (
                             <View style={commonStyles.introIconContainer}>
-                                {imageSource && (
-                                    <Image
-                                        source={{ uri: imageSource }}
-                                        style={commonStyles.heroImage}
-                                    />
-                                )}
+                                <Image
+                                    source={{ uri: imageSource }}
+                                    style={commonStyles.heroImage}
+                                />
                             </View>
+                        )}
 
-                            <Text style={commonStyles.introTitle}>{welcomeScreen.title}</Text>
-                            {welcomeScreen.descriptions.map((desc, index) => (
-                                <Text key={index} style={commonStyles.introDescription}>
-                                    {desc}
+                        <Text style={commonStyles.introTitle}>{welcomeScreen.title}</Text>
+
+                        {welcomeScreen.descriptions.map((desc, index) => (
+                            <Text key={index} style={commonStyles.introDescription}>
+                                {desc}
+                            </Text>
+                        ))}
+
+                        {welcomeScreen.learningBox && (
+                            <View style={styles.learningBox}>
+                                <Text style={styles.learningBoxTitle}>
+                                    {welcomeScreen.learningBox.title}
                                 </Text>
-                            ))}
+                                {welcomeScreen.learningBox.items.map((item) => (
+                                    <Text key={item.id} style={styles.learningBoxItem}>
+                                        • {item.text}
+                                    </Text>
+                                ))}
+                            </View>
+                        )}
 
-                            {welcomeScreen.learningBox && (
-                                <View style={styles.celebrationBox}>
-                                    <Text style={styles.celebrationTitle}>{welcomeScreen.learningBox.title}</Text>
-                                    {welcomeScreen.learningBox.items.map((item) => (
-                                        <Text key={item.id} style={styles.celebrationItem}>
-                                            • {item.text}
-                                        </Text>
-                                    ))}
-                                </View>
-                            )}
+                        {welcomeScreen.welcomeFooter && (
+                            <Text style={styles.welcomeFooter}>
+                                {welcomeScreen.welcomeFooter}
+                            </Text>
+                        )}
 
-                            {welcomeScreen.welcomeFooter && (
-                                <Text style={styles.welcomeFooter}>
-                                    {welcomeScreen.welcomeFooter}
-                                </Text>
-                            )}
-
+                        {welcomeScreen.journalSectionProps && (
                             <JournalEntrySection {...welcomeScreen.journalSectionProps} />
+                        )}
 
-                            <PrimaryButton title={welcomeScreen.buttonText} onPress={handleContinueRoleplay} />
-                        </Card>
-                    </View>
-                </ScrollView>
-            </View>
-        );
-    }
+                        <PrimaryButton
+                            title={welcomeScreen.buttonText}
+                            onPress={goToNextScreen}
+                        />
+                    </Card>
+                </View>
+            </ScrollView>
+        </View>
+    );
 
-    // Engine Intro Screen
-    if (currentScreen === 0 && engineIntroScreen) {
+    const renderIntroScreen = () => {
+        if (!engineIntroScreen) return null;
+
         return (
             <View style={commonStyles.container}>
                 <StickyHeader onBack={goBack} />
-
                 <ScrollView
                     ref={scrollViewRef}
                     style={commonStyles.scrollView}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ flexGrow: 1 }}
-                    onContentSizeChange={() => scrollToTop()}
-                    onLayout={() => scrollToTop()}
                 >
                     <View style={commonStyles.centeredContent}>
                         <Card style={commonStyles.baseCard}>
-                            <View style={commonStyles.introIconContainer}>
-                                {imageSource && (
+                            {imageSource && (
+                                <View style={commonStyles.introIconContainer}>
                                     <Image
                                         source={{ uri: imageSource }}
                                         style={commonStyles.heroImage}
                                     />
-                                )}
-                            </View>
+                                </View>
+                            )}
 
-                            <Text style={commonStyles.introTitle}>{engineIntroScreen.title}</Text>
+                            <Text style={commonStyles.introTitle}>
+                                {engineIntroScreen.title}
+                            </Text>
+
                             {engineIntroScreen.descriptions.map((desc, index) => (
                                 <Text key={index} style={commonStyles.introDescription}>
                                     {desc}
                                 </Text>
                             ))}
 
-                            <PrimaryButton title={engineIntroScreen.buttonText} onPress={handleContinueRoleplay} />
+                            <PrimaryButton
+                                title={engineIntroScreen.buttonText}
+                                onPress={goToNextScreen}
+                            />
                         </Card>
                     </View>
                 </ScrollView>
             </View>
         );
-    }
+    };
 
-    // TryItOn Specific Screens
-    if (flowType === 'tryItOn') {
+    const renderScenarioScreen = () => {
         const currentScenario = scenarios[currentScenarioIndex];
+        const progress = (currentScenarioIndex + 1) / scenarios.length;
 
-        // Screen 1: Scenario Intro
-        if (currentScreen === 1) {
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader
-                        onBack={goBack}
-                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
-                        progress={(currentScenarioIndex + 1) / scenarios.length}
-                    />
+        return (
+            <View style={commonStyles.container}>
+                <StickyHeader
+                    onBack={goBack}
+                    title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
+                    progress={progress}
+                />
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={commonStyles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                >
+                    <View style={commonStyles.centeredContent}>
+                        <Card style={commonStyles.baseCard}>
+                            {renderScenarioContent(currentScenario)}
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    };
 
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <Text style={styles.scenarioTitle}>{currentScenario.scenarioTitle}</Text>
-                                <Text style={styles.scenarioSubtitle}>({currentScenario.scenarioText})</Text>
-
-                                <Text style={styles.scenarioText}>
-                                    {currentScenario.question1?.text}
-                                </Text>
-
-                                <PrimaryButton
-                                    title="What will you do?"
-                                    onPress={handleContinueRoleplay}
-                                />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
+    const renderScenarioContent = (scenario: RoleplayScenarioContent) => {
+        if (flowType === 'tryItOn') {
+            return renderTryItOnScenario(scenario);
+        } else if (flowType === 'simpleChoice') {
+            return renderSimpleChoiceScenario(scenario);
         }
+        return renderStandardScenario(scenario);
+    };
 
-        // Screen 2: First Choice
-        if (currentScreen === 2) {
-            const selectedChoice = selectedChoices[1];
-
+    const renderStandardScenario = (scenario: RoleplayScenarioContent) => {
+        // Step 0: Scenario intro + choices
+        if (scenarioStep === 0) {
             return (
-                <View style={commonStyles.container}>
-                    <StickyHeader
-                        onBack={goBack}
-                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
-                        progress={(currentScenarioIndex + 1) / scenarios.length}
-                    />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <Text style={styles.choicesTitle}>Here are your options</Text>
-
-                                <View style={styles.choicesContainer}>
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.choiceButton,
-                                            selectedChoice === 1 && styles.choiceButtonSelected
-                                        ]}
-                                        onPress={() => handleTryItOnChoiceSelect(1, 1)}
-                                        activeOpacity={0.8}
-                                    >
-                                        <View style={styles.choiceContent}>
-                                            {selectedChoice === 1 && (
-                                                <View style={styles.selectedIndicator}>
-                                                    <Check size={16} color="#E2DED0" />
-                                                </View>
-                                            )}
-                                            <Text style={[
-                                                styles.choiceText,
-                                                selectedChoice === 1 && styles.choiceTextSelected
-                                            ]}>
-                                                {currentScenario.question1?.choice1}
-                                            </Text>
+                <>
+                    <Text style={styles.scenarioTitle}>{scenario.scenarioTitle}</Text>
+                    <Text style={styles.scenarioText}>{scenario.scenarioText}</Text>
+                    {scenario.scenarioQuestion && (
+                        <Text style={styles.scenarioQuestion}>{scenario.scenarioQuestion}</Text>
+                    )}
+                    <Text style={styles.choicesTitle}>Your Options</Text>
+                    <View style={styles.choicesContainer}>
+                        {scenario.choices?.map((option, index) => (
+                            <TouchableOpacity
+                                key={option.id || index}
+                                style={[
+                                    styles.choiceButton,
+                                    selectedChoiceIndex === index && styles.choiceButtonSelected
+                                ]}
+                                onPress={() => handleChoiceSelect(index)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={styles.choiceContent}>
+                                    {selectedChoiceIndex === index && (
+                                        <View style={styles.selectedIndicator}>
+                                            <Check size={16} color="#E2DED0" />
                                         </View>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.choiceButton,
-                                            selectedChoice === 2 && styles.choiceButtonSelected
-                                        ]}
-                                        onPress={() => handleTryItOnChoiceSelect(1, 2)}
-                                        activeOpacity={0.8}
-                                    >
-                                        <View style={styles.choiceContent}>
-                                            {selectedChoice === 2 && (
-                                                <View style={styles.selectedIndicator}>
-                                                    <Check size={16} color="#E2DED0" />
-                                                </View>
-                                            )}
-                                            <Text style={[
-                                                styles.choiceText,
-                                                selectedChoice === 2 && styles.choiceTextSelected
-                                            ]}>
-                                                {currentScenario.question1?.choice2}
-                                            </Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
-
-                                <PrimaryButton
-                                    title="Continue"
-                                    onPress={handleContinueRoleplay}
-                                    disabled={selectedChoice === undefined}
-                                />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Screen 3: Response to first choice
-        if (currentScreen === 3) {
-            const selectedChoice = selectedChoices[1];
-            const responseText = selectedChoice === 1 ? currentScenario.question1?.response1 : currentScenario.question1?.response2;
-
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader
-                        onBack={goBack}
-                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
-                        progress={(currentScenarioIndex + 1) / scenarios.length}
-                    />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <Text style={styles.responseTitle}>Here's where you're at</Text>
-
-                                <Text style={styles.responseText}>{responseText}</Text>
-
-                                <PrimaryButton title="Continue" onPress={handleContinueRoleplay} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Screen 4: Second scenario question
-        if (currentScreen === 4) {
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader
-                        onBack={goBack}
-                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
-                        progress={(currentScenarioIndex + 1) / scenarios.length}
-                    />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <Text style={styles.scenarioText}>{currentScenario.question2?.text}</Text>
-
-                                <PrimaryButton title="What will you do?" onPress={handleContinueRoleplay} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Screen 5: Second set of choices
-        if (currentScreen === 5) {
-            const selectedChoice = selectedChoices[2];
-
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader
-                        onBack={goBack}
-                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
-                        progress={(currentScenarioIndex + 1) / scenarios.length}
-                    />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <Text style={styles.choicesTitle}>Here are your options</Text>
-
-                                <View style={styles.choicesContainer}>
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.choiceButton,
-                                            selectedChoice === 1 && styles.choiceButtonSelected
-                                        ]}
-                                        onPress={() => handleTryItOnChoiceSelect(2, 1)}
-                                        activeOpacity={0.8}
-                                    >
-                                        <View style={styles.choiceContent}>
-                                            {selectedChoice === 1 && (
-                                                <View style={styles.selectedIndicator}>
-                                                    <Check size={16} color="#E2DED0" />
-                                                </View>
-                                            )}
-                                            <Text style={[
-                                                styles.choiceText,
-                                                selectedChoice === 1 && styles.choiceTextSelected
-                                            ]}>
-                                                {currentScenario.question2?.choice1}
-                                            </Text>
-                                        </View>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.choiceButton,
-                                            selectedChoice === 2 && styles.choiceButtonSelected
-                                        ]}
-                                        onPress={() => handleTryItOnChoiceSelect(2, 2)}
-                                        activeOpacity={0.8}
-                                    >
-                                        <View style={styles.choiceContent}>
-                                            {selectedChoice === 2 && (
-                                                <View style={styles.selectedIndicator}>
-                                                    <Check size={16} color="#E2DED0" />
-                                                </View>
-                                            )}
-                                            <Text style={[
-                                                styles.choiceText,
-                                                selectedChoice === 2 && styles.choiceTextSelected
-                                            ]}>
-                                                {currentScenario.question2?.choice2}
-                                            </Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
-
-                                <PrimaryButton
-                                    title="Continue"
-                                    onPress={handleContinueRoleplay}
-                                    disabled={selectedChoice === undefined}
-                                />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Screen 6: Response to second choice
-        if (currentScreen === 6) {
-            const selectedChoice = selectedChoices[2];
-            const responseText = selectedChoice === 1 ? currentScenario.question2?.response1 : currentScenario.question2?.response2;
-
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader
-                        onBack={goBack}
-                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
-                        progress={(currentScenarioIndex + 1) / scenarios.length}
-                    />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <Text style={styles.responseTitle}>Here's where you're at</Text>
-
-                                <Text style={styles.responseText}>{responseText}</Text>
-
-                                <PrimaryButton title="Continue" onPress={handleContinueRoleplay} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Screen 7: Scenario Reflection
-        if (currentScreen === 7) {
-            const AlternativeIconComponent = currentScenario.alternativeIcon;
-
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader
-                        onBack={goBack}
-                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
-                        progress={(currentScenarioIndex + 1) / scenarios.length}
-                    />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                {AlternativeIconComponent && (
-                                    <View style={commonStyles.introIconContainer}>
-                                        <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
-                                            <AlternativeIconComponent size={32} color="#E2DED0" />
-                                        </View>
-                                    </View>
-                                )}
-
-                                <Text style={styles.alternativeTitle}>
-                                    How did that feel?
-                                </Text>
-
-                                <Text style={styles.alternativeText}>
-                                    {currentScenario.reflection}
-                                </Text>
-
-                                <PrimaryButton
-                                    title={currentScenarioIndex < scenarios.length - 1 ? "Try Another Scenario" : "Continue to Final Reflection"}
-                                    onPress={handleContinueRoleplay}
-                                />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
-            );
-        }
-
-        // Screen 8: Final reflection with journal prompts
-        if (currentScreen === 8) {
-            return (
-                <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={commonStyles.scrollView}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onContentSizeChange={() => scrollToTop()}
-                        onLayout={() => scrollToTop()}
-                    >
-                        <View style={commonStyles.centeredContent}>
-                            <Card style={commonStyles.baseCard}>
-                                <View style={commonStyles.introIconContainer}>
-                                    {imageSource && (
-                                        <Image
-                                            source={{ uri: imageSource }}
-                                            style={commonStyles.heroImage}
-                                        />
                                     )}
-                                </View>
-
-                                <Text style={commonStyles.reflectionTitle}>How did that feel?</Text>
-
-                                <Text style={commonStyles.reflectionDescription}>
-                                    You just "tried on" your first week in a new role. When you put yourself in those shoes, which one felt most aligned? Perhaps that's a good place to start as you dive deeper into your exploration.
-                                </Text>
-
-                                <JournalEntrySection {...reflectionScreen.journalSectionProps} />
-
-                                <View style={styles.mockInterviewCard}>
-                                    <Text style={styles.mockInterviewTitle}>Ready to practice together?</Text>
-                                    <Text style={styles.mockInterviewDescription}>
-                                        Practice interviewing in a safe environment before the real thing. Reduce interview anxiety and increase your confidence through realistic simulation and expert guidance.
+                                    <Text style={[
+                                        styles.choiceText,
+                                        selectedChoiceIndex === index && styles.choiceTextSelected
+                                    ]}>
+                                        {option.text}
                                     </Text>
-                                    <TouchableOpacity
-                                        style={styles.mockInterviewButton}
-                                        onPress={handleMockInterviewOpen}
-                                    >
-                                        <View style={[styles.mockInterviewButtonContent, { backgroundColor: '#647C90' }]}>
-                                            <Text style={styles.mockInterviewButtonText}>Learn More</Text>
-                                            <ChevronRight size={16} color="#E2DED0" />
-                                        </View>
-                                    </TouchableOpacity>
                                 </View>
-
-                                <Text style={styles.alternativeClosing}>
-                                    Meet you here again tomorrow.
-                                </Text>
-
-                                <PrimaryButton title="Mark As Complete" onPress={onComplete} />
-                            </Card>
-                        </View>
-                    </ScrollView>
-                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    <PrimaryButton
+                        title="Continue"
+                        onPress={goToNextScreen}
+                        disabled={selectedChoiceIndex === null}
+                    />
+                </>
             );
         }
-    }
 
-    // Reflection Screen (per scenario reflection)
-    if (currentScreen === 2) {
-        const currentScenarioData = scenarios[currentScenarioIndex];
-        const youtubeVideoId = reflectionScreen.videoLink ? getVideoId(reflectionScreen.videoLink) : null;
+        // Step 1: Response to choice
+        if (scenarioStep === 1 && selectedChoiceIndex !== null) {
+            return (
+                <>
+                    <Text style={styles.responseTitle}>
+                        {scenario.formula ? 'Your Choice Analysis' : 'Here\'s where you\'re at'}
+                    </Text>
+                    <Text style={styles.responseText}>
+                        {scenario.responses?.[selectedChoiceIndex]}
+                    </Text>
+                    <PrimaryButton title="Continue" onPress={goToNextScreen} />
+                </>
+            );
+        }
 
-        console.log('Reflection Screen - Video Link:', reflectionScreen.videoLink);
-        console.log('Reflection Screen - Video ID:', youtubeVideoId);
-
-        return (
-            <View style={commonStyles.container}>
-                <StickyHeader onBack={goBack} />
-
-                <ScrollView
-                    ref={scrollViewRef}
-                    style={commonStyles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ flexGrow: 1 }}
-                    onContentSizeChange={() => scrollToTop()}
-                    onLayout={() => scrollToTop()}
-                >
-                    <View style={commonStyles.centeredContent}>
-                        <Card style={commonStyles.baseCard}>
-                            <View style={commonStyles.introIconContainer}>
-                                {imageSource && (
-                                    <Image
-                                        source={{ uri: imageSource }}
-                                        style={commonStyles.heroImage}
-                                    />
-                                )}
-                            </View>
-
-                            <Text style={commonStyles.reflectionTitle}>{reflectionScreen.title}</Text>
-                            {reflectionScreen.descriptions.map((desc, index) => (
-                                <Text key={index} style={commonStyles.reflectionDescription}>
-                                    {desc}
-                                </Text>
-                            ))}
-
-                            {/* FIXED: Proper text wrapping */}
-                            {reflectionScreen.reflectionEmphasis && (
-                                <Text style={[commonStyles.reflectionDescription, styles.reflectionEmphasis]}>
-                                    ({reflectionScreen.reflectionEmphasis})
-                                </Text>
-                            )}
-
-                            {/* YouTube Short */}
-                            {youtubeVideoId ? (
-                                <TouchableOpacity
-                                    style={styles.videoThumbnailContainer}
-                                    onPress={() => openYouTubeShort(reflectionScreen.videoLink!)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Image
-                                        source={{ uri: `https://img.youtube.com/vi/${youtubeVideoId}/maxresdefault.jpg` }}
-                                        style={styles.videoThumbnail}
-                                        resizeMode="cover"
-                                    />
-                                    <View style={styles.playButtonOverlay}>
-                                        <View style={styles.playButton}>
-                                            <Text style={styles.playIcon}>▶</Text>
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
-                            ) : null}
-
-                            {/* Journal section for scenario reflection */}
-                            <Text style={styles.reflectionPromptText}>{currentScenarioData.reflectionPrompt}</Text>
-                            <JournalEntrySection {...reflectionScreen.journalSectionProps} />
-
-                            <PrimaryButton title={reflectionScreen.buttonText} onPress={handleContinueRoleplay} />
-                        </Card>
-                    </View>
-                </ScrollView>
-
-                {/* Modal for YouTube video */}
-                {youtubeVideoId && (
-                    <Modal
-                        visible={showVideoModal}
-                        transparent={true}
-                        animationType="fade"
-                        onRequestClose={closeVideoModal}
-                    >
-                        <View style={styles.modalOverlay}>
-                            <View style={styles.modalContent}>
-                                <TouchableOpacity
-                                    style={styles.closeButton}
-                                    onPress={closeVideoModal}
-                                    activeOpacity={0.8}
-                                >
-                                    <X size={28} color="#FFFFFF" />
-                                </TouchableOpacity>
-
-                                <View style={styles.videoPlayerContainer}>
-                                    <YoutubePlayer
-                                        height={height * 0.75}
-                                        play={isPlaying}
-                                        videoId={youtubeVideoId}
-                                        webViewProps={{
-                                            allowsFullscreenVideo: true,
-                                        }}
-                                        onChangeState={(state: string) => {
-                                            console.log('Video state:', state);
-                                        }}
-                                    />
+        // Step 2: Follow-up (formula or follow-up text)
+        if (scenarioStep === 2) {
+            if (scenario.formula) {
+                return (
+                    <>
+                        <Text style={styles.formulaTitle}>{scenario.formula.title}</Text>
+                        <Text style={styles.formulaText}>{scenario.formula.text}</Text>
+                        <Text style={styles.formulaSubtitle}>
+                            The "{scenario.formula.title}" Formula:
+                        </Text>
+                        <View>
+                            {scenario.formula.steps.map((step) => (
+                                <View key={step.number} style={styles.formulaStep}>
+                                    <Text style={styles.formulaStepNumber}>{step.number}</Text>
+                                    <Text style={styles.formulaStepText}>
+                                        <Text style={styles.formulaStepTitle}>{step.title}:</Text> {step.text}
+                                    </Text>
                                 </View>
+                            ))}
+                        </View>
+                        {scenario.formula.note && (
+                            <Text style={styles.formulaNote}>{scenario.formula.note}</Text>
+                        )}
+                        <PrimaryButton title="Continue" onPress={goToNextScreen} />
+                    </>
+                );
+            } else if (selectedChoiceIndex !== null && scenario.followUpTexts) {
+                return (
+                    <>
+                        <Text style={styles.followUpTitle}>Here's your situation</Text>
+                        <Text style={styles.followUpText}>
+                            {scenario.followUpTexts[selectedChoiceIndex]}
+                        </Text>
+                        <PrimaryButton title="See the Alternative" onPress={goToNextScreen} />
+                    </>
+                );
+            }
+        }
+
+        // Step 3: Alternative/Conclusion
+        if (scenarioStep === 3) {
+            const AlternativeIcon = scenario.alternativeIcon;
+            return (
+                <>
+                    {AlternativeIcon && (
+                        <View style={commonStyles.introIconContainer}>
+                            <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
+                                <AlternativeIcon size={32} color="#E2DED0" />
                             </View>
                         </View>
-                    </Modal>
-                )}
-            </View>
-        );
-    }
-    // Final Screen
-    if (currentScreen === 3) {
-        const youtubeVideoId = finalScreen.videoLink ? getVideoId(finalScreen.videoLink) : null;
+                    )}
+                    <Text style={styles.alternativeTitle}>
+                        {scenario.alternativeTitle || 'So, what\'s the alternative?'}
+                    </Text>
+                    <Text style={styles.alternativeText}>
+                        {scenario.alternativeText}
+                    </Text>
+                    <PrimaryButton
+                        title={currentScenarioIndex < scenarios.length - 1 ? 'Try another example' : 'Continue to Reflection'}
+                        onPress={goToNextScreen}
+                    />
+                </>
+            );
+        }
 
-        return (
-            <View style={commonStyles.container}>
-                <StickyHeader onBack={goBack} />
+        return null;
+    };
 
-                <ScrollView
-                    ref={scrollViewRef}
-                    style={commonStyles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ flexGrow: 1 }}
-                    onContentSizeChange={() => scrollToTop()}
-                    onLayout={() => scrollToTop()}
-                >
-                    <View style={commonStyles.centeredContent}>
-                        <Card style={commonStyles.baseCard}>
-                            <View style={commonStyles.introIconContainer}>
-                                {imageSource && (
-                                    <Image
-                                        source={{ uri: imageSource }}
-                                        style={commonStyles.heroImage}
-                                    />
+    const renderTryItOnScenario = (scenario: RoleplayScenarioContent) => {
+        // Step 0: Scenario intro
+        if (scenarioStep === 0) {
+            return (
+                <>
+                    <Text style={styles.scenarioTitle}>{scenario.scenarioTitle}</Text>
+                    <Text style={styles.scenarioSubtitle}>({scenario.scenarioText})</Text>
+                    <Text style={styles.scenarioText}>{scenario.question1?.text}</Text>
+                    <PrimaryButton title="What will you do?" onPress={goToNextScreen} />
+                </>
+            );
+        }
+
+        // Step 1: First choice
+        if (scenarioStep === 1) {
+            const selectedChoice = selectedChoices[`scenario_${currentScenarioIndex}_step_${scenarioStep}`];
+            return (
+                <>
+                    <Text style={styles.choicesTitle}>Here are your options</Text>
+                    <View style={styles.choicesContainer}>
+                        <TouchableOpacity
+                            style={[
+                                styles.choiceButton,
+                                selectedChoice === 0 && styles.choiceButtonSelected
+                            ]}
+                            onPress={() => handleChoiceSelect(0)}
+                            activeOpacity={0.8}
+                        >
+                            <View style={styles.choiceContent}>
+                                {selectedChoice === 0 && (
+                                    <View style={styles.selectedIndicator}>
+                                        <Check size={16} color="#E2DED0" />
+                                    </View>
                                 )}
+                                <Text style={[
+                                    styles.choiceText,
+                                    selectedChoice === 0 && styles.choiceTextSelected
+                                ]}>
+                                    {scenario.question1?.choice1}
+                                </Text>
                             </View>
-
-                            <Text style={styles.conclusionTitle}>{finalScreen.title}</Text>
-
-                            {finalScreen.descriptions.map((desc, index) => (
-                                <Text key={index} style={styles.conclusionText}>
-                                    {desc}
-                                </Text>
-                            ))}
-
-                            {finalScreen.videoLink && youtubeVideoId && (
-                                <TouchableOpacity
-                                    style={styles.videoThumbnailContainer}
-                                    onPress={() => openYouTubeShort(finalScreen.videoLink!)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Image
-                                        source={{ uri: `https://img.youtube.com/vi/${youtubeVideoId}/maxresdefault.jpg` }}
-                                        style={styles.videoThumbnail}
-                                        resizeMode="cover"
-                                    />
-                                    <View style={styles.playButtonOverlay}>
-                                        <View style={styles.playButton}>
-                                            <Text style={styles.playIcon}>▶</Text>
-                                        </View>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.choiceButton,
+                                selectedChoice === 1 && styles.choiceButtonSelected
+                            ]}
+                            onPress={() => handleChoiceSelect(1)}
+                            activeOpacity={0.8}
+                        >
+                            <View style={styles.choiceContent}>
+                                {selectedChoice === 1 && (
+                                    <View style={styles.selectedIndicator}>
+                                        <Check size={16} color="#E2DED0" />
                                     </View>
-                                </TouchableOpacity>
-                            )}
-
-                            {finalScreen.journalSectionProps && (
-                                <>
-                                    <JournalEntrySection {...finalScreen.journalSectionProps} />
-
-                                    <View style={styles.journalCallout}>
-                                        <Text style={styles.journalCalloutTitle}>
-                                            {finalScreen.journalSectionProps.dayTitle || "Your Personal Space"}
-                                        </Text>
-                                        <Text style={styles.journalCalloutText}>
-                                            {finalScreen.journalSectionProps.journalInstruction || "Remember, feel free to use the journal tab at any time to jot down your thoughts. This app is for you! Use it how you'd like to!"}
-                                        </Text>
-                                    </View>
-                                </>
-                            )}
-
-                            {finalScreen.alternativeClosing && (
-                                <Text style={styles.conclusionClosing}>
-                                    {finalScreen.alternativeClosing}
+                                )}
+                                <Text style={[
+                                    styles.choiceText,
+                                    selectedChoice === 1 && styles.choiceTextSelected
+                                ]}>
+                                    {scenario.question1?.choice2}
                                 </Text>
-                            )}
-
-                            <PrimaryButton title={finalScreen.buttonText} onPress={handleContinueRoleplay} />
-                        </Card>
+                            </View>
+                        </TouchableOpacity>
                     </View>
-                </ScrollView>
+                    <PrimaryButton
+                        title="Continue"
+                        onPress={goToNextScreen}
+                        disabled={selectedChoice === undefined}
+                    />
+                </>
+            );
+        }
 
-                {finalScreen.videoLink && youtubeVideoId && (
-                    <Modal
-                        visible={showVideoModal}
-                        transparent={true}
-                        animationType="fade"
-                        onRequestClose={closeVideoModal}
-                    >
-                        <View style={styles.modalOverlay}>
-                            <View style={styles.modalContent}>
-                                <TouchableOpacity
-                                    style={styles.closeButton}
-                                    onPress={closeVideoModal}
-                                    activeOpacity={0.8}
-                                >
-                                    <X size={28} color="#FFFFFF" />
-                                </TouchableOpacity>
+        // Step 2: Response to first choice
+        if (scenarioStep === 2) {
+            const selectedChoice = selectedChoices[`scenario_${currentScenarioIndex}_step_1`];
+            const responseText = selectedChoice === 0 ? scenario.question1?.response1 : scenario.question1?.response2;
+            return (
+                <>
+                    <Text style={styles.responseTitle}>Here's where you're at</Text>
+                    <Text style={styles.responseText}>{responseText}</Text>
+                    <PrimaryButton title="Continue" onPress={goToNextScreen} />
+                </>
+            );
+        }
 
-                                <View style={styles.videoPlayerContainer}>
-                                    <YoutubePlayer
-                                        height={height * 0.75}
-                                        play={isPlaying}
-                                        videoId={youtubeVideoId}
-                                        webViewProps={{
-                                            allowsFullscreenVideo: true,
-                                        }}
-                                        onChangeState={(state: string) => {
-                                            console.log('Video state:', state);
-                                        }}
-                                    />
-                                </View>
+        // Step 3: Second question
+        if (scenarioStep === 3) {
+            return (
+                <>
+                    <Text style={styles.scenarioText}>{scenario.question2?.text}</Text>
+                    <PrimaryButton title="What will you do?" onPress={goToNextScreen} />
+                </>
+            );
+        }
+
+        // Step 4: Second choice
+        if (scenarioStep === 4) {
+            const selectedChoice = selectedChoices[`scenario_${currentScenarioIndex}_step_${scenarioStep}`];
+            return (
+                <>
+                    <Text style={styles.choicesTitle}>Here are your options</Text>
+                    <View style={styles.choicesContainer}>
+                        <TouchableOpacity
+                            style={[
+                                styles.choiceButton,
+                                selectedChoice === 0 && styles.choiceButtonSelected
+                            ]}
+                            onPress={() => handleChoiceSelect(0)}
+                            activeOpacity={0.8}
+                        >
+                            <View style={styles.choiceContent}>
+                                {selectedChoice === 0 && (
+                                    <View style={styles.selectedIndicator}>
+                                        <Check size={16} color="#E2DED0" />
+                                    </View>
+                                )}
+                                <Text style={[
+                                    styles.choiceText,
+                                    selectedChoice === 0 && styles.choiceTextSelected
+                                ]}>
+                                    {scenario.question2?.choice1}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.choiceButton,
+                                selectedChoice === 1 && styles.choiceButtonSelected
+                            ]}
+                            onPress={() => handleChoiceSelect(1)}
+                            activeOpacity={0.8}
+                        >
+                            <View style={styles.choiceContent}>
+                                {selectedChoice === 1 && (
+                                    <View style={styles.selectedIndicator}>
+                                        <Check size={16} color="#E2DED0" />
+                                    </View>
+                                )}
+                                <Text style={[
+                                    styles.choiceText,
+                                    selectedChoice === 1 && styles.choiceTextSelected
+                                ]}>
+                                    {scenario.question2?.choice2}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                    <PrimaryButton
+                        title="Continue"
+                        onPress={goToNextScreen}
+                        disabled={selectedChoice === undefined}
+                    />
+                </>
+            );
+        }
+
+        // Step 5: Response to second choice
+        if (scenarioStep === 5) {
+            const selectedChoice = selectedChoices[`scenario_${currentScenarioIndex}_step_4`];
+            const responseText = selectedChoice === 0 ? scenario.question2?.response1 : scenario.question2?.response2;
+            return (
+                <>
+                    <Text style={styles.responseTitle}>Here's where you're at</Text>
+                    <Text style={styles.responseText}>{responseText}</Text>
+                    <PrimaryButton title="Continue" onPress={goToNextScreen} />
+                </>
+            );
+        }
+
+        // Step 6: Scenario reflection
+        if (scenarioStep === 6) {
+            const AlternativeIcon = scenario.alternativeIcon;
+            return (
+                <>
+                    {AlternativeIcon && (
+                        <View style={commonStyles.introIconContainer}>
+                            <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
+                                <AlternativeIcon size={32} color="#E2DED0" />
                             </View>
                         </View>
-                    </Modal>
-                )}
-            </View>
-        );
-    }
+                    )}
+                    <Text style={styles.alternativeTitle}>How did that feel?</Text>
+                    <Text style={styles.alternativeText}>{scenario.reflection}</Text>
+                    <PrimaryButton
+                        title={currentScenarioIndex < scenarios.length - 1 ? "Try Another Scenario" : "Continue to Final Reflection"}
+                        onPress={goToNextScreen}
+                    />
+                </>
+            );
+        }
 
-    // Standard Roleplay Screen (Combines Scenario Intro, Choices, Response, Follow-up, Alternative)
-    const currentScenarioData = scenarios[currentScenarioIndex];
+        return null;
+    };
 
-    if (!currentScenarioData) {
-        return <Text>Loading scenario...</Text>;
-    }
+    const renderSimpleChoiceScenario = (scenario: RoleplayScenarioContent) => {
+        // Step 0: Scenario intro + choices
+        if (scenarioStep === 0) {
+            return (
+                <>
+                    <Text style={styles.scenarioTitle}>
+                        Scenario {currentScenarioIndex + 1} of {scenarios.length}
+                    </Text>
+                    <Text style={styles.scenarioText}>{scenario.scenarioText}</Text>
+                    <Text style={styles.choicesTitle}>Who would you hire?</Text>
+                    <View style={styles.choicesContainer}>
+                        {scenario.choices?.map((option, index) => (
+                            <TouchableOpacity
+                                key={option.id || index}
+                                style={[
+                                    styles.choiceButton,
+                                    selectedChoiceIndex === index && styles.choiceButtonSelected
+                                ]}
+                                onPress={() => handleChoiceSelect(index)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={styles.choiceContent}>
+                                    {selectedChoiceIndex === index && (
+                                        <View style={styles.selectedIndicator}>
+                                            <Check size={16} color="#E2DED0" />
+                                        </View>
+                                    )}
+                                    <Text style={[
+                                        styles.choiceText,
+                                        selectedChoiceIndex === index && styles.choiceTextSelected
+                                    ]}>
+                                        {option.text}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    <PrimaryButton
+                        title="Continue"
+                        onPress={goToNextScreen}
+                        disabled={selectedChoiceIndex === null}
+                    />
+                </>
+            );
+        }
 
-    const AlternativeIconComponent = currentScenarioData.alternativeIcon;
+        // Step 1: Response
+        if (scenarioStep === 1 && selectedChoiceIndex !== null) {
+            return (
+                <>
+                    <Text style={styles.responseTitle}>Here's our take</Text>
+                    <Text style={styles.responseText}>
+                        {scenario.responses?.[selectedChoiceIndex]}
+                    </Text>
+                    <Text style={styles.continuePrompt}>
+                        {currentScenarioIndex < scenarios.length - 1
+                            ? "Let's try another one."
+                            : "Ready for the final thoughts?"}
+                    </Text>
+                    <PrimaryButton title="Continue" onPress={goToNextScreen} />
+                </>
+            );
+        }
 
-    return (
+        // Step 2: Alternative (if exists)
+        if (scenarioStep === 2 && scenario.alternativeText) {
+            return (
+                <>
+                    <Text style={styles.alternativeTitle}>Consider this</Text>
+                    <Text style={styles.alternativeText}>{scenario.alternativeText}</Text>
+                    <PrimaryButton
+                        title={currentScenarioIndex < scenarios.length - 1 ? "Next Scenario" : "Continue to Reflection"}
+                        onPress={goToNextScreen}
+                    />
+                </>
+            );
+        }
+
+        return null;
+    };
+
+    const renderReflectionScreen = () => (
         <View style={commonStyles.container}>
-            <StickyHeader
-                onBack={goBack}
-                title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
-                progress={(currentScenarioIndex + 1) / scenarios.length}
-            />
-
+            <StickyHeader onBack={goBack} />
             <ScrollView
                 ref={scrollViewRef}
                 style={commonStyles.scrollView}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ flexGrow: 1 }}
-                onContentSizeChange={() => scrollToTop()}
-                onLayout={() => scrollToTop()}
             >
-                <View style={styles.centeredContent}>
+                <View style={commonStyles.centeredContent}>
                     <Card style={commonStyles.baseCard}>
-                        {/* Scenario Intro / Initial Choices */}
-                        {roleplayStep === 0 && (
-                            <>
-                                <Text style={styles.scenarioTitle}>{currentScenarioData.scenarioTitle}</Text>
-                                <Text style={styles.scenarioText}>{currentScenarioData.scenarioText}</Text>
-                                {currentScenarioData.scenarioQuestion && (
-                                    <Text style={styles.scenarioQuestion}>{currentScenarioData.scenarioQuestion}</Text>
-                                )}
-                                <Text style={styles.choicesTitle}>Your Options</Text>
-
-                                <View style={styles.choicesContainer}>
-                                    {currentScenarioData.choices?.map((option, index) => (
-                                        <TouchableOpacity
-                                            key={option.id || index}
-                                            style={[
-                                                styles.choiceButton,
-                                                selectedChoiceIndex === index && styles.choiceButtonSelected
-                                            ]}
-                                            onPress={() => handleChoiceSelect(index)}
-                                            activeOpacity={0.8}
-                                        >
-                                            <View style={styles.choiceContent}>
-                                                {selectedChoiceIndex === index && (
-                                                    <View style={styles.selectedIndicator}>
-                                                        <Check size={16} color="#E2DED0" />
-                                                    </View>
-                                                )}
-                                                <Text style={[
-                                                    styles.choiceText,
-                                                    selectedChoiceIndex === index && styles.choiceTextSelected
-                                                ]}>
-                                                    {option.text}
-                                                </Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                                <PrimaryButton
-                                    title="Continue"
-                                    onPress={handleContinueRoleplay}
-                                    disabled={selectedChoiceIndex === null}
+                        {imageSource && (
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: imageSource }}
+                                    style={commonStyles.heroImage}
                                 />
-                            </>
+                            </View>
                         )}
 
-                        {/* Response based on choice */}
-                        {roleplayStep === 1 && selectedChoiceIndex !== null && (
-                            <>
-                                <Text style={styles.responseTitle}>
-                                    {currentScenarioData.formula ? 'Your Choice Analysis' : 'Here\'s where you\'re at'}
-                                </Text>
-                                <Text style={styles.responseText}>
-                                    {currentScenarioData.responses?.[selectedChoiceIndex]}
-                                </Text>
-                                <PrimaryButton title="Continue" onPress={handleContinueRoleplay} />
-                            </>
+                        <Text style={commonStyles.reflectionTitle}>
+                            {reflectionScreen.title}
+                        </Text>
+
+                        {reflectionScreen.descriptions.map((desc, index) => (
+                            <Text key={index} style={commonStyles.reflectionDescription}>
+                                {desc}
+                            </Text>
+                        ))}
+
+                        {reflectionScreen.reflectionEmphasis && (
+                            <Text style={[commonStyles.reflectionDescription, styles.reflectionEmphasis]}>
+                                ({reflectionScreen.reflectionEmphasis})
+                            </Text>
                         )}
 
-                        {/* Follow-up / Formula Screen */}
-                        {roleplayStep === 2 && currentScenarioData.formula && (
-                            <>
-                                <Text style={styles.formulaTitle}>{currentScenarioData.formula.title}</Text>
-                                <Text style={styles.formulaText}>{currentScenarioData.formula.text}</Text>
-                                <Text style={styles.formulaSubtitle}>The "{currentScenarioData.formula.title}" Formula:</Text>
+                        {reflectionScreen.videoLink && renderVideoThumbnail(reflectionScreen.videoLink)}
 
-                                <View>
-                                    {currentScenarioData.formula.steps.map((step) => (
-                                        <View key={step.number} style={styles.formulaStep}>
-                                            <Text style={styles.formulaStepNumber}>{step.number}</Text>
-                                            <Text style={styles.formulaStepText}>
-                                                <Text style={styles.formulaStepTitle}>{step.title}:</Text> {step.text}
-                                            </Text>
-                                        </View>
-                                    ))}
-                                </View>
-                                {currentScenarioData.formula.note && (
-                                    <Text style={styles.formulaNote}>{currentScenarioData.formula.note}</Text>
-                                )}
-                                <PrimaryButton title="Continue" onPress={handleContinueRoleplay} />
-                            </>
-                        )}
-                        {/* If no formula but there are follow-up texts (like in Generosity) */}
-                        {roleplayStep === 2 && !currentScenarioData.formula && selectedChoiceIndex !== null && currentScenarioData.followUpTexts && (
-                            <>
-                                <Text style={styles.followUpTitle}>Here's your situation</Text>
-                                <Text style={styles.followUpText}>
-                                    {currentScenarioData.followUpTexts[selectedChoiceIndex]}
-                                </Text>
-                                <PrimaryButton title="See the Alternative" onPress={handleContinueRoleplay} />
-                            </>
+                        {reflectionScreen.journalSectionProps && (
+                            <JournalEntrySection {...reflectionScreen.journalSectionProps} />
                         )}
 
-                        {/* Alternative / Conclusion */}
-                        {roleplayStep === 3 && (
-                            <>
-                                {AlternativeIconComponent && (
-                                    <View style={commonStyles.introIconContainer}>
-                                        <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
-                                            <AlternativeIconComponent size={32} color="#E2DED0" />
-                                        </View>
-                                    </View>
-                                )}
-                                <Text style={styles.alternativeTitle}>
-                                    {currentScenarioData.alternativeTitle || 'So, what\'s the alternative?'}
-                                </Text>
-                                <Text style={styles.alternativeText}>
-                                    {currentScenarioData.alternativeText}
-                                </Text>
-                                <PrimaryButton
-                                    title={currentScenarioIndex < scenarios.length - 1 ? 'Try another example' : 'Continue to Reflection'}
-                                    onPress={handleContinueRoleplay}
-                                />
-                            </>
-                        )}
+                        <PrimaryButton
+                            title={reflectionScreen.buttonText}
+                            onPress={goToNextScreen}
+                        />
                     </Card>
                 </View>
             </ScrollView>
         </View>
     );
+
+    const renderFinalScreen = () => (
+        <View style={commonStyles.container}>
+            <StickyHeader onBack={goBack} />
+            <ScrollView
+                ref={scrollViewRef}
+                style={commonStyles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+            >
+                <View style={commonStyles.centeredContent}>
+                    <Card style={commonStyles.baseCard}>
+                        {imageSource && (
+                            <View style={commonStyles.introIconContainer}>
+                                <Image
+                                    source={{ uri: imageSource }}
+                                    style={commonStyles.heroImage}
+                                />
+                            </View>
+                        )}
+
+                        <Text style={styles.conclusionTitle}>{finalScreen.title}</Text>
+
+                        {finalScreen.descriptions.map((desc, index) => (
+                            <Text key={index} style={styles.conclusionText}>
+                                {desc}
+                            </Text>
+                        ))}
+
+                        {finalScreen.videoLink && renderVideoThumbnail(finalScreen.videoLink)}
+
+                        {finalScreen.journalSectionProps && (
+                            <>
+                                <JournalEntrySection {...finalScreen.journalSectionProps} />
+                                <View style={styles.journalCallout}>
+                                    <Text style={styles.journalCalloutTitle}>Your Personal Space</Text>
+                                    <Text style={styles.journalCalloutText}>
+                                        Remember, feel free to use the journal tab at any time to jot down your thoughts.
+                                        This app is for you! Use it how you'd like to!
+                                    </Text>
+                                </View>
+                            </>
+                        )}
+
+                        {finalScreen.alternativeClosing && (
+                            <Text style={styles.conclusionClosing}>
+                                {finalScreen.alternativeClosing}
+                            </Text>
+                        )}
+
+                        <PrimaryButton
+                            title={finalScreen.buttonText}
+                            onPress={goToNextScreen}
+                        />
+                    </Card>
+                </View>
+            </ScrollView>
+        </View>
+    );
+
+    // Main render
+    switch (currentScreen) {
+        case SCREEN_WELCOME:
+            return renderWelcomeScreen();
+        case SCREEN_INTRO:
+            return renderIntroScreen();
+        case SCREEN_SCENARIO:
+            return renderScenarioScreen();
+        case SCREEN_REFLECTION:
+            return renderReflectionScreen();
+        case SCREEN_FINAL:
+            return renderFinalScreen();
+        default:
+            return renderWelcomeScreen();
+    }
 }
 
 const styles = StyleSheet.create({
-    centeredContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 50,
-        paddingBottom: 30,
-    },
-    // Welcome Screen Styles
-    celebrationBox: {
+    // Learning Box Styles
+    learningBox: {
         width: '100%',
         backgroundColor: 'rgba(146, 132, 144, 0.1)',
         borderRadius: 16,
@@ -1853,7 +910,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(146, 132, 144, 0.2)',
     },
-    celebrationTitle: {
+    learningBoxTitle: {
         fontFamily: 'Montserrat-SemiBold',
         fontSize: 18,
         color: '#647C90',
@@ -1861,7 +918,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         textAlign: 'center',
     },
-    celebrationItem: {
+    learningBoxItem: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 15,
         color: '#4E4F50',
@@ -1876,23 +933,7 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         lineHeight: 22,
     },
-    // Engine General Styles
-    engineTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 10,
-        fontWeight: '700',
-    },
-    engineInstructions: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#928490',
-        textAlign: 'center',
-        marginBottom: 30,
-    },
-    // Scenario Intro Styles
+    // Scenario Styles
     scenarioTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 28,
@@ -1924,7 +965,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 24,
     },
-    // Choices Styles
+    // Choice Styles
     choicesTitle: {
         fontFamily: 'Merriweather-Bold',
         fontSize: 24,
@@ -1992,7 +1033,6 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 32,
     },
-    // Continue Prompt Styles (for simpleChoice)
     continuePrompt: {
         fontFamily: 'Montserrat-Medium',
         fontSize: 16,
@@ -2103,16 +1143,6 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 5,
     },
-    // Reflection Prompt Text
-    reflectionPromptText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        marginBottom: 20,
-        lineHeight: 24,
-        paddingHorizontal: 10,
-    },
     reflectionEmphasis: {
         fontStyle: 'italic',
         color: '#928490',
@@ -2167,7 +1197,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 22,
     },
-    // YouTube Thumbnail Styles
+    // Video Styles
     videoThumbnailContainer: {
         width: '100%',
         marginBottom: 25,
@@ -2239,172 +1269,5 @@ const styles = StyleSheet.create({
         backgroundColor: '#000',
         borderRadius: 16,
         overflow: 'hidden',
-    },
-    // TryItOn Specific Styles
-    mockInterviewCard: {
-        backgroundColor: 'rgba(100, 124, 144, 0.1)',
-        borderRadius: 16,
-        padding: 24,
-        marginBottom: 25,
-        borderWidth: 1,
-        borderColor: 'rgba(100, 124, 144, 0.2)',
-    },
-    mockInterviewTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 18,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 12,
-        fontWeight: '700',
-    },
-    mockInterviewDescription: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 14,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 20,
-        marginBottom: 20,
-    },
-    mockInterviewButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-    },
-    mockInterviewButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: '#647C90',
-    },
-    mockInterviewButtonText: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 14,
-        color: '#E2DED0',
-        marginRight: 8,
-        fontWeight: '600',
-    },
-    alternativeClosing: {
-        fontFamily: 'Montserrat-SemiBold',
-        fontSize: 18,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 32,
-        fontWeight: '600',
-    },
-    // MustHaves Specific Styles
-    progressContainer: {
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    progressText: {
-        fontFamily: 'Montserrat-Medium',
-        fontSize: 14,
-        color: '#928490',
-        marginBottom: 10,
-    },
-    progressBar: {
-        width: '100%',
-        height: 6,
-        backgroundColor: 'rgba(146, 132, 144, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#928490',
-        borderRadius: 3,
-    },
-    choiceTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 30,
-        fontWeight: '700',
-    },
-    overviewIconContainer: {
-        marginBottom: 24,
-    },
-    overviewIconGradient: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    overviewTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 32,
-        fontWeight: '700',
-    },
-    resultTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 24,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 25,
-        fontWeight: '700',
-    },
-    resultText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 26,
-        marginBottom: 32,
-    },
-    finalIconContainer: {
-        marginBottom: 24,
-    },
-    finalIconGradient: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    finalTitle: {
-        fontFamily: 'Merriweather-Bold',
-        fontSize: 28,
-        color: '#647C90',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    finalText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#4E4F50',
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-    },
-    introIconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 5,
     },
 });

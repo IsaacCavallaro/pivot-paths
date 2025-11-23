@@ -1,7 +1,7 @@
 import React from 'react';
 import RoleplayPromptEngine from '@/components/shared/roleplay-prompt-engine/RoleplayPromptEngine';
 import { RoleplayScenarioContent } from '@/types/roleplayPromptEngine';
-import { Users, Award } from 'lucide-react-native';
+import { Users, Target, Award } from 'lucide-react-native';
 
 interface WhoWouldYouHireProps {
     onComplete: () => void;
@@ -13,8 +13,8 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
         {
             id: 1,
             scenarioTitle: "Sales Assistant Role",
-            scenarioText: "You're hiring a sales assistant. The role involves facing rejection from customers and staying motivated. Two dancers explain their experience. Who would you hire?",
-            scenarioQuestion: "Who would you hire?",
+            scenarioText: "You're hiring a sales assistant. The role involves facing rejection from customers and staying motivated.",
+            scenarioQuestion: "Two dancers explain their experience with setbacks. Who would you hire?",
             choices: [
                 {
                     id: 'choice1',
@@ -26,22 +26,25 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
                 },
             ],
             responses: [
-                "Both candidates have the same background but the dancer you chose framed how she dealt with rejection as a struggle. The other dancer saw it as a strength. Employers are drawn to resilience and growth.",
-                "We'd hire her too! Both candidates have the same background but the dancer you chose framed how she dealt with rejection as a strength. The other dancer saw it as a struggle. Employers are drawn to resilience and growth."
+                "If Button 1: Both candidates have the same background but the dancer you chose framed how she dealt with rejection as a struggle. The other dancer saw it as a strength. Employers are drawn to resilience and growth.",
+                "If Button 2: We'd hire her too! Both candidates have the same background but the dancer you chose framed how she dealt with rejection as a strength. The other dancer saw it as a struggle. Employers are drawn to resilience and growth."
             ],
-            alternativeTitle: "Key Takeaway",
+            followUpTexts: [
+                "Let's try another one.",
+                "Let's try another one."
+            ],
+            alternativeTitle: "Key Insight",
             alternativeText: "Both dancers have the same experience, but how they frame it makes all the difference. Employers value resilience, growth mindset, and clear articulation of transferable skills.",
             alternativeIcon: Users,
             reflectionPrompt: "How can you reframe your dance experiences to highlight resilience and growth?",
             question1: undefined,
             question2: undefined,
-            formula: undefined,
-            followUpTexts: undefined
+            formula: undefined
         },
         {
             id: 2,
             scenarioTitle: "Project Coordinator Role",
-            scenarioText: "You're hiring a project coordinator. The role involves clear communication and guiding a team through deadlines. Two dancers explain their experience. Who would you hire?",
+            scenarioText: "You're hiring a project coordinator. The role requires clear communication and guiding a team through deadlines.",
             scenarioQuestion: "Who would you hire?",
             choices: [
                 {
@@ -54,23 +57,26 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
                 },
             ],
             responses: [
-                "The same experience can sound casual or highly professional depending on how it's presented. The dancer you chose started to dive into her transferable skills but stopped short.",
-                "We'd hire her too! The same experience can sound casual or highly professional depending on how it's presented. The dancer you chose took the opportunity to highlight clear transferable skills from her teaching experience."
+                "If button 1: The same experience can sound casual or highly professional depending on how it's presented. The dancer you chose started to dive into her transferable skills but stopped short.",
+                "If button 2: We'd hire her too! The same experience can sound casual or highly professional depending on how it's presented. The dancer you chose took the opportunity to highlight clear transferable skills from her teaching experience."
             ],
-            alternativeTitle: "Key Takeaway",
+            followUpTexts: [
+                "Let's go through one more!",
+                "Let's go through one more!"
+            ],
+            alternativeTitle: "Key Insight",
             alternativeText: "Specificity matters. Quantifying your experience (30 kids, weekly classes) and directly connecting skills to the role requirements makes your experience more compelling to employers.",
-            alternativeIcon: Users,
+            alternativeIcon: Target,
             reflectionPrompt: "What specific numbers and outcomes can you highlight from your teaching experience?",
             question1: undefined,
             question2: undefined,
-            formula: undefined,
-            followUpTexts: undefined
+            formula: undefined
         },
         {
             id: 3,
             scenarioTitle: "Events Management Role",
-            scenarioText: "You're hiring for a front-facing client role in events management. The role requires professional presence. Two dancers explain their experience. Who would you hire?",
-            scenarioQuestion: "Who would you hire?",
+            scenarioText: "You're hiring for a front-facing client role in events management. Professional presence is key.",
+            scenarioQuestion: "Two candidates describe how they present themselves. Who would you hire?",
             choices: [
                 {
                     id: 'choice1',
@@ -82,27 +88,39 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
                 },
             ],
             responses: [
-                "The dancer you chose put a solid foot forward, but presentation isn't just about appearance. It's about professionalism, confidence, and representing yourself well. Dancers already excel at this, and employers value it.",
-                "We'd hire her too! Presentation isn't just about appearance. It's about professionalism, confidence, and representing yourself well. The dancer you chose showed that she already excels at this, and employers value it."
+                "If button 1: The dancer you chose put a solid foot forward, but presentation isn't just about appearance. It's about professionalism, confidence, and representing yourself well. Dancers already excel at this, and employers value it.",
+                "If button 2: We'd hire her too! Presentation isn't just about appearance. It's about professionalism, confidence, and representing yourself well. The dancer you chose showed that she already excels at this, and employers value it."
             ],
-            alternativeTitle: "Key Takeaway",
+            followUpTexts: [
+                "Ready for the final reflection?",
+                "Ready for the final reflection?"
+            ],
+            alternativeTitle: "Key Insight",
             alternativeText: "Professional presence goes beyond appearance. It's about confidence, adaptability, and understanding how to represent yourself and the organization effectively in different situations.",
-            alternativeIcon: Users,
+            alternativeIcon: Award,
             reflectionPrompt: "How can you articulate the professional presence skills you've developed as a dancer?",
             question1: undefined,
             question2: undefined,
-            formula: undefined,
-            followUpTexts: undefined
+            formula: undefined
         }
     ];
 
     const welcomeScreen = {
-        title: "Who would you hire?",
+        title: "Who Would You Hire?",
         descriptions: [
             "Take yourself out of the equation and pretend YOU are the hiring manager putting another dancer in the hot seat for an interview. Put yourself in their shoes and decide who you would hire.",
             "You'll see how the same dance experience can be framed in different ways, and learn what employers are really looking for when they hear your story."
         ],
-        buttonText: "Let's Begin",
+        learningBox: {
+            title: "What You'll Learn",
+            items: [
+                { id: 1, text: "How to frame dance experience professionally" },
+                { id: 2, text: "What employers value in interview answers" },
+                { id: 3, text: "How to highlight transferable skills" },
+                { id: 4, text: "The power of specific, quantified examples" },
+            ],
+        },
+        welcomeFooter: "Get ready to think like a hiring manager and discover what makes a candidate stand out!",
         journalSectionProps: {
             pathTag: "prep-your-pivot",
             day: "6",
@@ -112,42 +130,54 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
             journalInstruction: "What are you hoping to learn about framing your dance experience for interviews?",
             moodLabel: "",
             saveButtonText: "Save Entry",
-        }
+        },
+        buttonText: "Begin",
+    };
+
+    const engineIntroScreen = {
+        title: "Think Like a Hiring Manager",
+        descriptions: [
+            "In this exercise, you'll review three different interview scenarios where two dancers with similar backgrounds answer the same question differently.",
+            "Your job is to choose which candidate you would hire based on how they frame their dance experience. Pay attention to what makes one answer stronger than the other!",
+            "Remember: both candidates have the same dance background - the difference is in how they translate their experience for the specific role."
+        ],
+        buttonText: "Start First Scenario",
     };
 
     const reflectionScreen = {
-        title: "Interview Framing Complete",
+        title: "Interview Framing Insights",
         descriptions: [
-            "You've completed all the interview scenarios! You've seen how the same dance experience can be framed in different ways to highlight different strengths.",
-            "Remember that employers are looking for candidates who can clearly articulate how their experiences translate to the specific role they're applying for."
+            "You've completed all the interview scenarios! You've seen firsthand how the same dance experience can be framed in different ways to highlight different strengths.",
+            "Both candidates did well in each scenario. The difference was in how they translated their skills, focused on their strengths, and highlighted how they could add value to the particular role they applied for."
         ],
-        buttonText: "Continue to Final Thoughts",
+        reflectionEmphasis: "When preparing for your interviews, keep putting yourself in the employer's shoes!",
         journalSectionProps: {
             pathTag: "prep-your-pivot",
             day: "6",
             category: "Career Transitions",
             pathTitle: "Prep Your Pivot",
             dayTitle: "Who Would You Hire?",
-            journalInstruction: "What insights did you gain about framing your dance experience for different types of roles?",
+            journalInstruction: "What insights did you gain about framing your dance experience for different types of roles? What surprised you most?",
             moodLabel: "",
-            saveButtonText: "Save Entry",
-        }
+            saveButtonText: "Save Reflection",
+        },
+        buttonText: "Continue to Final Thoughts",
     };
 
     const finalScreen = {
-        title: "Both candidates did well.",
+        title: "Congratulations!",
         descriptions: [
-            "The difference is in how they translated their skills, focused on their strengths, and highlighted how they could add value to the particular role they applied for.",
-            "When preparing for your interviews, keep putting yourself in the employer's shoes and choose your answers based on what will resonate for them."
+            "You've successfully completed the 'Who Would You Hire' exercise! You've gained valuable insights into how hiring managers think and what makes interview answers stand out.",
+            "Remember: The way you frame your dance experience can make all the difference. Focus on resilience, specific examples, and clear connections to the role you're applying for."
         ],
-        alternativeClosing: "See you for your final step tomorrow.",
+        alternativeClosing: "See you for your next career exploration step!",
         journalSectionProps: {
             pathTag: "prep-your-pivot",
             day: "6",
             category: "Career Transitions",
             pathTitle: "Prep Your Pivot",
-            dayTitle: "Who Would You Hire?",
-            journalInstruction: "What did you learn about how to frame your dance experience for interviews?",
+            dayTitle: "Your Interview Prep Space",
+            journalInstruction: "Remember, feel free to use the journal tab at any time to practice framing your answers. The more you practice, the more natural it will feel!",
             moodLabel: "",
             saveButtonText: "Save Entry",
         },
@@ -163,9 +193,10 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
             engineInstructions="Practice framing your dance experience for interviews"
             scenarios={scenarios}
             welcomeScreen={welcomeScreen}
+            engineIntroScreen={engineIntroScreen}
             reflectionScreen={reflectionScreen}
             finalScreen={finalScreen}
-            flowType="simpleChoice"
+            flowType="standard"
         />
     );
 }
