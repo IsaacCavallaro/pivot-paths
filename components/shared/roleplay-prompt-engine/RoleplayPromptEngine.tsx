@@ -93,11 +93,48 @@ export default function RoleplayPromptEngine({
         if (currentScreen === -1) {
             handleBackPress();
         } else if (currentScreen === 0) {
+            // Engine intro → Welcome
             setCurrentScreen(-1);
         } else if (currentScreen === 1) {
+            // First scenario → Engine intro
             setCurrentScreen(0);
-        } else if (currentScreen > 1 && currentScreen <= 6) {
-            setCurrentScreen(currentScreen - 1);
+        } else if (currentScreen === 2) {
+            // First choice → First scenario
+            setCurrentScreen(1);
+            setSelectedChoices(prev => {
+                const newChoices = { ...prev };
+                delete newChoices[1];
+                return newChoices;
+            });
+        } else if (currentScreen === 3) {
+            // First response → First choice
+            setCurrentScreen(2);
+        } else if (currentScreen === 4) {
+            // Second question → First response
+            setCurrentScreen(3);
+        } else if (currentScreen === 5) {
+            // Second choice → Second question
+            setCurrentScreen(4);
+            setSelectedChoices(prev => {
+                const newChoices = { ...prev };
+                delete newChoices[2];
+                return newChoices;
+            });
+        } else if (currentScreen === 6) {
+            // Second response → Second choice
+            setCurrentScreen(5);
+        } else if (currentScreen === 7) {
+            // Reflection → Second response
+            if (currentScenarioIndex > 0) {
+                setCurrentScenarioIndex(prev => prev - 1);
+                setCurrentScreen(6);
+            } else {
+                setCurrentScreen(6);
+            }
+        } else if (currentScreen === 8) {
+            // Final reflection → Last scenario reflection
+            setCurrentScreen(7);
+            setCurrentScenarioIndex(scenarios.length - 1);
         }
         scrollToTop();
     };
@@ -219,26 +256,44 @@ export default function RoleplayPromptEngine({
 
     const handleTryItOnContinue = () => {
         if (currentScreen === -1) {
+            // Welcome → Engine Intro
             setCurrentScreen(0);
         } else if (currentScreen === 0) {
-            setCurrentScreen(1);
+            // Engine Intro → First Scenario
+            startRoleplay();
         } else if (currentScreen === 1) {
+            // Scenario Intro → First Choice
             setCurrentScreen(2);
         } else if (currentScreen === 2) {
-            setCurrentScreen(3);
+            // First Choice → First Response
+            if (selectedChoices[1] !== undefined) {
+                setCurrentScreen(3);
+            }
         } else if (currentScreen === 3) {
+            // First Response → Second Question
             setCurrentScreen(4);
         } else if (currentScreen === 4) {
+            // Second Question → Second Choice
             setCurrentScreen(5);
         } else if (currentScreen === 5) {
-            if (currentScenarioIndex < scenarios.length - 1) {
-                setCurrentScenarioIndex(currentScenarioIndex + 1);
-                setSelectedChoices({});
-                setCurrentScreen(1);
-            } else {
+            // Second Choice → Second Response
+            if (selectedChoices[2] !== undefined) {
                 setCurrentScreen(6);
             }
         } else if (currentScreen === 6) {
+            // Second Response → Scenario Reflection
+            setCurrentScreen(7);
+        } else if (currentScreen === 7) {
+            // Scenario Reflection → Next Scenario or Final Reflection
+            if (currentScenarioIndex < scenarios.length - 1) {
+                setCurrentScenarioIndex(prev => prev + 1);
+                setSelectedChoices({});
+                setCurrentScreen(1); // Back to scenario intro for next scenario
+            } else {
+                setCurrentScreen(8); // All scenarios complete → Final reflection
+            }
+        } else if (currentScreen === 8) {
+            // Final Reflection → Complete
             onComplete();
         }
         scrollToTop();
@@ -395,6 +450,11 @@ export default function RoleplayPromptEngine({
             openVideoModal();
         }
     }, [openVideoModal]);
+
+    // Mock interview handler for TryItOn flow
+    const handleMockInterviewOpen = () => {
+        Linking.openURL('https://pivotfordancers.com/services/mock-interviews/');
+    };
 
     // SimpleChoice Flow Screens
     if (flowType === 'simpleChoice') {
@@ -937,7 +997,7 @@ export default function RoleplayPromptEngine({
     }
 
     // Engine Intro Screen
-    if (currentScreen === 0 && engineIntroScreen && flowType !== 'tryItOn') {
+    if (currentScreen === 0 && engineIntroScreen) {
         return (
             <View style={commonStyles.container}>
                 <StickyHeader onBack={goBack} />
@@ -980,11 +1040,15 @@ export default function RoleplayPromptEngine({
     if (flowType === 'tryItOn') {
         const currentScenario = scenarios[currentScenarioIndex];
 
-        // Screen 0: Scenario Intro
-        if (currentScreen === 0) {
+        // Screen 1: Scenario Intro
+        if (currentScreen === 1) {
             return (
                 <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
+                    <StickyHeader
+                        onBack={goBack}
+                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
+                        progress={(currentScenarioIndex + 1) / scenarios.length}
+                    />
 
                     <ScrollView
                         ref={scrollViewRef}
@@ -1014,13 +1078,17 @@ export default function RoleplayPromptEngine({
             );
         }
 
-        // Screen 1: First Choice
-        if (currentScreen === 1) {
+        // Screen 2: First Choice
+        if (currentScreen === 2) {
             const selectedChoice = selectedChoices[1];
 
             return (
                 <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
+                    <StickyHeader
+                        onBack={goBack}
+                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
+                        progress={(currentScenarioIndex + 1) / scenarios.length}
+                    />
 
                     <ScrollView
                         ref={scrollViewRef}
@@ -1094,14 +1162,18 @@ export default function RoleplayPromptEngine({
             );
         }
 
-        // Screen 2: Response to first choice
-        if (currentScreen === 2) {
+        // Screen 3: Response to first choice
+        if (currentScreen === 3) {
             const selectedChoice = selectedChoices[1];
             const responseText = selectedChoice === 1 ? currentScenario.question1?.response1 : currentScenario.question1?.response2;
 
             return (
                 <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
+                    <StickyHeader
+                        onBack={goBack}
+                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
+                        progress={(currentScenarioIndex + 1) / scenarios.length}
+                    />
 
                     <ScrollView
                         ref={scrollViewRef}
@@ -1125,11 +1197,15 @@ export default function RoleplayPromptEngine({
             );
         }
 
-        // Screen 3: Second scenario question
-        if (currentScreen === 3) {
+        // Screen 4: Second scenario question
+        if (currentScreen === 4) {
             return (
                 <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
+                    <StickyHeader
+                        onBack={goBack}
+                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
+                        progress={(currentScenarioIndex + 1) / scenarios.length}
+                    />
 
                     <ScrollView
                         ref={scrollViewRef}
@@ -1151,13 +1227,17 @@ export default function RoleplayPromptEngine({
             );
         }
 
-        // Screen 4: Second set of choices
-        if (currentScreen === 4) {
+        // Screen 5: Second set of choices
+        if (currentScreen === 5) {
             const selectedChoice = selectedChoices[2];
 
             return (
                 <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
+                    <StickyHeader
+                        onBack={goBack}
+                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
+                        progress={(currentScenarioIndex + 1) / scenarios.length}
+                    />
 
                     <ScrollView
                         ref={scrollViewRef}
@@ -1231,14 +1311,18 @@ export default function RoleplayPromptEngine({
             );
         }
 
-        // Screen 5: Response to second choice + Reflection
-        if (currentScreen === 5) {
+        // Screen 6: Response to second choice
+        if (currentScreen === 6) {
             const selectedChoice = selectedChoices[2];
             const responseText = selectedChoice === 1 ? currentScenario.question2?.response1 : currentScenario.question2?.response2;
 
             return (
                 <View style={commonStyles.container}>
-                    <StickyHeader onBack={goBack} />
+                    <StickyHeader
+                        onBack={goBack}
+                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
+                        progress={(currentScenarioIndex + 1) / scenarios.length}
+                    />
 
                     <ScrollView
                         ref={scrollViewRef}
@@ -1253,10 +1337,55 @@ export default function RoleplayPromptEngine({
                                 <Text style={styles.responseTitle}>Here's where you're at</Text>
 
                                 <Text style={styles.responseText}>{responseText}</Text>
-                                <Text style={styles.responseText}>{currentScenario.reflection}</Text>
+
+                                <PrimaryButton title="Continue" onPress={handleContinueRoleplay} />
+                            </Card>
+                        </View>
+                    </ScrollView>
+                </View>
+            );
+        }
+
+        // Screen 7: Scenario Reflection
+        if (currentScreen === 7) {
+            const AlternativeIconComponent = currentScenario.alternativeIcon;
+
+            return (
+                <View style={commonStyles.container}>
+                    <StickyHeader
+                        onBack={goBack}
+                        title={`Scenario ${currentScenarioIndex + 1}/${scenarios.length}`}
+                        progress={(currentScenarioIndex + 1) / scenarios.length}
+                    />
+
+                    <ScrollView
+                        ref={scrollViewRef}
+                        style={commonStyles.scrollView}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ flexGrow: 1 }}
+                        onContentSizeChange={() => scrollToTop()}
+                        onLayout={() => scrollToTop()}
+                    >
+                        <View style={commonStyles.centeredContent}>
+                            <Card style={commonStyles.baseCard}>
+                                {AlternativeIconComponent && (
+                                    <View style={commonStyles.introIconContainer}>
+                                        <View style={[styles.alternativeIconGradient, { backgroundColor: '#928490' }]}>
+                                            <AlternativeIconComponent size={32} color="#E2DED0" />
+                                        </View>
+                                    </View>
+                                )}
+
+                                <Text style={styles.alternativeTitle}>
+                                    How did that feel?
+                                </Text>
+
+                                <Text style={styles.alternativeText}>
+                                    {currentScenario.reflection}
+                                </Text>
 
                                 <PrimaryButton
-                                    title={currentScenarioIndex < scenarios.length - 1 ? "Next Scenario" : "Continue to Final Reflection"}
+                                    title={currentScenarioIndex < scenarios.length - 1 ? "Try Another Scenario" : "Continue to Final Reflection"}
                                     onPress={handleContinueRoleplay}
                                 />
                             </Card>
@@ -1266,8 +1395,8 @@ export default function RoleplayPromptEngine({
             );
         }
 
-        // Screen 6: Final reflection with journal prompts
-        if (currentScreen === 6) {
+        // Screen 8: Final reflection with journal prompts
+        if (currentScreen === 8) {
             return (
                 <View style={commonStyles.container}>
                     <StickyHeader onBack={goBack} />
@@ -1306,7 +1435,7 @@ export default function RoleplayPromptEngine({
                                     </Text>
                                     <TouchableOpacity
                                         style={styles.mockInterviewButton}
-                                        onPress={() => Linking.openURL('https://pivotfordancers.com/services/mock-interviews/')}
+                                        onPress={handleMockInterviewOpen}
                                     >
                                         <View style={[styles.mockInterviewButtonContent, { backgroundColor: '#647C90' }]}>
                                             <Text style={styles.mockInterviewButtonText}>Learn More</Text>
