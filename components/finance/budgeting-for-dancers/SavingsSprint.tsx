@@ -276,10 +276,10 @@ export default function SavingsSprint({ onComplete, onBack }: SavingsSprintProps
 
                             <JournalEntrySection
                                 pathTag="budgeting-for-dancers"
-                                day="2"
+                                day="7"
                                 category="finance"
-                                pathTitle="Money Mindsets"
-                                dayTitle="Know Your Value"
+                                pathTitle="Budgeting For Dancers"
+                                dayTitle="Savings Sprint"
                                 journalInstruction="Before we begin, let's check in with your current relationship with saving. What comes to mind when you think about saving money?"
                                 moodLabel=""
                                 saveButtonText="Save Entry"
@@ -433,10 +433,10 @@ export default function SavingsSprint({ onComplete, onBack }: SavingsSprintProps
 
                                 <JournalEntrySection
                                     pathTag="budgeting-for-dancers"
-                                    day="2"
+                                    day="7"
                                     category="finance"
-                                    pathTitle="Money Mindsets"
-                                    dayTitle="Know Your Value"
+                                    pathTitle="Budgeting For Dancers"
+                                    dayTitle="Savings Sprint"
                                     journalInstruction="What excites you most about starting this savings challenge? What feels challenging?"
                                     moodLabel=""
                                     saveButtonText="Save Entry"

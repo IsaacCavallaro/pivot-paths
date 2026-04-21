@@ -11,6 +11,7 @@ import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
+import { personalizeGreeting, useFirstName } from '@/utils/hooks/useFirstName';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,6 +26,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
   const [showVideoModal, setShowVideoModal] = useState(false);
 
   const { scrollViewRef, scrollToTop } = useScrollToTop();
+  const firstName = useFirstName();
   const [selectedChoice, setSelectedChoice] = useStorage<number | null>('ROLEPLAY_SCENARIO_CHOICE', null);
 
   const handleStartRoleplay = () => {
@@ -43,9 +45,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
       if (onBack) onBack();
     } else if (currentScreen === 0) {
       setCurrentScreen(-1);
-    } else if (currentScreen === 1) {
-      setCurrentScreen(0);
-    } else if (currentScreen > 1 && currentScreen <= 6) {
+    } else if (currentScreen > 0 && currentScreen <= 7) {
       setCurrentScreen(currentScreen - 1);
     }
     scrollToTop();
@@ -66,6 +66,8 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     } else if (currentScreen === 5) {
       setCurrentScreen(6);
     } else if (currentScreen === 6) {
+      setCurrentScreen(7);
+    } else if (currentScreen === 7) {
       onComplete();
     } else {
       setCurrentScreen(currentScreen + 1);
@@ -87,16 +89,9 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
     const youtubeUrl = `https://www.youtube.com/shorts/s-hpQ9XBGP4`;
 
     try {
-      const supported = await Linking.canOpenURL(youtubeUrl);
-
-      if (supported) {
-        await Linking.openURL(youtubeUrl);
-      } else {
-        console.log("YouTube app not available, opening in modal");
-        openVideoModal();
-      }
+      await Linking.openURL(youtubeUrl);
     } catch (error) {
-      console.log("Error opening YouTube:", error);
+      console.error('Error opening YouTube:', error);
       openVideoModal();
     }
   };
@@ -150,27 +145,31 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 />
               </View>
 
-              <Text style={commonStyles.introTitle}>We’re so glad you’re back!</Text>
-
-              <Text style={commonStyles.introDescription}>
-                By showing up again and again, you’re proving that you’re serious about creating a meaningful life beyond dance.
+              <Text style={commonStyles.introTitle}>
+                {personalizeGreeting('Welcome Back', firstName)}
               </Text>
 
               <Text style={commonStyles.introDescription}>
-                It’s possible to honor both your passion for dance and your dreams beyond it. And we’re so glad to be here with you.
+                You’re building real momentum. Each day you come back, you get clearer about what you want life beyond dance to feel like.
               </Text>
 
               <View style={styles.celebrationBox}>
-                <Text style={styles.celebrationTitle}>Celebrating Your Progress</Text>
-                <Text style={styles.celebrationItem}>• You've identified your dreamer type</Text>
-                <Text style={styles.celebrationItem}>• You've challenged industry myths</Text>
-                <Text style={styles.celebrationItem}>• You're building self-awareness</Text>
-                <Text style={styles.celebrationItem}>• You're prioritizing your future</Text>
+                <Text style={styles.celebrationTitle}>What we'll learn today</Text>
+                <Text style={styles.celebrationItem}>• How your current instincts shape your choices</Text>
+                <Text style={styles.celebrationItem}>• What this scenario reveals about your priorities</Text>
+                <Text style={styles.celebrationItem}>• What an alternative future could open up for you</Text>
               </View>
 
-              <Text style={styles.welcomeFooter}>
-                Today, we'll explore what life could look like if you continued down the path of professional dance versus choosing a different route. Get ready to imagine new possibilities!
-              </Text>
+              <JournalEntrySection
+                pathTag="discover-dream-life"
+                day="3"
+                category="Mindset and Wellness"
+                pathTitle="Discover Your Dream Life"
+                dayTitle="What's The Alternative"
+                journalInstruction="Journal Prompt: Before you begin, what part of your life outside dance feels hardest to prioritize right now?"
+                moodLabel=""
+                saveButtonText="Save Entry"
+              />
 
               <PrimaryButton title="Let's Begin" onPress={handleStartRoleplay} />
             </Card>
@@ -202,10 +201,10 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 />
               </View>
 
-              <Text style={commonStyles.introTitle}>What's the alternative?</Text>
+              <Text style={commonStyles.introTitle}>What is this roleplay about?</Text>
 
               <Text style={commonStyles.introDescription}>
-                Let's walk through a common scenario you may find yourself in if you continue down the path of professional dance. Choose what you'd be most likely to do in this scenario and we'll shed light on an alternative. You have more options than you might think.
+                You’ll move through a real-life scenario and choose the response that feels most true to you. Then we’ll unpack what that choice reveals and show you an alternative path you may not have considered yet.
               </Text>
 
               <PrimaryButton title="Begin" onPress={() => {
@@ -468,18 +467,14 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 />
               </View>
 
-              <Text style={commonStyles.reflectionTitle}>Expanding Your Vision</Text>
+              <Text style={commonStyles.reflectionTitle}>Reflect on Today</Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                This was just one specific example of an alternative path. As you continue to work on becoming an expansive dreamer and bust those myths, who knows what else you can apply the alternative to?
+                This scenario was one example, but it points to something bigger: more stability and more choice can change how you show up for the people and experiences that matter most.
               </Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                Every choice you make opens up new possibilities. The wedding scenario shows how financial stability and work-life balance can transform your ability to show up for the people and experiences that matter most.
-              </Text>
-
-              <Text style={commonStyles.reflectionDescription}>
-                Take a detour to see how our founder has done it, but don't forget to come back and mark this day as complete!
+                What do you want to carry forward from this reflection, and what would one small action look like this week?
               </Text>
 
               {/* YouTube Short Thumbnail */}
@@ -507,7 +502,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 category="Mindset and Wellness"
                 pathTitle="Discover Your Dream Life"
                 dayTitle="What's The Alternative"
-                journalInstruction="If you could put family and friends before your dance career, what would that mean to you?"
+                journalInstruction="Journal Prompt: If you had more freedom to prioritize the people and experiences you care about, what would you do differently?"
                 moodLabel=""
                 saveButtonText="Save Entry"
               />
@@ -519,7 +514,7 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                 </Text>
               </View>
 
-              <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+              <PrimaryButton title="Continue" onPress={handleContinue} />
             </Card>
           </View>
         </ScrollView>
@@ -549,14 +544,51 @@ export default function RoleplayScenario({ onComplete, onBack }: RoleplayScenari
                   webViewProps={{
                     allowsFullscreenVideo: true,
                   }}
-                  onChangeState={(state) => {
-                    console.log('Video state:', state);
-                  }}
                 />
               </View>
             </View>
           </View>
         </Modal>
+      </View>
+    );
+  }
+
+  if (currentScreen === 7) {
+    return (
+      <View style={commonStyles.container}>
+        <StickyHeader onBack={goBack} />
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={commonStyles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onContentSizeChange={() => scrollToTop()}
+          onLayout={() => scrollToTop()}
+        >
+          <View style={commonStyles.centeredContent}>
+            <Card style={commonStyles.baseCard}>
+              <View style={commonStyles.introIconContainer}>
+                <Image
+                  source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
+                  style={commonStyles.heroImage}
+                />
+              </View>
+
+              <Text style={styles.congratsTitle}>Congrats!</Text>
+
+              <Text style={styles.congratsText}>
+                You worked through the scenario, reflected honestly, and made space for a bigger possibility. That matters.
+              </Text>
+
+              <Text style={styles.congratsText}>
+                Keep carrying this perspective with you as you continue the path.
+              </Text>
+
+              <PrimaryButton title="Mark As Complete" onPress={onComplete} />
+            </Card>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -710,6 +742,22 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   alternativeText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  congratsTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 28,
+    color: '#647C90',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '700',
+  },
+  congratsText: {
     fontFamily: 'Montserrat-Regular',
     fontSize: 16,
     color: '#4E4F50',

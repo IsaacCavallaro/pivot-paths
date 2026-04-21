@@ -166,6 +166,8 @@ export default function BreakOutOfYourBubble({ onComplete, onBack }: BreakOutOfY
                                     style={styles.playButton}
                                     onPress={handlePlayPause}
                                     activeOpacity={0.8}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={isPlaying ? 'Pause bubble-break visualization' : 'Play bubble-break visualization'}
                                 >
                                     <View
                                         style={[styles.playButtonGradient, { backgroundColor: '#928490' }]}

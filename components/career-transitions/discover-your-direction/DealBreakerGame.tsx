@@ -9,6 +9,7 @@ import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
+import { personalizeGreeting, useFirstName } from '@/utils/hooks/useFirstName';
 
 interface DealBreakerPair {
     id: number;
@@ -72,6 +73,7 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
     const [showMismatch, setShowMismatch] = useState(false);
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const firstName = useFirstName();
     const [dealBreakerMatchedPairs, setDealBreakerMatchedPairs] = useStorage<number[]>('DEAL_BREAKER_MATCHED_PAIRS', []);
 
     // Ensure dealBreakerMatchedPairs is always an array
@@ -270,7 +272,9 @@ export default function DealBreakerGame({ onComplete, onBack }: DealBreakerGameP
                                 />
                             </View>
 
-                            <Text style={commonStyles.introTitle}>Welcome Back!</Text>
+                            <Text style={commonStyles.introTitle}>
+                                {personalizeGreeting('Welcome Back', firstName)}
+                            </Text>
 
                             <Text style={commonStyles.introDescription}>
                                 Today, we're exploring deal breakers - those non-negotiable factors that can make or break your satisfaction in a career.

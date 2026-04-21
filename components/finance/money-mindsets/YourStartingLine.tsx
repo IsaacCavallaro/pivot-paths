@@ -420,10 +420,10 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
 
                             <JournalEntrySection
                                 pathTag="money-mindsets"
-                                day="2"
+                                day="7"
                                 category="finance"
                                 pathTitle="Money Mindsets"
-                                dayTitle="Know Your Value"
+                                dayTitle="Your Starting Line"
                                 journalInstruction="Before we begin, let's take a moment to check in with yourself. How do you feel about money right now?"
                                 moodLabel=""
                                 saveButtonText="Add to Journal"
@@ -659,10 +659,10 @@ export default function YourStartingLine({ onComplete, onBack }: YourStartingLin
 
                             <JournalEntrySection
                                 pathTag="money-mindsets"
-                                day="2"
+                                day="7"
                                 category="finance"
                                 pathTitle="Money Mindsets"
-                                dayTitle="Know Your Value"
+                                dayTitle="Your Starting Line"
                                 journalInstruction="As you're reflecting, write your thoughts as a journal entry below."
                                 moodLabel="How are you feeling about money now?"
                                 saveButtonText="Add to Journal"

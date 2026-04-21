@@ -103,7 +103,7 @@ export default function LearnScreen() {
   };
 
   const handleBackPress = () => {
-    router.push('/(tabs)/');
+    router.push('/');
   };
 
   const scaleValue = useSharedValue(1);
@@ -224,9 +224,6 @@ export default function LearnScreen() {
                             webViewStyle={styles.youtubeWebView}
                             webViewProps={{
                               allowsFullscreenVideo: false,
-                            }}
-                            onChangeState={(state: any) => {
-                              console.log('Video state:', state);
                             }}
                           />
                         </View>

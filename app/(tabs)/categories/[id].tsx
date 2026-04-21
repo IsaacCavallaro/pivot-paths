@@ -1,12 +1,10 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { useCallback, useState, useEffect } from 'react';
-import { ChevronRight, ArrowLeft, Clock, Calendar } from 'lucide-react-native';
+import { useCallback, useState } from 'react';
+import { ChevronRight, ArrowLeft } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getCategoryById } from '@/data/categories';
-import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-
-const { width } = Dimensions.get('window');
+import { appLinks } from '@/utils/appConfig';
 
 export default function CategoryScreen() {
   const router = useRouter();
@@ -44,18 +42,7 @@ export default function CategoryScreen() {
   };
 
   const handleExternalLink = () => {
-    Linking.openURL('https://pivotfordancers.com/products/happy-trails/');
-  };
-
-  // Animation setup for path cards
-  const scaleValues = category?.paths.map(() => useSharedValue(1)) || [];
-
-  const handlePressIn = (index: number) => {
-    scaleValues[index].value = withTiming(0.95, { duration: 150, easing: Easing.out(Easing.ease) });
-  };
-
-  const handlePressOut = (index: number) => {
-    scaleValues[index].value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
+    Linking.openURL(`${appLinks.productsUrl}happy-trails/`);
   };
 
   if (!category) {
@@ -98,25 +85,19 @@ export default function CategoryScreen() {
           <View style={styles.pathsContainer}>
             {category.paths.map((path, index) => {
               const progressPercentage = getPathProgress(path.id);
-              const isCompleted = progressPercentage >= 100;
               const hasProgress = progressPercentage > 0;
               const isComingSoon = path.subtitle === "Coming Soon";
 
               return (
-                <Animated.View
+                <View
                   key={path.id}
                   style={[
                     styles.pathCard,
                     isComingSoon && styles.comingSoonCard,
-                    useAnimatedStyle(() => ({
-                      transform: [{ scale: scaleValues[index].value }],
-                    })),
                   ]}
                 >
                   <TouchableOpacity
                     onPress={() => handlePathPress(path.id)}
-                    onPressIn={() => handlePressIn(index)}
-                    onPressOut={() => handlePressOut(index)}
                     activeOpacity={0.8}
                   >
                     <View style={[
@@ -187,7 +168,7 @@ export default function CategoryScreen() {
                       )}
                     </View>
                   </TouchableOpacity>
-                </Animated.View>
+                </View>
               );
             })}
           </View>

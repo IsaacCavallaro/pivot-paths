@@ -5,45 +5,59 @@ import { ChevronRight } from 'lucide-react-native';
 interface PrimaryButtonProps {
     onPress: () => void;
     title: string;
+    subtitle?: string;
     style?: ViewStyle;
     textStyle?: TextStyle;
     backgroundColor?: string;
     textColor?: string;
     showChevron?: boolean;
-    disabled?: boolean; // Add disabled prop
+    disabled?: boolean;
+    variant?: 'primary' | 'secondary';
 }
 
 export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
     onPress,
     title,
+    subtitle,
     style,
     textStyle,
-    backgroundColor = '#928490',
-    textColor = '#E2DED0',
+    backgroundColor,
+    textColor,
     showChevron = true,
-    disabled = false, // Default to false
+    disabled = false,
+    variant = 'primary',
 }) => {
+    const resolvedBackgroundColor = backgroundColor ?? (variant === 'secondary' ? 'transparent' : '#928490');
+    const resolvedTextColor = textColor ?? (variant === 'secondary' ? '#647C90' : '#E2DED0');
+
     return (
         <TouchableOpacity
             style={[styles.buttonContainer, style]}
             onPress={onPress}
             activeOpacity={0.8}
-            disabled={disabled} // Pass disabled prop to TouchableOpacity
+            disabled={disabled}
         >
             <View style={[
                 styles.buttonContent,
-                { backgroundColor, borderColor: textColor },
-                disabled && styles.buttonDisabled // Apply disabled style
+                { backgroundColor: resolvedBackgroundColor, borderColor: resolvedTextColor },
+                disabled && styles.buttonDisabled
             ]}>
-                <Text style={[
-                    styles.buttonText,
-                    { color: textColor },
-                    textStyle,
-                    disabled && styles.buttonTextDisabled // Apply disabled text style
-                ]}>
-                    {title}
-                </Text>
-                {showChevron && <ChevronRight size={16} color={textColor} />}
+                <View style={styles.labelContainer}>
+                    <Text style={[
+                        styles.buttonText,
+                        { color: resolvedTextColor },
+                        textStyle,
+                        disabled && styles.buttonTextDisabled
+                    ]}>
+                        {title}
+                    </Text>
+                    {subtitle ? (
+                        <Text style={[styles.subtitleText, { color: resolvedTextColor }]}>
+                            {subtitle}
+                        </Text>
+                    ) : null}
+                </View>
+                {showChevron && <ChevronRight size={16} color={resolvedTextColor} />}
             </View>
         </TouchableOpacity>
     );
@@ -64,16 +78,25 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         borderWidth: 1,
     },
+    labelContainer: {
+        alignItems: 'center',
+    },
     buttonDisabled: {
-        opacity: 0.6, // Reduce opacity when disabled
+        opacity: 0.6,
     },
     buttonText: {
-        fontFamily: 'Montserrat-SemiBold', // Using a common font, adjust if needed
+        fontFamily: 'Montserrat-SemiBold',
         fontSize: 16,
         marginRight: 8,
         fontWeight: '600',
     },
+    subtitleText: {
+        fontFamily: 'Montserrat-Regular',
+        fontSize: 12,
+        marginTop: 4,
+        textAlign: 'center',
+    },
     buttonTextDisabled: {
-        color: '#A0A0A0', // Lighter color for disabled text
+        color: '#A0A0A0',
     },
 });

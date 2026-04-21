@@ -1,13 +1,13 @@
-
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Dimensions, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Linking } from 'react-native';
 import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Trophy, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Map, ChevronRight, Target } from 'lucide-react-native';
 import { categories } from '@/data/categories';
-
-const { width } = Dimensions.get('window');
+import { storageService } from '@/utils/storageService';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
+import { appLinks } from '@/utils/appConfig';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -47,11 +47,20 @@ export default function ProfileScreen() {
   };
 
   const handleExternalLink = () => {
-    Linking.openURL('https://pivotfordancers.com/');
+    Linking.openURL(appLinks.websiteUrl);
   };
 
   const handleOpenMentorship = () => {
-    Linking.openURL('https://pivotfordancers.com/services/mentorship/');
+    Linking.openURL(`${appLinks.servicesUrl}mentorship/`);
+  };
+
+  const handleViewWelcomeGuide = async () => {
+    try {
+      await storageService.remove(STORAGE_KEYS.HAS_COMPLETED_ONBOARDING);
+      router.replace('/welcome');
+    } catch (error) {
+      console.error('Error reopening welcome guide:', error);
+    }
   };
 
   const confirmReset = async () => {
@@ -154,7 +163,7 @@ export default function ProfileScreen() {
   };
 
   const handleBackPress = () => {
-    router.push('/(tabs)/');
+    router.push('/');
   };
 
   const handleSocialPress = (url: string) => {
@@ -401,6 +410,14 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
 
+          <TouchableOpacity
+            style={[styles.secondaryActionButton, { backgroundColor: '#F5F5F5' }]}
+            onPress={handleViewWelcomeGuide}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.secondaryActionButtonText}>View Welcome Guide Again</Text>
+          </TouchableOpacity>
+
           {/* Reset Progress Button */}
           <TouchableOpacity
             style={[styles.resetButton, { backgroundColor: '#F5F5F5' }]}
@@ -409,6 +426,34 @@ export default function ProfileScreen() {
           >
             <Text style={styles.resetButtonText}>Reset Progress</Text>
           </TouchableOpacity>
+
+          <View style={styles.supportCard}>
+            <Text style={styles.supportTitle}>Support & privacy</Text>
+            <Text style={styles.supportDescription}>
+              Pivot Paths is a free resource connected to Pivot for Dancers. Use these links if you need help, want to explore the wider ecosystem, or need the current privacy details before release.
+            </Text>
+            <TouchableOpacity
+              style={[styles.supportButton, styles.supportButtonPrimary]}
+              onPress={() => Linking.openURL(appLinks.supportUrl)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.supportButtonPrimaryText}>Open Pivot Paths Resource Page</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.supportButton}
+              onPress={() => Linking.openURL(`mailto:${appLinks.supportEmail}`)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.supportButtonText}>Email Support</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.supportButton}
+              onPress={() => Linking.openURL(appLinks.privacyPolicyUrl)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.supportButtonText}>View Privacy Policy</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Footer */}
           <View style={styles.footer}>
@@ -836,6 +881,23 @@ const styles = StyleSheet.create({
     color: '#647C90',
     fontWeight: '500',
   },
+  secondaryActionButton: {
+    marginHorizontal: 24,
+    marginBottom: 16,
+    borderRadius: 24,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  secondaryActionButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 16,
+    color: '#647C90',
+    fontWeight: '600',
+  },
   resetButton: {
     marginHorizontal: 24,
     marginBottom: 0,
@@ -852,6 +914,55 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#647C90',
     fontWeight: '600',
+  },
+  supportCard: {
+    marginHorizontal: 24,
+    marginTop: 16,
+    borderRadius: 24,
+    backgroundColor: '#F5F5F5',
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  supportTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 20,
+    color: '#647C90',
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  supportDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 14,
+    color: '#746C70',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  supportButton: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#D5D0C5',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginTop: 12,
+  },
+  supportButtonPrimary: {
+    backgroundColor: '#647C90',
+    borderColor: '#647C90',
+  },
+  supportButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#4E4F50',
+    textAlign: 'center',
+  },
+  supportButtonPrimaryText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    color: '#E2DED0',
+    textAlign: 'center',
   },
   modalOverlay: {
     flex: 1,

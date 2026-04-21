@@ -77,7 +77,11 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
         scrollToTop();
     };
 
-    const handleStartActivity = () => {
+    const handleStartActivity = async () => {
+        await Promise.all([
+            setCurrentScenario(0),
+            setSelectedChoice(null),
+        ]);
         setCurrentScreen(0);
         scrollToTop();
     };
@@ -93,16 +97,14 @@ export default function WhoWouldYouHire({ onComplete, onBack }: WhoWouldYouHireP
         } else if (currentScreen === 1) {
             setCurrentScreen(2);
         } else if (currentScreen === 2 && selectedChoice !== null) {
-            setCurrentScreen(3);
-        } else if (currentScreen === 3) {
             if (currentScenario < scenarios.length - 1) {
                 setCurrentScenario(currentScenario + 1);
                 setSelectedChoice(null);
-                setCurrentScreen(1);
+                setCurrentScreen(0);
             } else {
-                setCurrentScreen(4);
+                setCurrentScreen(3);
             }
-        } else if (currentScreen === 4) {
+        } else if (currentScreen === 3) {
             onComplete();
         }
         scrollToTop();

@@ -1,28 +1,30 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Dimensions } from 'react-native';
 import { PlusCircle } from 'lucide-react-native';
 import { MOOD_OPTIONS } from '../constants';
 import { useJournaling } from '../hooks/useJournaling';
 
 interface JournalEntrySectionProps {
     pathTag: string;
-    day: string;
+    day?: string;
     journalInstruction: string;
     moodLabel: string;
     saveButtonText: string;
-    category?: string; // Add category
-    pathTitle?: string; // Add path title
-    dayTitle?: string; // Add day title for better organization
+    category?: string;
+    pathTitle?: string;
+    dayTitle?: string;
+    placeholder?: string;
 }
 export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
     pathTag,
-    day,
+    day = '0',
     journalInstruction,
     moodLabel,
     saveButtonText,
-    category = 'General', // Default value
-    pathTitle = '', // Default empty
-    dayTitle = '', // Default empty
+    category = 'General',
+    pathTitle = '',
+    dayTitle = '',
+    placeholder = 'Add your entry here',
 }) => {
     const {
         journalEntry,
@@ -31,9 +33,11 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
         setSelectedMood,
         addJournalEntry,
     } = useJournaling(pathTag, day, category, pathTitle, dayTitle); // Pass new props
+    const [showSavedFeedback, setShowSavedFeedback] = useState(false);
 
-    const handleSave = () => {
-        addJournalEntry(journalEntry, selectedMood);
+    const handleSave = async () => {
+        const wasSaved = await addJournalEntry(journalEntry, selectedMood);
+        setShowSavedFeedback(wasSaved);
     };
 
     // Calculate button width based on screen size and number of buttons
@@ -66,9 +70,10 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
                                         backgroundColor: mood.color,
                                     }
                                 ]}
-                                onPress={() => setSelectedMood(
-                                    selectedMood === mood.id ? null : mood.id
-                                )}
+                                onPress={() => {
+                                    setSelectedMood(selectedMood === mood.id ? null : mood.id);
+                                    setShowSavedFeedback(false);
+                                }}
                             >
                                 <IconComponent
                                     size={20}
@@ -90,11 +95,14 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
             <View style={styles.journalInputContainer}>
                 <TextInput
                     style={styles.journalTextInput}
-                    placeholder="Add your entry here"
+                    placeholder={placeholder}
                     placeholderTextColor="#928490"
                     multiline
                     value={journalEntry}
-                    onChangeText={setJournalEntry}
+                    onChangeText={(value) => {
+                        setJournalEntry(value);
+                        setShowSavedFeedback(false);
+                    }}
                 />
                 <TouchableOpacity
                     style={[styles.journalAddButton, { backgroundColor: '#647C90' }]}
@@ -104,6 +112,14 @@ export const JournalEntrySection: React.FC<JournalEntrySectionProps> = ({
                     <Text style={styles.journalAddButtonText}>{saveButtonText}</Text>
                 </TouchableOpacity>
             </View>
+
+            {showSavedFeedback && (
+                <View style={styles.successBanner}>
+                    <Text style={styles.successBannerText}>
+                        Journal entry saved to your personal journal.
+                    </Text>
+                </View>
+            )}
 
             <Text style={styles.journalNote}>
                 We'll keep these entries safe in your personal journal for you.
@@ -202,6 +218,22 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#E2DED0',
         marginLeft: 8,
+        fontWeight: '600',
+    },
+    successBanner: {
+        marginBottom: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: 'rgba(34, 197, 94, 0.12)',
+        borderWidth: 1,
+        borderColor: 'rgba(34, 197, 94, 0.25)',
+    },
+    successBannerText: {
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 13,
+        color: '#166534',
+        textAlign: 'center',
         fontWeight: '600',
     },
     sectionHeader: {

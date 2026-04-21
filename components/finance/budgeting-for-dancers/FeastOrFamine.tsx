@@ -9,6 +9,7 @@ import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
+import { personalizeGreeting, useFirstName } from '@/utils/hooks/useFirstName';
 
 interface ThoughtPair {
     id: number;
@@ -82,6 +83,7 @@ export default function FeastOrFamine({ onComplete, onBack }: FeastOrFamineProps
     const [currentPairIndex, setCurrentPairIndex] = useState(0);
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const firstName = useFirstName();
     const [feastOrFamineMatchedPairs, setFeastOrFamineMatchedPairs] = useStorage<number[]>('FEAST_OR_FAMINE_MATCHED_PAIRS', []);
 
     // Ensure feastOrFamineMatchedPairs is always an array
@@ -265,7 +267,9 @@ export default function FeastOrFamine({ onComplete, onBack }: FeastOrFamineProps
                                 />
                             </View>
 
-                            <Text style={commonStyles.introTitle}>Welcome Back!</Text>
+                            <Text style={commonStyles.introTitle}>
+                                {personalizeGreeting('Welcome Back', firstName)}
+                            </Text>
 
                             <Text style={commonStyles.introDescription}>
                                 Today we're exploring the financial mindsets that keep dancers stuck in the "feast or famine" cycle.
@@ -290,7 +294,7 @@ export default function FeastOrFamine({ onComplete, onBack }: FeastOrFamineProps
                                 pathTag="budgeting-for-dancers"
                                 day="6"
                                 category="finance"
-                                pathTitle="Money Mindsets"
+                                pathTitle="Budgeting For Dancers"
                                 dayTitle="Feast Or Famine"
                                 journalInstruction="Before we begin, let's check in with your current financial mindset. How are you feeling about money today? What thoughts come up when you think about budgeting with variable income?"
                                 moodLabel=""
@@ -387,7 +391,7 @@ export default function FeastOrFamine({ onComplete, onBack }: FeastOrFamineProps
                                 pathTag="budgeting-for-dancers"
                                 day="6"
                                 category="finance"
-                                pathTitle="Money Mindsets"
+                                pathTitle="Budgeting For Dancers"
                                 dayTitle="Feast Or Famine"
                                 journalInstruction="Which financial thought are you still holding onto? What would it take for you to embrace the practical reality instead?"
                                 moodLabel=""

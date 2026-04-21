@@ -2,26 +2,32 @@
 
 ## Overview
 
-Pivot paths is a mobile app built with Expo and React Native. It provides resources and tools for career transition, mindset wellness, and finance specifically for dancers. The app is structured around three main categories, each containing a set of paths:
+Pivot Paths is a mobile app built with Expo and React Native for dancers navigating career transition. It combines guided paths, reflections, progress tracking, and curated learning content across three core areas:
 
-- Career Transition: Offers skills assessments and resources for career development.
-- Mindset Wellness: Provides tools and games for personal growth and discovering your dream life.
-- Finance: Provides resources and tools for financial literacy and planning.
+- Career Transition
+- Mindset & Wellness
+- Finance
 
-Each category has its own dedicated section within the app, accessible through the tab navigation. Within each category, you'll find a curated list of paths designed to guide you through specific topics and skills.
+The app is designed to help users choose a direction quickly, build momentum over time, and return to their progress without losing context.
 
 ## Data Storage and Privacy
 
-This application prioritizes user privacy and data security. All data generated within the app, such as skills assessment results, dream life explorations, and personal reflections, is stored locally on the user's device using AsyncStorage.
+User progress, reflections, and quiz-style results are stored locally on the device with AsyncStorage. There is currently no account system or cloud sync, so app progress stays tied to the device unless the app data is cleared or the app is uninstalled.
 
-Specifically, the progress you make on different paths is saved using AsyncStorage in the profile screen (`app/(tabs)/profile.tsx`). This means that your progress is saved directly on your device and is not transmitted to any external servers.
+Some parts of the experience open external resources, including the Pivot For Dancers website, social links, and video content. Those destinations may have their own analytics, cookies, or privacy practices outside this app.
 
-**No data is saved to the cloud or transmitted to any external servers.** This means you have complete control over your information, and your privacy is fully protected. Your progress is only accessible on this device. If you uninstall the app or clear the app's data, your progress will be lost.
+## Development
 
-We believe in empowering users to own their data and maintain a safe and secure environment for personal growth and exploration
+```bash
+npm install --legacy-peer-deps
+npm run dev
+```
+
+If your shell injects a local HTTP proxy, run installs and Expo commands with the proxy variables unset.
 
 ## Technologies Used
 
 - Expo
 - React Native
+- Expo Router
 - TypeScript

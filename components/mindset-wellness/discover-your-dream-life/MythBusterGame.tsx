@@ -11,6 +11,7 @@ import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
+import { personalizeGreeting, useFirstName } from '@/utils/hooks/useFirstName';
 
 interface DreamerResult {
   type: string;
@@ -96,6 +97,8 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
   const [animatedValues] = useState(() => new Map());
 
   const { scrollViewRef, scrollToTop } = useScrollToTop();
+  const firstName = useFirstName();
+  const welcomeBackTitle = personalizeGreeting('Welcome Back', firstName);
   const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
   const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
 
@@ -266,15 +269,9 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
     const youtubeUrl = `https://www.youtube.com/shorts/8DwWYZHsUHw`;
 
     try {
-      const supported = await Linking.canOpenURL(youtubeUrl);
-
-      if (supported) {
-        await Linking.openURL(youtubeUrl);
-      } else {
-        console.log("YouTube app not available");
-      }
+      await Linking.openURL(youtubeUrl);
     } catch (error) {
-      console.log("Error opening YouTube:", error);
+      console.error('Error opening YouTube:', error);
     }
   };
 
@@ -303,7 +300,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
 
               {day1SkillsQuizResult ? (
                 <>
-                  <Text style={commonStyles.introTitle}>Welcome Back!</Text>
+                  <Text style={commonStyles.introTitle}>{welcomeBackTitle}</Text>
                   <Text style={commonStyles.introDescription}>
                     Yesterday, you discovered your "Dreamer Type":
                   </Text>
@@ -321,7 +318,7 @@ export default function MythBusterGame({ onComplete, onBack }: MythBusterGamePro
                 </>
               ) : (
                 <>
-                  <Text style={commonStyles.introTitle}>Welcome Back!</Text>
+                  <Text style={commonStyles.introTitle}>{welcomeBackTitle}</Text>
                   <Text style={commonStyles.introDescription}>
                     Today we're diving into the myths that shape our thinking in the dance industry.
                   </Text>

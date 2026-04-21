@@ -94,7 +94,7 @@ export default function SparkCuriosity({ onComplete, onBack }: SparkCuriosityPro
     };
 
     const handleContinueToCuriosity = () => {
-        setScreenHistory([{ cardIndex: -3, showNew: false }]);
+        setScreenHistory([{ cardIndex: -3 }]);
         scrollToTop();
     };
 

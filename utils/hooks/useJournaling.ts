@@ -1,23 +1,12 @@
 import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-export interface JournalEntry {
-    id: string;
-    pathTag: string;
-    day: string;
-    category: string;
-    pathTitle: string;
-    dayTitle: string;
-    date: string;
-    timestamp: number;
-    content: string;
-    mood?: string;
-}
+import { STORAGE_KEYS } from '@/utils/storageKeys';
+import { JournalEntry } from '@/utils/interfaces';
 
 export const useJournaling = (
     pathTag: string,
-    day: string,
+    day: string = '0',
     category: string = 'General',
     pathTitle: string = '',
     dayTitle: string = ''
@@ -29,7 +18,7 @@ export const useJournaling = (
         const trimmed = content.trim();
         if (!trimmed) {
             Alert.alert('Empty Entry', 'Please write something before adding.');
-            return;
+            return false;
         }
 
         try {
@@ -47,23 +36,24 @@ export const useJournaling = (
                 }),
                 timestamp: Date.now(), // Add timestamp for sorting
                 content: trimmed,
-                mood: mood,
+                mood: mood ?? undefined,
             };
 
-            const raw = await AsyncStorage.getItem('journalEntries');
+            const raw = await AsyncStorage.getItem(STORAGE_KEYS.JOURNAL_ENTRIES);
             const existingEntries = raw ? JSON.parse(raw) : [];
 
             const updatedEntries = [newEntry, ...existingEntries];
 
-            await AsyncStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+            await AsyncStorage.setItem(STORAGE_KEYS.JOURNAL_ENTRIES, JSON.stringify(updatedEntries));
 
             setJournalEntry('');
             setSelectedMood(null);
-            Alert.alert('Success', 'Journal entry added!');
+            return true;
 
         } catch (error) {
             console.error('Error saving journal entry:', error);
             Alert.alert('Error', 'Failed to save journal entry.');
+            return false;
         }
     }, [pathTag, day, category, pathTitle, dayTitle]);
 

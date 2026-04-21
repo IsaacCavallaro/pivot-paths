@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, Image, Linking, ScrollView, TouchableOpacity } from 'react-native';
-import { ChevronRight, Sparkles, ArrowLeft, Check } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 
 import { useScrollToTop } from '@/utils/hooks/useScrollToTop';
-import { useJournaling } from '@/utils/hooks/useJournaling';
 import { useStorage } from '@/hooks/useStorage';
 import { StickyHeader } from '@/utils/ui-components/StickyHeader';
 import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
+import { personalizeGreeting, useFirstName } from '@/utils/hooks/useFirstName';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 interface DreamChoice {
   id: number;
@@ -107,8 +107,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const { scrollViewRef, scrollToTop } = useScrollToTop();
-  const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
-  const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
+  const firstName = useFirstName();
   const [dreamBiggerChoices, setDreamBiggerChoices] = useStorage<{ [key: string]: string }>('DREAM_BIGGER_CHOICES', {});
 
   useEffect(() => {
@@ -132,31 +131,10 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
       if (onBack) onBack();
     } else if (currentScreen === 0) {
       setCurrentScreen(-1);
-    } else if (currentScreen === 1) {
-      setCurrentScreen(0);
-    } else if (currentScreen > 1 && currentScreen <= 19) {
+    } else if (currentScreen > 0 && currentScreen <= 12) {
       setCurrentScreen(currentScreen - 1);
     }
     scrollToTop();
-  };
-
-  const handleChoice = async (choiceKey: string, selectedOption: string) => {
-    setSelectedOption(selectedOption);
-
-    setIsTransitioning(true);
-    await new Promise(resolve => setTimeout(resolve, 150));
-
-    const newChoices = { ...dreamBiggerChoices, [choiceKey]: selectedOption };
-    await setDreamBiggerChoices(newChoices);
-
-    if (currentScreen < 10) {
-      setCurrentScreen(currentScreen + 1);
-      setSelectedOption(null);
-    } else {
-      setCurrentScreen(12);
-    }
-    scrollToTop();
-    setIsTransitioning(false);
   };
 
   const handleContinue = async () => {
@@ -177,17 +155,16 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
       setCurrentScreen(currentScreen + 1);
       setSelectedOption(null);
     } else {
-      setCurrentScreen(12);
+      setCurrentScreen(11);
+      setSelectedOption(null);
     }
     scrollToTop();
     setIsTransitioning(false);
   };
 
   const handleContinueStory = () => {
-    if (currentScreen < 18) {
-      setCurrentScreen(currentScreen + 1);
-    } else if (currentScreen === 18) {
-      setCurrentScreen(19);
+    if (currentScreen === 11) {
+      setCurrentScreen(12);
     } else {
       onComplete();
     }
@@ -198,23 +175,19 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
     Linking.openURL('https://pivotfordancers.com/products/how-to-pivot/');
   };
 
-  const getStoryText = (screenNumber: number) => {
-    switch (screenNumber) {
-      case 12:
-        return "Explore Your Dream Life";
-      case 13:
-        return `You wake up in your ${dreamBiggerChoices.home?.toLowerCase()} to the ${dreamBiggerChoices.purpose === 'Start a family' ? 'sound of happy kids running around' : 'notification that more sales from your business came through overnight'}.`;
-      case 14:
-        return `${dreamBiggerChoices.schedule === 'Work part time' ? 'You work part-time' : 'You\'re on track to retire early'} and you relax at the thought of your ${dreamBiggerChoices.work?.toLowerCase()} knowing that your ${getStoryMapping(dreamBiggerChoices.hobby || '').toLowerCase()} are going to be the most challenging part of your day.`;
-      case 15:
-        return `You head ${dreamBiggerChoices.luxury === 'Personal chef' ? 'downstairs to eat your chef-prepared breakfast' : 'to your closet and pick out another custom piece from your wardrobe'} and start the day on your terms.`;
-      case 16:
-        return `Your to-do list involves organizing ${dreamBiggerChoices.lifestyle === 'Travel the world' ? 'next week\'s travel plans' : 'renovations for your forever home'}, training for that upcoming ${getStoryMapping(dreamBiggerChoices.wellness || '').toLowerCase()}, and deciding ${dreamBiggerChoices.giving === 'Donate to charity' ? 'which charity to donate to this month' : 'when you\'re meeting up with your parents now that you helped them retire too'}.`;
-      case 17:
-        return `And tonight, you're off ${dreamBiggerChoices.entertainment === 'Season tickets to the theatre' ? 'to the theater with season tickets' : 'to workshop a new show you\'re creating which opens next month'}. Life's good.`;
-      default:
-        return "";
+  const getDreamSummary = () => {
+    const highlights = [
+      dreamBiggerChoices.home,
+      dreamBiggerChoices.lifestyle,
+      dreamBiggerChoices.hobby ? getStoryMapping(dreamBiggerChoices.hobby) : null,
+      dreamBiggerChoices.purpose,
+    ].filter(Boolean);
+
+    if (highlights.length === 0) {
+      return 'You made space to imagine a version of life that feels more expansive, personal, and fully yours.';
     }
+
+    return `Your choices pointed toward a life that includes ${highlights.join(', ')}. That picture matters because it gives you something real to move toward.`;
   };
 
   // NEW: Intro Screen with Morning Journal
@@ -240,15 +213,20 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                 />
               </View>
 
-              <Text style={commonStyles.introTitle}>You're back for more!</Text>
-
-              <Text style={commonStyles.introDescription}>
-                This is where we're diving deeper into becoming the Expansive Dreamer we talked about on Day 1.
+              <Text style={commonStyles.introTitle}>
+                {personalizeGreeting('Welcome Back', firstName)}
               </Text>
 
               <Text style={commonStyles.introDescription}>
-                You've already identified your dreamer type, challenged industry myths, and explored alternatives. Now, let's stretch your imagination even further.
+                Today we’re stretching your imagination by practicing simple either-or choices that reveal what you want more of in life beyond dance.
               </Text>
+
+              <View style={styles.learningBox}>
+                <Text style={styles.learningTitle}>What we'll learn today</Text>
+                <Text style={styles.learningItem}>• What your instincts pull you toward</Text>
+                <Text style={styles.learningItem}>• Which parts of your future feel most energizing</Text>
+                <Text style={styles.learningItem}>• One small way to act on that vision</Text>
+              </View>
 
               <JournalEntrySection
                 pathTag="discover-dream-life"
@@ -256,7 +234,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                 category="Mindset and Wellness"
                 pathTitle="Discover Your Dream Life"
                 dayTitle="Dream Bigger"
-                journalInstruction="Before we begin, let's take a moment to check in with yourself. How are you feeling as you continue this journey?"
+                journalInstruction="Journal Prompt: Before you begin, what part of your future feels easiest to imagine right now, and what still feels blurry?"
                 moodLabel=""
                 saveButtonText="Save Entry"
               />
@@ -292,10 +270,10 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                 />
               </View>
 
-              <Text style={commonStyles.introTitle}>Dream Bigger</Text>
+              <Text style={commonStyles.introTitle}>What is this day about?</Text>
 
               <Text style={commonStyles.introDescription}>
-                This is a game of instincts. Choose the answer that you resonate with the most to help you dream bigger about what life after dance can be. Don't think too much! There's no right or wrong. Let's see what you can dream up.
+                This is a this-or-that exercise. You’ll make quick choices without overthinking them, then use those patterns to reflect on the kind of life you want to build.
               </Text>
 
               <PrimaryButton title="Start dreaming" onPress={() => setCurrentScreen(1)} />
@@ -393,50 +371,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
     );
   }
 
-  // Story Screens (11-17)
-  if (currentScreen >= 11 && currentScreen <= 17) {
-    const storyText = getStoryText(currentScreen);
-    const isTitle = currentScreen === 12;
-    const isFinal = currentScreen === 17;
-
-    return (
-      <View style={commonStyles.container}>
-        <StickyHeader onBack={goBack} />
-
-        <ScrollView
-          ref={scrollViewRef}
-          style={commonStyles.scrollView}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1 }}
-          onContentSizeChange={() => scrollToTop()}
-          onLayout={() => scrollToTop()}
-        >
-          <View style={commonStyles.centeredContent}>
-            <Card style={commonStyles.baseCard}>
-              {isTitle ? (
-                <View style={styles.storyTitleContainer}>
-                  <Text style={styles.storyTitle}>{storyText}</Text>
-                  <View style={styles.titleUnderline} />
-                </View>
-              ) : (
-                <View style={styles.storyTextContainer}>
-                  <Text style={styles.storyText}>{storyText}</Text>
-                </View>
-              )}
-
-              <PrimaryButton
-                title={isFinal ? 'Own It' : 'Continue'}
-                onPress={handleContinueStory}
-              />
-            </Card>
-          </View>
-        </ScrollView>
-      </View>
-    );
-  }
-
-  // Reflection Screen (now screen 18)
-  if (currentScreen === 18) {
+  if (currentScreen === 11) {
     return (
       <View style={commonStyles.container}>
         <StickyHeader onBack={goBack} />
@@ -458,19 +393,22 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                 />
               </View>
 
-              <Text style={commonStyles.reflectionTitle}>Building Your Dreamer Muscle</Text>
+              <Text style={commonStyles.reflectionTitle}>Reflect on Today</Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                Perhaps this doesn't sound possible? But the goal is to give yourself permission to turn up as the expansive dreamer.
+                {getDreamSummary()}
               </Text>
 
               <Text style={commonStyles.reflectionDescription}>
-                This is just an exercise of building the muscle to dream about something other than booking your dream job.
+                Now turn that into action. What is one part of this vision you could explore, research, or test in real life this week?
               </Text>
 
-              <Text style={commonStyles.reflectionDescription}>
-                Every time you allow yourself to imagine a different future, you're strengthening that expansive dreamer within you.
-              </Text>
+              <JournalEntrySection
+                pathTag="discover-dream-life"
+                journalInstruction="Journal Prompt: Which choice felt most meaningful today, and what is one small action you could take to move a little closer to that version of your future?"
+                moodLabel=""
+                saveButtonText="Save Entry"
+              />
 
               <PrimaryButton title="Continue" onPress={handleContinueStory} />
             </Card>
@@ -480,8 +418,7 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
     );
   }
 
-  // Final Screen (now screen 19) with End of Day Journal
-  if (currentScreen === 19) {
+  if (currentScreen === 12) {
     return (
       <View style={commonStyles.container}>
         <StickyHeader onBack={goBack} />
@@ -503,19 +440,13 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                 />
               </View>
 
-              <View style={styles.storyTextContainer}>
-                <Text style={styles.storyText}>
-                  Take a moment to notice how you're feeling right now. Are you excited? Skeptical? Overwhelmed?
-                </Text>
-
-                <Text style={styles.storyText}>
-                  If any part of you thought "this could never be me" - that sounds like an unhelpful story that keeps you stuck.
-                </Text>
-
-                <Text style={styles.storyText}>
-                  These mindset shifts are exactly what we explore in our dancer-specific career change resources, helping you rewrite those limiting stories.
-                </Text>
-              </View>
+              <Text style={styles.congratulationsTitle}>Congrats!</Text>
+              <Text style={styles.congratulationsText}>
+                You made your choices, reflected on what they revealed, and gave yourself permission to imagine more.
+              </Text>
+              <Text style={styles.congratulationsText}>
+                Keep building on that clarity as you move into the next day.
+              </Text>
 
               {/* Ebook Callout */}
               <View style={styles.ebookCard}>
@@ -529,17 +460,6 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
                   style={styles.ebookButton}
                 />
               </View>
-
-              <JournalEntrySection
-                pathTag="discover-dream-life"
-                journalInstruction="Before we bring today's session to a close, let's take a moment to check in with yourself again. How are you feeling after today's journey?"
-                moodLabel=""
-                saveButtonText="Save Entry"
-              />
-
-              <Text style={styles.alternativeClosing}>
-                See you for more tomorrow
-              </Text>
 
               <PrimaryButton
                 title="Mark As Complete"
@@ -556,6 +476,30 @@ export default function DreamBiggerGame({ onComplete, onBack }: DreamBiggerGameP
 }
 
 const styles = StyleSheet.create({
+  learningBox: {
+    width: '100%',
+    backgroundColor: 'rgba(146, 132, 144, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(146, 132, 144, 0.2)',
+  },
+  learningTitle: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18,
+    color: '#647C90',
+    marginBottom: 12,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  learningItem: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    color: '#4E4F50',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
   choiceButtons: {
     gap: 20,
   },
@@ -598,38 +542,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     transform: [{ translateY: -12 }],
   },
-  storyTitleContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  storyTitle: {
-    fontFamily: 'Merriweather-Bold',
-    fontSize: 32,
-    color: '#647C90',
-    textAlign: 'center',
-    lineHeight: 38,
-    fontWeight: '700',
-  },
-  titleUnderline: {
-    height: 4,
-    width: 60,
-    backgroundColor: '#928490',
-    borderRadius: 2,
-    marginTop: 16,
-    opacity: 0.6,
-  },
-  storyTextContainer: {
-    width: '100%',
-    marginBottom: 32,
-  },
-  storyText: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 18,
-    color: '#4E4F50',
-    textAlign: 'center',
-    lineHeight: 28,
-    marginTop: 10,
-  },
   ebookCard: {
     backgroundColor: 'rgba(146, 132, 144, 0.1)',
     borderRadius: 16,
@@ -658,13 +570,20 @@ const styles = StyleSheet.create({
   ebookButton: {
     alignSelf: 'center',
   },
-  alternativeClosing: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontSize: 18,
+  congratulationsTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 28,
     color: '#647C90',
     textAlign: 'center',
-    marginBottom: 32,
-    marginTop: 0,
-    fontWeight: '600',
+    marginBottom: 24,
+    fontWeight: '700',
+  },
+  congratulationsText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 16,
+    color: '#4E4F50',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
   },
 });
