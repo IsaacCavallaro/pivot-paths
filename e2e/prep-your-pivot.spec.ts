@@ -195,17 +195,21 @@ async function completeWhoWouldYouHireDay(page: Parameters<typeof openPathTimeli
   await expect(page.getByText('Who would you hire?', { exact: true }).first()).toBeVisible();
   await clickByText(page, "Let's Begin");
 
-  await expect(page.getByText('Scenario 1 of 3', { exact: true })).toBeVisible();
-  await clickByText(page, 'See Their Answers');
-  await clickVisibleOptionAndWaitForSelection(
-    page,
-    ['As a professional dancer, I experienced rejection almost daily at auditions. I developed resilience, learned how to take constructive feedback, and kept improving my performance. These are qualities I\'ll bring to handling challenges in sales.'],
-    'rgb(146, 132, 144)',
-    'xpath=../..'
-  );
-  await clickByText(page, 'Continue');
-  await expect(page.getByText("Here's our take", { exact: true })).toBeVisible();
-  await clickByText(page, 'Continue');
+  const strongAnswers = [
+    'As a professional dancer, I experienced rejection almost daily at auditions. I developed resilience, learned how to take constructive feedback, and kept improving my performance. These are qualities I\'ll bring to handling challenges in sales.',
+    'I led weekly dance classes of up to 30 kids, adapted my teaching style to different learning needs, and motivated dancers to be performance-ready in time for recital. These are skills directly applicable to managing a team here.',
+    'As a dancer, I understand the importance of professional presentation and body language. I know how to create a strong first impression, carry myself with confidence, and adapt my appearance to suit the occasion.',
+  ];
+
+  for (const [index, answer] of strongAnswers.entries()) {
+    await expect(page.getByText(`Scenario ${index + 1} of 3`, { exact: true })).toBeVisible();
+    await clickByText(page, 'See Their Answers');
+    await clickVisibleOptionAndWaitForSelection(page, [answer], 'rgb(146, 132, 144)', 'xpath=../..');
+    await clickByText(page, 'Continue');
+    await expect(page.getByText("Here's our take", { exact: true })).toBeVisible();
+    await clickByText(page, 'Continue');
+  }
+
   await expect(page.getByText('Both candidates did well.', { exact: true })).toBeVisible();
   await clickByText(page, 'Mark As Complete');
   await expect(page).toHaveURL(/profile/);

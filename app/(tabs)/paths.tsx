@@ -1,12 +1,10 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Dimensions } from 'react-native';
+import React, { useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
-import { ChevronRight, BookOpen, Users, Instagram, Youtube, Facebook, Linkedin, ArrowLeft, Heart, Star, Trophy } from 'lucide-react-native';
+import { ChevronRight, Instagram, Youtube, Facebook, Linkedin, ArrowLeft } from 'lucide-react-native';
 import { categories } from '@/data/categories';
-import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-
-const { width } = Dimensions.get('window');
+import { appLinks } from '@/utils/appConfig';
 
 export default function PathsScreen() {
   const router = useRouter();
@@ -30,7 +28,7 @@ export default function PathsScreen() {
   };
 
   const handleExternalLink = () => {
-    console.log('Opening pivotfordancers.com');
+    Linking.openURL(appLinks.websiteUrl);
   };
 
   const handleSocialPress = (url: string) => {
@@ -39,16 +37,6 @@ export default function PathsScreen() {
 
   const handleBackPress = () => {
     router.push('/');
-  };
-
-  const scaleValues = categories.map(() => useSharedValue(1));
-
-  const handlePressIn = (index: number) => {
-    scaleValues[index].value = withTiming(0.95, { duration: 150, easing: Easing.out(Easing.ease) });
-  };
-
-  const handlePressOut = (index: number) => {
-    scaleValues[index].value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
   };
 
   return (
@@ -79,19 +67,12 @@ export default function PathsScreen() {
           <View style={styles.categoriesSection}>
             {categories.map((category, index) => {
               return (
-                <Animated.View
+                <View
                   key={category.id}
-                  style={[
-                    styles.categoryCard,
-                    useAnimatedStyle(() => ({
-                      transform: [{ scale: scaleValues[index].value }],
-                    })),
-                  ]}
+                  style={styles.categoryCard}
                 >
                   <TouchableOpacity
                     onPress={() => handleCategoryPress(category.id)}
-                    onPressIn={() => handlePressIn(index)}
-                    onPressOut={() => handlePressOut(index)}
                     activeOpacity={0.8}
                   >
                     <View style={[styles.categoryGradient, { backgroundColor: '#F5F5F5' }]}>
@@ -109,7 +90,7 @@ export default function PathsScreen() {
                       </View>
                     </View>
                   </TouchableOpacity>
-                </Animated.View>
+                </View>
               );
             })}
           </View>
@@ -121,7 +102,7 @@ export default function PathsScreen() {
             </Text>
             <TouchableOpacity
               style={styles.ctaButton}
-              onPress={() => Linking.openURL('https://pivotfordancers.com/products/happy-trails/')}
+              onPress={() => Linking.openURL(`${appLinks.productsUrl}happy-trails/`)}
             >
               <View style={[styles.ctaButtonContent, { backgroundColor: '#647C90' }]}>
                 <Text style={styles.ctaButtonText}>Learn More</Text>

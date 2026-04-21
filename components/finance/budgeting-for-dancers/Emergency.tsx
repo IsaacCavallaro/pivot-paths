@@ -739,7 +739,7 @@ export default function Emergency({ onComplete, onBack }: EmergencyProps) {
                                 pathTag="budgeting-for-dancers"
                                 day="4"
                                 category="finance"
-                                pathTitle="Money Mindsets"
+                                pathTitle="Budgeting For Dancers"
                                 dayTitle="Emergency"
                                 journalInstruction="Which emergency scenario resonated most with you, and what would having a financial safety net mean for your peace of mind?"
                                 moodLabel=""

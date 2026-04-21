@@ -4,11 +4,9 @@ import { useRouter } from 'expo-router';
 import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronRight, Play, BookOpen, Instagram, Youtube, Facebook, Linkedin, Compass } from 'lucide-react-native';
-import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { categories, getCategoryById, getPathById } from '@/data/categories';
+import { getCategoryById, getPathById } from '@/data/categories';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
-
-const { width } = Dimensions.get('window');
+import { appLinks } from '@/utils/appConfig';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -90,11 +88,11 @@ export default function HomeScreen() {
   };
 
   const handleExternalLink = () => {
-    Linking.openURL('https://pivotfordancers.com/services/mentorship/');
+    Linking.openURL(`${appLinks.servicesUrl}mentorship/`);
   };
 
   const handleWebsiteLink = () => {
-    Linking.openURL('https://pivotfordancers.com/');
+    Linking.openURL(appLinks.websiteUrl);
   };
 
   const handleSocialPress = (url: string) => {
@@ -138,16 +136,6 @@ export default function HomeScreen() {
       badges: ['interviews', 'guides', 'stories'],
     },
   ];
-
-  const scaleValues = features.map(() => useSharedValue(1));
-
-  const handlePressIn = (index: number) => {
-    scaleValues[index].value = withTiming(0.95, { duration: 150, easing: Easing.out(Easing.ease) });
-  };
-
-  const handlePressOut = (index: number) => {
-    scaleValues[index].value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
-  };
 
   return (
     <ScrollView
@@ -200,21 +188,14 @@ export default function HomeScreen() {
       )}
 
       <View style={styles.featuresSection}>
-        <View style={styles.featuresGrid}>
-          {features.map((feature, index) => (
-            <Animated.View
+          <View style={styles.featuresGrid}>
+            {features.map((feature, index) => (
+            <View
               key={index}
-              style={[
-                styles.featureCard,
-                useAnimatedStyle(() => ({
-                  transform: [{ scale: scaleValues[index].value }],
-                })),
-              ]}
+              style={styles.featureCard}
             >
               <TouchableOpacity
                 onPress={feature.onPress}
-                onPressIn={() => handlePressIn(index)}
-                onPressOut={() => handlePressOut(index)}
                 activeOpacity={0.8}
               >
                 <View style={[styles.featureGradient, { backgroundColor: '#F5F5F5' }]}>
@@ -234,7 +215,7 @@ export default function HomeScreen() {
                   </View>
                 </View>
               </TouchableOpacity>
-            </Animated.View>
+            </View>
           ))}
         </View>
       </View>

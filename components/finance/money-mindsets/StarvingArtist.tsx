@@ -278,15 +278,9 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
         const youtubeUrl = `https://www.youtube.com/shorts/8DwWYZHsUHw`;
 
         try {
-            const supported = await Linking.canOpenURL(youtubeUrl);
-
-            if (supported) {
-                await Linking.openURL(youtubeUrl);
-            } else {
-                console.log("YouTube app not available");
-            }
+            await Linking.openURL(youtubeUrl);
         } catch (error) {
-            console.log("Error opening YouTube:", error);
+            console.error('Error opening YouTube:', error);
         }
     };
 

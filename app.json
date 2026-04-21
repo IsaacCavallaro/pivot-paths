@@ -9,12 +9,17 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "description": "A guided career transition app for dancers navigating what comes next.",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.isaaccavallaro.pivotpaths"
+      "bundleIdentifier": "com.isaaccavallaro.pivotpaths",
+      "buildNumber": "1"
     },
     "android": {
-      "package": "com.isaaccavallaro.pivotpaths"
+      "package": "com.isaaccavallaro.pivotpaths",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",
@@ -24,6 +29,17 @@
     "plugins": ["expo-router", "expo-font", "expo-web-browser"],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "links": {
+        "websiteUrl": "https://pivotfordancers.com/",
+        "supportUrl": "https://pivotfordancers.com/resources/pivot-paths/",
+        "supportEmail": "pivotfordancers@gmail.com",
+        "privacyPolicyUrl": "https://drive.google.com/file/d/1XiqWl5qiHd1xCGF62D300hyodmsCe5OC/view?usp=sharing",
+        "productsUrl": "https://pivotfordancers.com/products/",
+        "servicesUrl": "https://pivotfordancers.com/services/",
+        "resourcesUrl": "https://pivotfordancers.com/resources/"
+      }
     }
   }
 }

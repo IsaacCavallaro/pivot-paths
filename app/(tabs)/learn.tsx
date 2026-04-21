@@ -225,9 +225,6 @@ export default function LearnScreen() {
                             webViewProps={{
                               allowsFullscreenVideo: false,
                             }}
-                            onChangeState={(state: any) => {
-                              console.log('Video state:', state);
-                            }}
                           />
                         </View>
                       )}

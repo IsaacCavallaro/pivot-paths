@@ -373,7 +373,7 @@ export default function MeetYourMustHaves({ onComplete, onBack }: MeetYourMustHa
                                 pathTag="budgeting-for-dancers"
                                 day="5"
                                 category="finance"
-                                pathTitle="Money Mindsets"
+                                pathTitle="Budgeting For Dancers"
                                 dayTitle="Meet Your Must Haves"
                                 journalInstruction="How do your spending choices reflect your core values? What surprised you about your must-haves?"
                                 moodLabel=""

@@ -262,15 +262,9 @@ export default function ScarcityVsAbundance({ onComplete, onBack }: ScarcityVsAb
         const youtubeUrl = `https://www.youtube.com/watch?v=1J26CRRwr-k`;
 
         try {
-            const supported = await Linking.canOpenURL(youtubeUrl);
-
-            if (supported) {
-                await Linking.openURL(youtubeUrl);
-            } else {
-                console.log("YouTube app not available");
-            }
+            await Linking.openURL(youtubeUrl);
         } catch (error) {
-            console.log("Error opening YouTube:", error);
+            console.error('Error opening YouTube:', error);
         }
     };
 

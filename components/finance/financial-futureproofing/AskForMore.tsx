@@ -87,16 +87,9 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
         const youtubeUrl = `https://www.youtube.com/shorts/s-hpQ9XBGP4`;
 
         try {
-            const supported = await Linking.canOpenURL(youtubeUrl);
-
-            if (supported) {
-                await Linking.openURL(youtubeUrl);
-            } else {
-                console.log("YouTube app not available, opening in modal");
-                openVideoModal();
-            }
+            await Linking.openURL(youtubeUrl);
         } catch (error) {
-            console.log("Error opening YouTube:", error);
+            console.error('Error opening YouTube:', error);
             openVideoModal();
         }
     };
@@ -499,7 +492,7 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
                                 pathTag="financial-futureproofing"
                                 day="3"
                                 category="finance"
-                                pathTitle="Money Mindsets"
+                                pathTitle="Financial Futureproofing"
                                 dayTitle="Ask For More"
                                 journalInstruction="What would change in your life if you felt confident negotiating your worth in every professional situation?"
                                 moodLabel=""
@@ -542,9 +535,6 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
                                     videoId={'ShIxdYpquqA'}
                                     webViewProps={{
                                         allowsFullscreenVideo: true,
-                                    }}
-                                    onChangeState={(state: string) => {
-                                        console.log('Video state:', state);
                                     }}
                                 />
                             </View>

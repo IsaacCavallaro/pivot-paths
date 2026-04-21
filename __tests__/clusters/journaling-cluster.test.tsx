@@ -47,7 +47,7 @@ describe('journaling cluster', () => {
       content: 'My reflection',
       mood: 'excited',
     });
-    expect(Alert.alert).toHaveBeenCalledWith('Success', 'Journal entry added!');
+    expect(Alert.alert).not.toHaveBeenCalled();
     expect(result.current.journalEntry).toBe('');
     expect(result.current.selectedMood).toBeNull();
   });

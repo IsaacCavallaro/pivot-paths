@@ -100,7 +100,7 @@ export default function CelebrateTheWins({ onComplete, onBack }: CelebrateTheWin
                                 pathTag="financial-futureproofing"
                                 day="7"
                                 category="finance"
-                                pathTitle="Money Mindsets"
+                                pathTitle="Financial Futureproofing"
                                 dayTitle="Celebrate The Wins"
                                 journalInstruction="A quick check in before we celebrate your wins"
                                 moodLabel=""
@@ -232,10 +232,10 @@ export default function CelebrateTheWins({ onComplete, onBack }: CelebrateTheWin
                             </Text>
 
                             <JournalEntrySection
-                                pathTag="financial-celebration-reflection"
+                                pathTag="financial-futureproofing"
                                 day="7"
                                 category="finance"
-                                pathTitle="Money Mindsets"
+                                pathTitle="Financial Futureproofing"
                                 dayTitle="Celebrate The Wins"
                                 journalInstruction="Reflect on your financial wins and progress"
                                 moodLabel=""

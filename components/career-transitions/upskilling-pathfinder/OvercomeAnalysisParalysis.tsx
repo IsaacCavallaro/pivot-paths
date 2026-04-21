@@ -239,18 +239,12 @@ export default function OvercomeAnalysisParalysis({ onComplete, onBack }: Overco
     };
 
     const openYouTubeShort = async () => {
-        const youtubeUrl = `https://www.youtube.com/shorts/YOUR_VIDEO_ID`;
+        const youtubeUrl = 'https://pivotfordancers.com/how-to-pivot-ebook/';
 
         try {
-            const supported = await Linking.canOpenURL(youtubeUrl);
-
-            if (supported) {
-                await Linking.openURL(youtubeUrl);
-            } else {
-                console.log("YouTube app not available");
-            }
+            await Linking.openURL(youtubeUrl);
         } catch (error) {
-            console.log("Error opening YouTube:", error);
+            console.error('Error opening YouTube:', error);
         }
     };
 
@@ -457,7 +451,7 @@ export default function OvercomeAnalysisParalysis({ onComplete, onBack }: Overco
                                 activeOpacity={0.8}
                             >
                                 <Image
-                                    source={{ uri: 'https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg' }}
+                                    source={{ uri: 'https://pivotfordancers.com/assets/logo.png' }}
                                     style={styles.videoThumbnail}
                                     resizeMode="cover"
                                 />
