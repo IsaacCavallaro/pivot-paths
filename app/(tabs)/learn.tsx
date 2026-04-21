@@ -103,7 +103,7 @@ export default function LearnScreen() {
   };
 
   const handleBackPress = () => {
-    router.push('/(tabs)/');
+    router.push('/');
   };
 
   const scaleValue = useSharedValue(1);

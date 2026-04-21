@@ -543,7 +543,7 @@ export default function AskForMore({ onComplete, onBack }: AskForMoreProps) {
                                     webViewProps={{
                                         allowsFullscreenVideo: true,
                                     }}
-                                    onChangeState={(state) => {
+                                    onChangeState={(state: string) => {
                                         console.log('Video state:', state);
                                     }}
                                 />

@@ -6,6 +6,8 @@ import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Trophy, Star, ArrowLeft, Instagram, Youtube, Facebook, Linkedin, Map, ChevronRight, Target } from 'lucide-react-native';
 import { categories } from '@/data/categories';
+import { storageService } from '@/utils/storageService';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
 
 const { width } = Dimensions.get('window');
 
@@ -52,6 +54,15 @@ export default function ProfileScreen() {
 
   const handleOpenMentorship = () => {
     Linking.openURL('https://pivotfordancers.com/services/mentorship/');
+  };
+
+  const handleViewWelcomeGuide = async () => {
+    try {
+      await storageService.remove(STORAGE_KEYS.HAS_COMPLETED_ONBOARDING);
+      router.replace('/welcome');
+    } catch (error) {
+      console.error('Error reopening welcome guide:', error);
+    }
   };
 
   const confirmReset = async () => {
@@ -154,7 +165,7 @@ export default function ProfileScreen() {
   };
 
   const handleBackPress = () => {
-    router.push('/(tabs)/');
+    router.push('/');
   };
 
   const handleSocialPress = (url: string) => {
@@ -400,6 +411,14 @@ export default function ProfileScreen() {
               </View>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            style={[styles.secondaryActionButton, { backgroundColor: '#F5F5F5' }]}
+            onPress={handleViewWelcomeGuide}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.secondaryActionButtonText}>View Welcome Guide Again</Text>
+          </TouchableOpacity>
 
           {/* Reset Progress Button */}
           <TouchableOpacity
@@ -835,6 +854,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#647C90',
     fontWeight: '500',
+  },
+  secondaryActionButton: {
+    marginHorizontal: 24,
+    marginBottom: 16,
+    borderRadius: 24,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  secondaryActionButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 16,
+    color: '#647C90',
+    fontWeight: '600',
   },
   resetButton: {
     marginHorizontal: 24,

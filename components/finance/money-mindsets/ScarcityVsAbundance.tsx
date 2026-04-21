@@ -9,6 +9,7 @@ import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
+import { personalizeGreeting, useFirstName } from '@/utils/hooks/useFirstName';
 
 interface BeliefPair {
     id: number;
@@ -82,6 +83,7 @@ export default function ScarcityVsAbundance({ onComplete, onBack }: ScarcityVsAb
     const [showMismatch, setShowMismatch] = useState(false);
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const firstName = useFirstName();
     const [scarcityMatchedPairs, setScarcityMatchedPairs] = useStorage<number[]>('SCARCITY_MATCHED_PAIRS', []);
 
     // Ensure we always have an array, even if storage returns null/undefined
@@ -295,7 +297,9 @@ export default function ScarcityVsAbundance({ onComplete, onBack }: ScarcityVsAb
                                 />
                             </View>
 
-                            <Text style={commonStyles.introTitle}>Welcome Back!</Text>
+                            <Text style={commonStyles.introTitle}>
+                                {personalizeGreeting('Welcome Back', firstName)}
+                            </Text>
                             <Text style={commonStyles.introDescription}>
                                 Today, we're exploring how our mindset about scarcity and abundance shapes our relationship with money.
                             </Text>

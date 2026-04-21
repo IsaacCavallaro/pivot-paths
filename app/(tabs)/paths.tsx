@@ -38,7 +38,7 @@ export default function PathsScreen() {
   };
 
   const handleBackPress = () => {
-    router.push('/(tabs)/');
+    router.push('/');
   };
 
   const scaleValues = categories.map(() => useSharedValue(1));

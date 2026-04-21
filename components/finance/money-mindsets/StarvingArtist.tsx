@@ -11,6 +11,7 @@ import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
+import { personalizeGreeting, useFirstName } from '@/utils/hooks/useFirstName';
 
 interface BeliefPair {
     id: number;
@@ -91,6 +92,7 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
     const [animatedValues] = useState(() => new Map());
 
     const { scrollViewRef, scrollToTop } = useScrollToTop();
+    const firstName = useFirstName();
     const { addJournalEntry: addMorningJournalEntry } = useJournaling('money-mindsets');
     const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('money-mindsets');
 
@@ -311,7 +313,9 @@ export default function StarvingArtist({ onComplete, onBack }: StarvingArtistPro
                                 />
                             </View>
 
-                            <Text style={commonStyles.introTitle}>Welcome Back!</Text>
+                            <Text style={commonStyles.introTitle}>
+                                {personalizeGreeting('Welcome Back', firstName)}
+                            </Text>
                             <Text style={commonStyles.introDescription}>
                                 Today, we're diving into the money mindsets that shape our thinking as artists and dancers.
                             </Text>

@@ -1,12 +1,15 @@
 {
-  "name": "bolt-expo-starter",
+  "name": "pivot-paths",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "EXPO_NO_TELEMETRY=1 expo start",
     "build:web": "expo export --platform web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "jest --runInBand",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@expo-google-fonts/merriweather": "^0.4.1",
@@ -48,8 +51,15 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@playwright/test": "^1.59.1",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.0.10",
     "@types/react-native-svg-charts": "^5.0.16",
+    "jest": "^29.7.0",
+    "jest-expo": "^53.0.14",
+    "react-test-renderer": "^19.0.0",
     "typescript": "~5.8.3"
   }
 }

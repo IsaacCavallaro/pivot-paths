@@ -1,2 +1,7 @@
 expo-env.d.ts
 node_modules/
+.expo/
+.DS_Store
+npm-debug.log*
+playwright-report/
+test-results/

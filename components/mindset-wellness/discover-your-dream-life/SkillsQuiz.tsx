@@ -11,6 +11,7 @@ import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
+import { personalizeGreeting, useFirstName } from '@/utils/hooks/useFirstName';
 
 interface QuizQuestion {
   id: number;
@@ -283,6 +284,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
 
   const { scrollViewRef, scrollToTop } = useScrollToTop();
+  const firstName = useFirstName();
   const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
   const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
 
@@ -415,7 +417,7 @@ export default function DreamerTypeQuiz({ onComplete, onBack }: DreamerTypeQuizP
               </View>
 
               <Text style={commonStyles.introTitle}>
-                Welcome to Your Path
+                {personalizeGreeting('Welcome to Your Path', firstName)}
               </Text>
 
               <Text style={commonStyles.introDescription}>

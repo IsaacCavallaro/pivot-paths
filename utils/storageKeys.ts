@@ -1,4 +1,7 @@
 export const STORAGE_KEYS = {
+    HAS_COMPLETED_ONBOARDING: 'hasCompletedOnboarding',
+    PREFERRED_CATEGORY_ID: 'preferredCategoryId',
+    FIRST_NAME: 'firstName',
     DREAM_BIGGER_CHOICES: 'dreamBiggerChoices',
     MYTH_BUSTER_MATCHED_PAIRS: 'mythBusterMatchedPairs',
     DAY1_SKILLS_QUIZ_RESULT: 'day1SkillsQuizResult',

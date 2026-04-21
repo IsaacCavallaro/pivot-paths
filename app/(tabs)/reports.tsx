@@ -29,16 +29,7 @@ import { useStorage } from '@/hooks/useStorage';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
 import { storageService } from '@/utils/storageService';
 import { MOOD_OPTIONS } from '@/utils/constants';
-
-interface JournalEntry {
-    id: string;
-    pathTag: string;
-    day: string; // Changed from number to string
-    date: string; // Added date field
-    content: string;
-    mood?: string;
-    timestamp: number; // This field is not in utils/interfaces.ts, but seems to be used here. I will keep it for now.
-}
+import { JournalEntry } from '@/utils/interfaces';
 
 interface MoodStats {
     [key: string]: number;

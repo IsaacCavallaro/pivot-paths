@@ -433,7 +433,7 @@ export default function OvercomeAnalysisParalysis({ onComplete, onBack }: Overco
                                 />
                             </View>
 
-                            <Text style={commonStyles.reflectionTitle}>Action > Analysis</Text>
+                            <Text style={commonStyles.reflectionTitle}>Action {'>'} Analysis</Text>
 
                             <Text style={commonStyles.reflectionDescription}>
                                 Great job! Notice how each overthinking thought can be paired with a small action.

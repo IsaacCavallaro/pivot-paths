@@ -92,7 +92,9 @@ export default function TryItOn({ onComplete, onBack }: TryItOnProps) {
         }
     ];
 
-    const handleStartTryItOn = () => {
+    const handleStartTryItOn = async () => {
+        await setCurrentScenario(0);
+        await setScenarioResponses({});
         setCurrentScreen(0);
         scrollToTop();
     };

@@ -569,7 +569,7 @@ export default function Generosity({ onComplete, onBack }: GenerosityProps) {
                                     webViewProps={{
                                         allowsFullscreenVideo: true,
                                     }}
-                                    onChangeState={(state) => {
+                                    onChangeState={(state: string) => {
                                         console.log('Video state:', state);
                                     }}
                                 />

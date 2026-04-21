@@ -207,7 +207,7 @@ export default function TamingYourDebt({ onComplete, onBack }: TamingYourDebtPro
             useNativeDriver: true,
         }).start(() => {
             setCurrentMethodIndex(prevScreen.methodIndex);
-            setShowHowToExecute(prevScreen.showNew);
+            setShowHowToExecute(prevScreen.showHowTo);
             Animated.timing(fadeAnim, {
                 toValue: 1,
                 duration: 300,

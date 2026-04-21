@@ -388,7 +388,10 @@ export default function PathDetailScreen() {
 
   const handleDayPress = async (dayNumber: number) => {
     if (dayNumber <= progress + 1) {
-      const dayData = path.days[dayNumber - 1];
+      const dayData = path?.days[dayNumber - 1];
+      if (!dayData) {
+        return;
+      }
 
       // Save current day when user selects it
       const progressKey = `${categoryId}_${pathId}`;
@@ -580,7 +583,7 @@ export default function PathDetailScreen() {
     router.push(`/(tabs)/categories/${categoryId}`);
   };
 
-  const handleQuizComplete = async (result: any) => {
+  const handleQuizComplete = async (result?: any) => {
     setQuizResult(result);
     setShowQuiz(false);
     const newProgress = Math.max(progress, currentDay);
@@ -588,7 +591,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleMythBusterComplete = async (result: any) => {
+  const handleMythBusterComplete = async (result?: any) => {
     setMythBusterResult(true);
     setShowMythBuster(false);
     // Mark day as completed
@@ -597,7 +600,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleRoleplayComplete = async (result: any) => {
+  const handleRoleplayComplete = async (result?: any) => {
     setRoleplayResult(true);
     setShowRoleplay(false);
     // Mark day as completed
@@ -606,7 +609,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleDreamBiggerComplete = async (result: any) => {
+  const handleDreamBiggerComplete = async (result?: any) => {
     setDreamBiggerResult(true);
     setShowDreamBigger(false);
     // Mark day as completed
@@ -615,7 +618,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleValuesComplete = async (result: any) => {
+  const handleValuesComplete = async (result?: any) => {
     setValuesResult(result);
     setShowValuesDiscovery(false);
     // Mark day as completed
@@ -624,7 +627,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleExpandYourHorizonsComplete = async (result: any) => {
+  const handleExpandYourHorizonsComplete = async (result?: any) => {
     setExpandYourHorizonsResult(true);
     setShowExpandYourHorizons(false);
     // Mark day as completed
@@ -633,7 +636,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleWhatEnergizesYouComplete = async (result: any) => {
+  const handleWhatEnergizesYouComplete = async (result?: any) => {
     setWhatEnergizesYouResult(true);
     setShowWhatEnergizesYou(false);
     // Mark day as completed
@@ -642,7 +645,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleSparkCuriosityComplete = async (result: any) => {
+  const handleSparkCuriosityComplete = async (result?: any) => {
     setSparkCuriosityResult(result);
     setShowSparkCuriosity(false);
     // Mark day as completed
@@ -651,7 +654,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleTryItOnComplete = async (result: any) => {
+  const handleTryItOnComplete = async (result?: any) => {
     setTryItOnResult(result);
     setShowTryItOn(false);
     // Mark day as completed
@@ -660,7 +663,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleBreakOutOfYourBubbleComplete = async (result: any) => {
+  const handleBreakOutOfYourBubbleComplete = async (result?: any) => {
     setBreakOutOfYourBubbleResult(result);
     setShowBreakOutOfYourBubble(false);
     // Mark day as completed
@@ -669,7 +672,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleFlipScriptComplete = async (result: any) => {
+  const handleFlipScriptComplete = async (result?: any) => {
     setFlipScriptResult(true);
     setShowFlipScript(false);
     // Mark day as completed
@@ -678,7 +681,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleVoiceMessageComplete = async (result: any) => {
+  const handleVoiceMessageComplete = async (result?: any) => {
     setVoiceMessageResult(true);
     setShowVoiceMessage(false);
     // Mark day as completed
@@ -687,7 +690,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleDealBreakerGameComplete = async (result: any) => {
+  const handleDealBreakerGameComplete = async (result?: any) => {
     setDealBreakerGameResult(true);
     setShowDealBreakerGame(false);
     // Mark day as completed
@@ -696,7 +699,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleYourFirstExperimentComplete = async (result: any) => {
+  const handleYourFirstExperimentComplete = async (result?: any) => {
     setYourFirstExperimentResult(result);
     setShowYourFirstExperiment(false);
     const newProgress = Math.max(progress, currentDay);
@@ -704,7 +707,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleStartWithYourStrengthsComplete = async (result: any) => {
+  const handleStartWithYourStrengthsComplete = async (result?: any) => {
     setStartWithYourStrengthsResult(result);
     setShowStartWithYourStrengths(false);
     const newProgress = Math.max(progress, currentDay);
@@ -712,7 +715,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleFindYourLearningStyleComplete = async (result: any) => {
+  const handleFindYourLearningStyleComplete = async (result?: any) => {
     setFindYourLearningStyleResult(result);
     setShowFindYourLearningStyle(false);
     const newProgress = Math.max(progress, currentDay);
@@ -720,7 +723,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleWorkBackwardsComplete = async (result: any) => {
+  const handleWorkBackwardsComplete = async (result?: any) => {
     setWorkBackwardsResult(result);
     setShowWorkBackwards(false);
     const newProgress = Math.max(progress, currentDay);
@@ -728,7 +731,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleYourHiddenNetworkComplete = async (result: any) => {
+  const handleYourHiddenNetworkComplete = async (result?: any) => {
     setYourHiddenNetworkResult(result);
     setShowYourHiddenNetwork(false);
     const newProgress = Math.max(progress, currentDay);
@@ -736,7 +739,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleOvercomeAnalysisParalysisComplete = async (result: any) => {
+  const handleOvercomeAnalysisParalysisComplete = async (result?: any) => {
     setOvercomeAnalysisParalysisResult(result);
     setShowOvercomeAnalysisParalysis(false);
     const newProgress = Math.max(progress, currentDay);
@@ -744,7 +747,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleEmbraceTheBeginnerComplete = async (result: any) => {
+  const handleEmbraceTheBeginnerComplete = async (result?: any) => {
     setEmbraceTheBeginnerResult(result);
     setShowEmbraceTheBeginner(false);
     const newProgress = Math.max(progress, currentDay);
@@ -752,7 +755,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleJustStartComplete = async (result: any) => {
+  const handleJustStartComplete = async (result?: any) => {
     setJustStartResult(result);
     setShowJustStart(false);
     const newProgress = Math.max(progress, currentDay);
@@ -760,7 +763,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleConfidenceGapComplete = async (result: any) => {
+  const handleConfidenceGapComplete = async (result?: any) => {
     setConfidenceGapResult(result);
     setShowConfidenceGap(false);
     const newProgress = Math.max(progress, currentDay);
@@ -768,7 +771,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleCureImposterSyndromeComplete = async (result: any) => {
+  const handleCureImposterSyndromeComplete = async (result?: any) => {
     setCureImposterSyndromeResult(result);
     setShowCureImposterSyndrome(false);
     const newProgress = Math.max(progress, currentDay);
@@ -776,7 +779,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleTalkTheTalkComplete = async (result: any) => {
+  const handleTalkTheTalkComplete = async (result?: any) => {
     setTalkTheTalkResult(result);
     setShowTalkTheTalk(false);
     const newProgress = Math.max(progress, currentDay);
@@ -784,7 +787,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleDanceSkillMatchComplete = async (result: any) => {
+  const handleDanceSkillMatchComplete = async (result?: any) => {
     setDanceSkillMatchResult(result);
     setShowDanceSkillMatch(false);
     const newProgress = Math.max(progress, currentDay);
@@ -792,7 +795,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleLinkedinUpgradeComplete = async (result: any) => {
+  const handleLinkedinUpgradeComplete = async (result?: any) => {
     setLinkedinUpgradeResult(result);
     setShowLinkedinUpgrade(false);
     const newProgress = Math.max(progress, currentDay);
@@ -800,7 +803,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleWhoWouldYouHireComplete = async (result: any) => {
+  const handleWhoWouldYouHireComplete = async (result?: any) => {
     setWhoWouldYouHireResult(result);
     setShowWhoWouldYouHire(false);
     const newProgress = Math.max(progress, currentDay);
@@ -808,7 +811,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleMakeYourPlanComplete = async (result: any) => {
+  const handleMakeYourPlanComplete = async (result?: any) => {
     setMakeYourPlanResult(result);
     setShowMakeYourPlan(false);
     const newProgress = Math.max(progress, currentDay);
@@ -816,7 +819,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleBeyondYourIdentityComplete = async (result: any) => {
+  const handleBeyondYourIdentityComplete = async (result?: any) => {
     setBeyondYourIdentityResult(result);
     setShowBeyondYourIdentity(false);
     const newProgress = Math.max(progress, currentDay);
@@ -824,7 +827,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleLettingGoOfValidationComplete = async (result: any) => {
+  const handleLettingGoOfValidationComplete = async (result?: any) => {
     setLettingGoOfValidationResult(result);
     setShowLettingGoOfValidation(false);
     const newProgress = Math.max(progress, currentDay);
@@ -832,7 +835,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleGriefComplete = async (result: any) => {
+  const handleGriefComplete = async (result?: any) => {
     setGriefResult(result);
     setShowGrief(false);
     const newProgress = Math.max(progress, currentDay);
@@ -840,7 +843,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleDecisionMakingComplete = async (result: any) => {
+  const handleDecisionMakingComplete = async (result?: any) => {
     setDecisionMakingResult(result);
     setShowDecisionMaking(false);
     const newProgress = Math.max(progress, currentDay);
@@ -848,7 +851,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleSunkCostFallacyComplete = async (result: any) => {
+  const handleSunkCostFallacyComplete = async (result?: any) => {
     setSunkCostFallacyResult(result);
     setShowSunkCostFallacy(false);
     const newProgress = Math.max(progress, currentDay);
@@ -856,7 +859,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleMissingDanceComplete = async (result: any) => {
+  const handleMissingDanceComplete = async (result?: any) => {
     setMissingDanceResult(result);
     setShowMissingDance(false);
     const newProgress = Math.max(progress, currentDay);
@@ -864,7 +867,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleIgniteYourCuriosityComplete = async (result: any) => {
+  const handleIgniteYourCuriosityComplete = async (result?: any) => {
     setIgniteYourCuriosityResult(result);
     setShowIgniteYourCuriosity(false);
     const newProgress = Math.max(progress, currentDay);
@@ -872,7 +875,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleEnergyAuditComplete = async (result: any) => {
+  const handleEnergyAuditComplete = async (result?: any) => {
     setEnergyAuditResult(result);
     setShowEnergyAudit(false);
     const newProgress = Math.max(progress, currentDay);
@@ -880,7 +883,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleHobbyHuntingComplete = async (result: any) => {
+  const handleHobbyHuntingComplete = async (result?: any) => {
     setHobbyHuntingResult(result);
     setShowHobbyHunting(false);
     const newProgress = Math.max(progress, currentDay);
@@ -888,7 +891,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleMoreThanWorkComplete = async (result: any) => {
+  const handleMoreThanWorkComplete = async (result?: any) => {
     setMoreThanWorkResult(result);
     setShowMoreThanWork(false);
     const newProgress = Math.max(progress, currentDay);
@@ -896,7 +899,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleBoundariesCheckComplete = async (result: any) => {
+  const handleBoundariesCheckComplete = async (result?: any) => {
     setBoundariesCheckResult(result);
     setShowBoundariesCheck(false);
     const newProgress = Math.max(progress, currentDay);
@@ -904,7 +907,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleTimeMappingComplete = async (result: any) => {
+  const handleTimeMappingComplete = async (result?: any) => {
     setTimeMappingResult(result);
     setShowTimeMapping(false);
     const newProgress = Math.max(progress, currentDay);
@@ -912,7 +915,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleANewYouComplete = async (result: any) => {
+  const handleANewYouComplete = async (result?: any) => {
     setANewYouResult(result);
     setShowANewYou(false);
     const newProgress = Math.max(progress, currentDay);
@@ -920,7 +923,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleReflectAndAdjustComplete = async (result: any) => {
+  const handleReflectAndAdjustComplete = async (result?: any) => {
     setReflectAndAdjustResult(result);
     setShowReflectAndAdjust(false);
     const newProgress = Math.max(progress, currentDay);
@@ -928,7 +931,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleStarvingArtistComplete = async (result: any) => {
+  const handleStarvingArtistComplete = async (result?: any) => {
     setStarvingArtistResult(result);
     setShowStarvingArtist(false);
     const newProgress = Math.max(progress, currentDay);
@@ -936,7 +939,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleKnowYourValueComplete = async (result: any) => {
+  const handleKnowYourValueComplete = async (result?: any) => {
     setKnowYourValueResult(result);
     setShowKnowYourValue(false);
     const newProgress = Math.max(progress, currentDay);
@@ -944,7 +947,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleGenerosityComplete = async (result: any) => {
+  const handleGenerosityComplete = async (result?: any) => {
     setGenerosityResult(result);
     setShowGenerosity(false);
     const newProgress = Math.max(progress, currentDay);
@@ -952,7 +955,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleShameAroundMoneyComplete = async (result: any) => {
+  const handleShameAroundMoneyComplete = async (result?: any) => {
     setShameAroundMoneyResult(result);
     setShowShameAroundMoney(false);
     const newProgress = Math.max(progress, currentDay);
@@ -960,7 +963,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleScarcityVsAbundanceComplete = async (result: any) => {
+  const handleScarcityVsAbundanceComplete = async (result?: any) => {
     setScarcityVsAbundanceResult(result);
     setShowScarcityVsAbundance(false);
     const newProgress = Math.max(progress, currentDay);
@@ -968,7 +971,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleMoreMoneyMoreHeadroomComplete = async (result: any) => {
+  const handleMoreMoneyMoreHeadroomComplete = async (result?: any) => {
     setMoreMoneyMoreHeadroomResult(result);
     setShowMoreMoneyMoreHeadroom(false);
     const newProgress = Math.max(progress, currentDay);
@@ -976,7 +979,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleYourStartingLineComplete = async (result: any) => {
+  const handleYourStartingLineComplete = async (result?: any) => {
     setYourStartingLineResult(result);
     setShowYourStartingLine(false);
     const newProgress = Math.max(progress, currentDay);
@@ -984,7 +987,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleGoalSettingComplete = async (result: any) => {
+  const handleGoalSettingComplete = async (result?: any) => {
     setGoalSettingResult(result);
     setShowGoalSetting(false);
     const newProgress = Math.max(progress, currentDay);
@@ -992,7 +995,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleSpendingTemperatureCheckComplete = async (result: any) => {
+  const handleSpendingTemperatureCheckComplete = async (result?: any) => {
     setSpendingTemperatureCheckResult(result);
     setShowSpendingTemperatureCheck(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1000,7 +1003,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleBudgetingMethodsDecodedComplete = async (result: any) => {
+  const handleBudgetingMethodsDecodedComplete = async (result?: any) => {
     setBudgetingMethodsDecodedResult(result);
     setShowBudgetingMethodsDecoded(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1008,7 +1011,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleEmergencyComplete = async (result: any) => {
+  const handleEmergencyComplete = async (result?: any) => {
     setEmergencyResult(result);
     setShowEmergency(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1016,7 +1019,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleMeetYourMustHavesComplete = async (result: any) => {
+  const handleMeetYourMustHavesComplete = async (result?: any) => {
     setMeetYourMustHavesResult(result);
     setShowMeetYourMustHaves(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1024,7 +1027,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleFeastOrFamineComplete = async (result: any) => {
+  const handleFeastOrFamineComplete = async (result?: any) => {
     setFeastOrFamineResult(result);
     setShowFeastOrFamine(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1032,7 +1035,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleSavingsSprintComplete = async (result: any) => {
+  const handleSavingsSprintComplete = async (result?: any) => {
     setSavingsSprintResult(result);
     setShowSavingsSprint(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1040,7 +1043,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleTamingYourDebtComplete = async (result: any) => {
+  const handleTamingYourDebtComplete = async (result?: any) => {
     setTamingYourDebtResult(result);
     setShowTamingYourDebt(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1048,7 +1051,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleSideHustleScoreCardComplete = async (result: any) => {
+  const handleSideHustleScoreCardComplete = async (result?: any) => {
     setSideHustleScoreCardResult(result);
     setShowSideHustleScoreCard(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1056,7 +1059,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleAskForMoreComplete = async (result: any) => {
+  const handleAskForMoreComplete = async (result?: any) => {
     setAskForMoreResult(result);
     setShowAskForMore(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1064,7 +1067,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleTheTotalPackageComplete = async (result: any) => {
+  const handleTheTotalPackageComplete = async (result?: any) => {
     setTheTotalPackageResult(result);
     setShowTheTotalPackage(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1072,7 +1075,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleInvestmentInvestigationsComplete = async (result: any) => {
+  const handleInvestmentInvestigationsComplete = async (result?: any) => {
     setInvestmentInvestigationsResult(result);
     setShowInvestmentInvestigations(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1080,7 +1083,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleLifestyleCreepRiskMeterComplete = async (result: any) => {
+  const handleLifestyleCreepRiskMeterComplete = async (result?: any) => {
     setLifestyleCreepRiskMeterResult(result);
     setShowLifestyleCreepRiskMeter(false);
     const newProgress = Math.max(progress, currentDay);
@@ -1088,7 +1091,7 @@ export default function PathDetailScreen() {
     router.push(`/profile`);
   };
 
-  const handleCelebrateTheWinsComplete = async (result: any) => {
+  const handleCelebrateTheWinsComplete = async (result?: any) => {
     setCelebrateTheWinsResult(result);
     setShowCelebrateTheWins(false);
     const newProgress = Math.max(progress, currentDay);

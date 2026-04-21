@@ -11,6 +11,7 @@ import { PrimaryButton } from '@/utils/ui-components/PrimaryButton';
 import { JournalEntrySection } from '@/utils/ui-components/JournalEntrySection';
 import { Card } from '@/utils/ui-components/Card';
 import { commonStyles } from '@/utils/styles/commonStyles';
+import { personalizeGreeting, useFirstName } from '@/utils/hooks/useFirstName';
 
 const { width, height } = Dimensions.get('window');
 
@@ -304,6 +305,7 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
   const [selectedEndOfDayMood, setSelectedEndOfDayMood] = useState<string | null>(null);
 
   const { scrollViewRef, scrollToTop } = useScrollToTop();
+  const firstName = useFirstName();
   const { addJournalEntry: addMorningJournalEntry } = useJournaling('discover-dream-life');
   const { addJournalEntry: addEndOfDayJournalEntry } = useJournaling('discover-dream-life');
   const [valuesDiscoveryResult, setValuesDiscoveryResult] = useStorage<ValuesResult | null>('VALUES_DISCOVERY_RESULT', null);
@@ -510,7 +512,9 @@ export default function ValuesDiscovery({ onComplete, onBack }: ValuesDiscoveryP
                 />
               </View>
 
-              <Text style={commonStyles.introTitle}>Welcome back!</Text>
+              <Text style={commonStyles.introTitle}>
+                {personalizeGreeting('Welcome Back', firstName)}
+              </Text>
 
               <Text style={commonStyles.introDescription}>
                 When we considered the alternative to living a life in dance on Day 3, we did it so that we can start to actively choose options that more closely align with who we are now. But do you really know what you actually align with? That's what we're doing today… getting in touch with what you actually value.

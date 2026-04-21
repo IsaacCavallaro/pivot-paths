@@ -1,15 +1,20 @@
 {
   "expo": {
-    "name": "bolt-expo-nativewind",
-    "slug": "bolt-expo-nativewind",
-    "version": "1.0.0",
+    "name": "Pivot Paths",
+    "slug": "pivot-paths",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "pivotpaths",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "description": "A guided career transition app for dancers navigating what comes next.",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.isaaccavallaro.pivotpaths"
+    },
+    "android": {
+      "package": "com.isaaccavallaro.pivotpaths"
     },
     "web": {
       "bundler": "metro",

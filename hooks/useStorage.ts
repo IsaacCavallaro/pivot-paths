@@ -6,12 +6,12 @@ import { STORAGE_KEYS } from '@/utils/storageKeys';
  * A custom React hook for managing data in AsyncStorage.
  * It provides a stateful value that is synchronized with AsyncStorage.
  *
- * @param key The key from STORAGE_KEYS to use for AsyncStorage.
+ * @param key The storage key to use for AsyncStorage. Known STORAGE_KEYS aliases are resolved automatically.
  * @param initialValue The initial value to use if no data is found in AsyncStorage.
  * @returns A tuple containing the current value and a function to update it.
  */
-export function useStorage<T>(key: keyof typeof STORAGE_KEYS, initialValue: T): [T, (value: T | ((prev: T) => T)) => Promise<void>] {
-    const storageKey = STORAGE_KEYS[key];
+export function useStorage<T>(key: string, initialValue: T): [T, (value: T | ((prev: T) => T)) => Promise<void>] {
+    const storageKey = STORAGE_KEYS[key as keyof typeof STORAGE_KEYS] ?? key;
     const [storedValue, setStoredValue] = useState<T>(initialValue);
     const [isLoaded, setIsLoaded] = useState(false);
 

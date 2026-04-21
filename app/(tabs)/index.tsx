@@ -1,14 +1,26 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Linking } from 'react-native';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
-import { ChevronRight, Play, BookOpen, Instagram, Youtube, Facebook, Linkedin } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ChevronRight, Play, BookOpen, Instagram, Youtube, Facebook, Linkedin, Compass } from 'lucide-react-native';
 import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { categories, getCategoryById, getPathById } from '@/data/categories';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [resumeProgress, setResumeProgress] = useState<{
+    categoryId: string;
+    pathId: string;
+    pathTitle: string;
+    categoryTitle: string;
+    currentDay: number;
+    totalDays: number;
+    percentage: number;
+  } | null>(null);
 
   // Add this scroll ref for tab navigation
   const scrollRef = useRef<ScrollView>(null);
@@ -17,12 +29,65 @@ export default function HomeScreen() {
   // Add this to scroll to top when screen comes into focus
   useFocusEffect(
     useCallback(() => {
+      loadHomeState();
+
       // Scroll to top when screen is focused
       if (scrollRef.current) {
         scrollRef.current.scrollTo({ y: 0, animated: false });
       }
     }, [])
   );
+
+  const loadHomeState = async () => {
+    try {
+      const savedProgress = await AsyncStorage.getItem(STORAGE_KEYS.PATH_PROGRESS);
+
+      if (!savedProgress) {
+        setResumeProgress(null);
+        return;
+      }
+
+      const progressData = JSON.parse(savedProgress) as Record<string, number>;
+      const rankedEntries = Object.entries(progressData)
+        .filter(([, value]) => typeof value === 'number' && value > 0)
+        .sort((a, b) => b[1] - a[1]);
+
+      const topEntry = rankedEntries[0];
+
+      if (!topEntry) {
+        setResumeProgress(null);
+        return;
+      }
+
+      const [progressKey, completedDays] = topEntry;
+      const [categoryId, pathId] = progressKey.split('_');
+      const category = getCategoryById(categoryId);
+      const path = getPathById(categoryId, pathId);
+
+      if (!category || !path) {
+        setResumeProgress(null);
+        return;
+      }
+
+      const savedCurrentDay = await AsyncStorage.getItem(`currentDay_${progressKey}`);
+      const totalDays = path.days.length || path.totalDays || 1;
+      const currentDay = savedCurrentDay ? Number(savedCurrentDay) : Math.min(completedDays + 1, totalDays);
+      const percentage = Math.min(100, Math.round((completedDays / totalDays) * 100));
+
+      setResumeProgress({
+        categoryId,
+        pathId,
+        pathTitle: path.title,
+        categoryTitle: category.title,
+        currentDay,
+        totalDays,
+        percentage,
+      });
+    } catch (error) {
+      console.error('Error loading home state:', error);
+      setResumeProgress(null);
+    }
+  };
 
   const handleExternalLink = () => {
     Linking.openURL('https://pivotfordancers.com/services/mentorship/');
@@ -38,6 +103,19 @@ export default function HomeScreen() {
 
   const handleGuidedPathsPress = () => {
     router.push('/(tabs)/paths');
+  };
+
+  const handleContinuePress = () => {
+    if (resumeProgress) {
+      router.push({
+        pathname: '/(tabs)/paths/[categoryId]/[pathId]',
+        params: {
+          categoryId: resumeProgress.categoryId,
+          pathId: resumeProgress.pathId,
+        },
+      });
+      return;
+    }
   };
 
   const handleVideoStoriesPress = () => {
@@ -89,6 +167,37 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
+
+      {resumeProgress && (
+        <View style={styles.resumeSection}>
+          <View style={styles.resumeCard}>
+            <View style={styles.resumeHeader}>
+              <View style={styles.resumeIconWrap}>
+                <Compass size={22} color="#E2DED0" />
+              </View>
+              <View style={styles.resumeCopy}>
+                <Text style={styles.resumeEyebrow}>Continue where you left off</Text>
+                <Text style={styles.resumeTitle}>{resumeProgress.pathTitle}</Text>
+                <Text style={styles.resumeDescription}>
+                  {`Pick up on day ${resumeProgress.currentDay} of ${resumeProgress.totalDays} in ${resumeProgress.categoryTitle}.`}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.progressMeta}>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${resumeProgress.percentage}%` }]} />
+              </View>
+              <Text style={styles.progressText}>{resumeProgress.percentage}% completed</Text>
+            </View>
+
+            <TouchableOpacity style={styles.resumeButton} onPress={handleContinuePress}>
+              <Text style={styles.resumeButtonText}>Continue Path</Text>
+              <ChevronRight size={16} color="#E2DED0" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       <View style={styles.featuresSection}>
         <View style={styles.featuresGrid}>
@@ -214,8 +323,95 @@ const styles = StyleSheet.create({
   },
   featuresSection: {
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 16,
     paddingBottom: 15,
+  },
+  resumeSection: {
+    paddingHorizontal: 24,
+    marginTop: -28,
+    marginBottom: 8,
+  },
+  resumeCard: {
+    borderRadius: 26,
+    backgroundColor: '#F5F5F5',
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  resumeHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+  },
+  resumeIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#647C90',
+  },
+  resumeCopy: {
+    flex: 1,
+  },
+  resumeEyebrow: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 12,
+    color: '#928490',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 6,
+  },
+  resumeTitle: {
+    fontFamily: 'Merriweather-Bold',
+    fontSize: 24,
+    color: '#647C90',
+    marginBottom: 10,
+  },
+  resumeDescription: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#6F6874',
+  },
+  progressMeta: {
+    marginTop: 18,
+    marginBottom: 18,
+  },
+  progressBar: {
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: 'rgba(100, 124, 144, 0.12)',
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#647C90',
+  },
+  progressText: {
+    fontFamily: 'Montserrat-Medium',
+    fontSize: 13,
+    color: '#647C90',
+  },
+  resumeButton: {
+    marginTop: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#647C90',
+    borderRadius: 18,
+    paddingVertical: 16,
+    gap: 8,
+  },
+  resumeButtonText: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 15,
+    color: '#E2DED0',
   },
   featuresGrid: {
     marginTop: 8,
