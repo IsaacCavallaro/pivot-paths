@@ -43,4 +43,33 @@ export const storageService = {
             throw e;
         }
     },
+
+    /**
+     * Removes multiple keys from AsyncStorage.
+     * @param keys The keys to remove.
+     */
+    multiRemove: async (keys: string[]): Promise<void> => {
+        try {
+            if (keys.length === 0) {
+                return;
+            }
+
+            await AsyncStorage.multiRemove(keys);
+        } catch (e) {
+            console.error('Error removing multiple AsyncStorage keys:', e);
+            throw e;
+        }
+    },
+
+    /**
+     * Returns all AsyncStorage keys for the current app.
+     */
+    getAllKeys: async (): Promise<string[]> => {
+        try {
+            return [...(await AsyncStorage.getAllKeys())];
+        } catch (e) {
+            console.error('Error retrieving AsyncStorage keys:', e);
+            throw e;
+        }
+    },
 };

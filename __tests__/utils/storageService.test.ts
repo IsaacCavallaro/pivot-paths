@@ -29,4 +29,16 @@ describe('storageService', () => {
 
     expect(AsyncStorage.removeItem).toHaveBeenCalledWith('example');
   });
+
+  it('removes multiple stored keys', async () => {
+    await storageService.multiRemove(['one', 'two']);
+
+    expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(['one', 'two']);
+  });
+
+  it('returns all stored keys', async () => {
+    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce(['one', 'two']);
+
+    await expect(storageService.getAllKeys()).resolves.toEqual(['one', 'two']);
+  });
 });

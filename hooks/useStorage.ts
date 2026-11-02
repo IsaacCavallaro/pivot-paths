@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { storageService } from '@/utils/storageService';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
 
@@ -13,7 +13,7 @@ import { STORAGE_KEYS } from '@/utils/storageKeys';
 export function useStorage<T>(key: string, initialValue: T): [T, (value: T | ((prev: T) => T)) => Promise<void>] {
     const storageKey = STORAGE_KEYS[key as keyof typeof STORAGE_KEYS] ?? key;
     const [storedValue, setStoredValue] = useState<T>(initialValue);
-    const [isLoaded, setIsLoaded] = useState(false);
+    const storedValueRef = useRef<T>(initialValue);
 
     // Load data from AsyncStorage on component mount
     useEffect(() => {
@@ -21,12 +21,11 @@ export function useStorage<T>(key: string, initialValue: T): [T, (value: T | ((p
             try {
                 const value = await storageService.load<T>(storageKey);
                 if (value !== null) {
+                    storedValueRef.current = value;
                     setStoredValue(value);
                 }
             } catch (error) {
                 console.error(`Failed to load value for key "${storageKey}" from storage:`, error);
-            } finally {
-                setIsLoaded(true);
             }
         };
         loadValue();
@@ -35,13 +34,15 @@ export function useStorage<T>(key: string, initialValue: T): [T, (value: T | ((p
     // Update function that also saves to AsyncStorage
     const setValue = useCallback(async (value: T | ((prev: T) => T)) => {
         try {
-            const valueToStore = value instanceof Function ? value(storedValue) : value;
+            const previousValue = storedValueRef.current;
+            const valueToStore = value instanceof Function ? value(previousValue) : value;
+            storedValueRef.current = valueToStore;
             setStoredValue(valueToStore);
             await storageService.save(storageKey, valueToStore);
         } catch (error) {
             console.error(`Failed to save value for key "${storageKey}" to storage:`, error);
         }
-    }, [storageKey, storedValue]);
+    }, [storageKey]);
 
     return [storedValue, setValue];
 }

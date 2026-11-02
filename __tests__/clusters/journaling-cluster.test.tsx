@@ -68,7 +68,7 @@ describe('journaling cluster', () => {
 
   it('loads and updates stored values through useStorage', async () => {
     jest.spyOn(storageService, 'load').mockResolvedValueOnce(['existing']);
-    const saveSpy = jest.spyOn(storageService, 'save').mockResolvedValueOnce(undefined);
+    const saveSpy = jest.spyOn(storageService, 'save').mockResolvedValue(undefined);
 
     const { result } = renderHook(() =>
       useStorage('MYTH_BUSTER_MATCHED_PAIRS', [] as string[])
@@ -84,6 +84,29 @@ describe('journaling cluster', () => {
 
     expect(saveSpy).toHaveBeenCalledWith('mythBusterMatchedPairs', ['existing', 'next']);
     expect(result.current[0]).toEqual(['existing', 'next']);
+  });
+
+  it('applies consecutive functional updates without dropping intermediate state', async () => {
+    jest.spyOn(storageService, 'load').mockResolvedValueOnce(['existing']);
+    const saveSpy = jest.spyOn(storageService, 'save').mockResolvedValue(undefined);
+
+    const { result } = renderHook(() =>
+      useStorage('MYTH_BUSTER_MATCHED_PAIRS', [] as string[])
+    );
+
+    await waitFor(() => {
+      expect(result.current[0]).toEqual(['existing']);
+    });
+
+    await act(async () => {
+      await Promise.all([
+        result.current[1]((prev) => [...prev, 'next']),
+        result.current[1]((prev) => [...prev, 'later']),
+      ]);
+    });
+
+    expect(saveSpy).toHaveBeenLastCalledWith('mythBusterMatchedPairs', ['existing', 'next', 'later']);
+    expect(result.current[0]).toEqual(['existing', 'next', 'later']);
   });
 
   it('lets the journal entry section collect mood, save text, and show feedback', async () => {
