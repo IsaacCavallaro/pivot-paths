@@ -65,38 +65,12 @@ export default function ProfileScreen() {
 
   const confirmReset = async () => {
     try {
-      // Clear all progress-related data
-      await AsyncStorage.removeItem('pathProgress');
-      await AsyncStorage.removeItem('currentDay');
-      await AsyncStorage.removeItem('lastActiveDate');
-      await AsyncStorage.removeItem('streakDays');
+      const allKeys = await storageService.getAllKeys();
+      await storageService.multiRemove(allKeys);
 
-      // Clear all reflection data
-      const keys = await AsyncStorage.getAllKeys();
-      const reflectionKeys = keys.filter(key => key.startsWith('reflection_'));
-      const currentDayKeys = keys.filter(key => key.startsWith('currentDay_'));
-      if (reflectionKeys.length > 0) {
-        await AsyncStorage.multiRemove(reflectionKeys);
-      }
-      if (currentDayKeys.length > 0) {
-        await AsyncStorage.multiRemove(currentDayKeys);
-      }
-
-      // Clear all the specific storage keys
-      await AsyncStorage.multiRemove([
-        'dreamBiggerChoices',
-        'mythBusterMatchedPairs',
-        'day1SkillsQuizResult',
-        'journalEntries',
-        'pathProgress',
-        'roleplayScenarioChoice',
-        'valuesDiscoveryResult',
-        'starvingArtistrMatchedPairs'
-      ]);
-
-      // Reset local state
       setProgress({});
       setShowResetModal(false);
+      router.replace('/welcome');
     } catch (error) {
       console.error('Error resetting progress:', error);
       setShowResetModal(false);

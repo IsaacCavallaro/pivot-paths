@@ -25,7 +25,7 @@ import {
 } from 'lucide-react-native';
 import { PieChart } from 'react-native-svg-charts';
 
-import { useStorage } from '@/hooks/useStorage';
+import { getCategoryById, getPathById } from '@/data/categories';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
 import { storageService } from '@/utils/storageService';
 import { MOOD_OPTIONS } from '@/utils/constants';
@@ -38,10 +38,20 @@ interface MoodStats {
 interface CompletedPath {
     categoryId: string;
     pathId: string;
+    categoryTitle: string;
     pathName: string;
     completedDays: number;
     totalDays: number;
     completionDate: number;
+}
+
+interface InProgressPath {
+    categoryId: string;
+    pathId: string;
+    categoryTitle: string;
+    pathName: string;
+    completedDays: number;
+    totalDays: number;
 }
 
 // Add interfaces for the quiz results
@@ -164,11 +174,10 @@ const getMoodLabel = (mood: string): string => {
 
 export default function ReportsScreen() {
     const router = useRouter();
-    const [isPathCompleted, setIsPathCompleted] = useState(false);
     const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [completedDays, setCompletedDays] = useState(0);
+    const [currentPathProgress, setCurrentPathProgress] = useState<InProgressPath | null>(null);
     const [completedPaths, setCompletedPaths] = useState<CompletedPath[]>([]);
     const [selectedPath, setSelectedPath] = useState<CompletedPath | null>(null);
 
@@ -201,47 +210,70 @@ export default function ReportsScreen() {
         }, [])
     );
 
-    const formatPathIdToName = (pathId: string): string => {
-        return pathId
-            .split('-')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    };
-
     const loadReportData = async () => {
         try {
             setLoading(true);
 
-            const categoryId = 'mindset';
-            const pathId = 'discover-dream-life';
-            const progressKey = `${categoryId}_${pathId}`;
-
             const savedProgress = await storageService.load<Record<string, number>>(STORAGE_KEYS.PATH_PROGRESS);
             const progressData = savedProgress || {};
-            const currentCompletedDays = progressData[progressKey] || 0;
-            setCompletedDays(currentCompletedDays);
-
-            const pathCompleted = currentCompletedDays >= 7;
-            setIsPathCompleted(pathCompleted);
+            const savedCompletionDates = await storageService.load<Record<string, number>>(
+                STORAGE_KEYS.PATH_COMPLETION_DATES
+            );
+            const completionDates = savedCompletionDates || {};
 
             // Load all completed paths
             const completedPathsList: CompletedPath[] = [];
+            const inProgressPathsList: InProgressPath[] = [];
+
             Object.entries(progressData).forEach(([key, daysValue]) => {
                 const [catId, pathId] = key.split('_');
-                const totalDays = 7; // Assuming all paths have 7 days for now
-                const days = daysValue as number; // Explicitly cast to number
+                const category = getCategoryById(catId);
+                const path = getPathById(catId, pathId);
+
+                if (!category || !path) {
+                    return;
+                }
+
+                const totalDays = path.days.length || path.totalDays || 1;
+                const days = Math.max(0, Math.min(daysValue as number, totalDays));
+
                 if (days >= totalDays) {
                     completedPathsList.push({
                         categoryId: catId,
                         pathId: pathId,
-                        pathName: formatPathIdToName(pathId),
+                        categoryTitle: category.title,
+                        pathName: path.title,
                         completedDays: days,
                         totalDays,
-                        completionDate: Date.now() // You might want to store actual completion date
+                        completionDate: completionDates[key] || 0,
+                    });
+                    return;
+                }
+
+                if (days > 0) {
+                    inProgressPathsList.push({
+                        categoryId: catId,
+                        pathId,
+                        categoryTitle: category.title,
+                        pathName: path.title,
+                        completedDays: days,
+                        totalDays,
                     });
                 }
             });
             setCompletedPaths(completedPathsList);
+            setCurrentPathProgress(
+                inProgressPathsList.sort((left, right) => {
+                    const rightRatio = right.completedDays / right.totalDays;
+                    const leftRatio = left.completedDays / left.totalDays;
+
+                    if (rightRatio !== leftRatio) {
+                        return rightRatio - leftRatio;
+                    }
+
+                    return right.completedDays - left.completedDays;
+                })[0] ?? null
+            );
 
             // Load journal entries
             const rawEntries = await storageService.load<JournalEntry[]>(STORAGE_KEYS.JOURNAL_ENTRIES);
@@ -838,7 +870,7 @@ Keep up the great work on your pivot journey!
         );
     }
 
-    if (!isPathCompleted && completedPaths.length === 0) {
+    if (completedPaths.length === 0) {
         return (
             <View style={styles.container}>
                 <View style={[styles.stickyHeader, { backgroundColor: '#647C90' }]}>
@@ -858,12 +890,21 @@ Keep up the great work on your pivot journey!
                     <Text style={styles.emptyText}>
                         Complete a path to unlock your personalized journal insights report.
                     </Text>
+                    {currentPathProgress && (
+                        <Text style={styles.progressSummaryText}>
+                            {`${currentPathProgress.pathName}: ${currentPathProgress.completedDays}/${currentPathProgress.totalDays} days complete`}
+                        </Text>
+                    )}
                     <View style={styles.progressContainer}>
                         <View style={styles.progressBar}>
                             <View
                                 style={[
                                     styles.progressFill,
-                                    { width: `${(completedDays / 7) * 100}%` }
+                                    {
+                                        width: currentPathProgress
+                                            ? `${(currentPathProgress.completedDays / currentPathProgress.totalDays) * 100}%`
+                                            : '0%',
+                                    }
                                 ]}
                             />
                         </View>
@@ -1056,7 +1097,9 @@ Keep up the great work on your pivot journey!
                                         <View style={styles.pathInfo}>
                                             <Text style={styles.pathName}>{path.pathName}</Text>
                                             <Text style={styles.pathCompletion}>
-                                                Completed {new Date(path.completionDate).toLocaleDateString()}
+                                                {path.completionDate > 0
+                                                    ? `Completed ${new Date(path.completionDate).toLocaleDateString()}`
+                                                    : 'Completed'}
                                             </Text>
                                         </View>
                                         <View style={styles.pathStats}>
@@ -1106,6 +1149,13 @@ const styles = StyleSheet.create({
         color: '#928490',
         textAlign: 'center',
         lineHeight: 24,
+    },
+    progressSummaryText: {
+        fontSize: 14,
+        color: '#647C90',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginTop: 16,
     },
     progressContainer: {
         marginTop: 20,
